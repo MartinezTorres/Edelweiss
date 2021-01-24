@@ -87,8 +87,8 @@ static void updateSprite(uint8_t i) {
         
         spriteIdx = spritePermutations[isr.frameCount][i];
 
+        inverseSpriteMapping0[spriteIdx]=i;
         /*if (em2_buffer==0) {
-            inverseSpriteMapping0[spriteIdx]=i;
         } else {
             inverseSpriteMapping1[spriteIdx]=i;
         }*/
@@ -145,20 +145,22 @@ void updateSpriteAttributeTableISR1() { PROFILE(0, SPRITE_writeSpriteAttributes,
 
 // TO BE RUN INSIDE AN ISR
 void updateSpriteISR() {
+    
+    if (!isr.enableSprites) return;
 
-    /*{
+    {
         uint8_t s = TMS99X8_getStatusFromBios();
         if (s & 0x40) {
 
-            if (isr.em2_Buffer==0) {
+            //if (isr.em2_Buffer==0) {
                 sprites[inverseSpriteMapping0[(s>>1) & 15]].degradedCounter=4;
-                printf("illegalSprite %d\n", inverseSpriteMapping0[(s>>1) & 15]);
-            } else {
-                sprites[inverseSpriteMapping1[(s>>1) & 15]].degradedCounter=4;
-                printf("illegalSprite %d\n", inverseSpriteMapping1[(s>>1) & 15]);
-            }
+            //    printf("illegalSprite %d\n", inverseSpriteMapping0[(s>>1) & 15]);
+            //} else {
+            //   sprites[inverseSpriteMapping1[(s>>1) & 15]].degradedCounter=4;
+            //    printf("illegalSprite %d\n", inverseSpriteMapping1[(s>>1) & 15]);
+            //}
         }
-    }*/
+    }
     
     PROFILE(0, SPRITE_disableAllSprites, 4,
         //if (isr.em2_Buffer==0) {

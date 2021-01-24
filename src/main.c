@@ -47,21 +47,14 @@ static void overworld_isr(void) {
             }
             isr.requestPatternNameTransfer = true;
             isr.updateScroll = false;
+        } else {
+            CALL_PAGE(sprites, PAGE_B, updateSpriteISR());
         }
         
-        CALL_PAGE(sprites, PAGE_B, updateSpriteAttributeTableISR(0));
         
         break;
         
     case 1:
-    
-        CALL_PAGE(sprites, PAGE_B, updateSpriteAttributeTableISR(1));
-        if (isr.enableSprites) CALL_PAGE(sprites, PAGE_B, updateSpriteISR());
-
-        break;
-        
-    case 2:
-        
         if (isr.updateScrollStep2==0) {
 
             isr.nAnimationCount++;
@@ -71,7 +64,7 @@ static void overworld_isr(void) {
                 isr.animationUpdateRequested=true;
             }
                     
-            if (isr.enableAnimations && isr.animationUpdateRequested==true) { 
+            if (isr.requestPatternNameTransfer == false && isr.enableAnimations && isr.animationUpdateRequested==true) { 
                 overworld_update_animation();
                 isr.animationUpdateRequested=false;
             }                
@@ -84,30 +77,33 @@ static void overworld_isr(void) {
         }
         
         isr.updateScrollStep2 = 0;
-        
-        if (isr.requestPatternNameTransfer == false) CALL_PAGE(sprites, PAGE_B, updateSpriteAttributeTableISR(0));
 
+        break;
+        
+    case 2:
+        CALL_PAGE(sprites, PAGE_B, updateSpriteISR());
         break;
         
     case 3:
         if (isr.requestPatternNameTransfer) overworld_copyPN(1);
-        CALL_PAGE(sprites, PAGE_B, updateSpriteAttributeTableISR(1));
-        if (isr.enableSprites && isr.requestPatternNameTransfer==false)  CALL_PAGE(sprites, PAGE_B, updateSpriteISR());
         break;
         
     case 4:    
-        if (isr.requestPatternNameTransfer) overworld_copyPN(0);
-        CALL_PAGE(sprites, PAGE_B, updateSpriteAttributeTableISR(0));
+        if (isr.requestPatternNameTransfer) {
+            overworld_copyPN(0);
+        } else {
+            CALL_PAGE(sprites, PAGE_B, updateSpriteISR());
+        }
         break;
         
     case 5:
         if (isr.requestPatternNameTransfer) overworld_free();
-        CALL_PAGE(sprites, PAGE_B, updateSpriteAttributeTableISR(1));
-        if (isr.enableSprites && isr.requestPatternNameTransfer==false) CALL_PAGE(sprites, PAGE_B, updateSpriteISR());
         isr.requestPatternNameTransfer = false;            
         isr.frameCount6 = 0;
         break;
     }
+
+    CALL_PAGE(sprites, PAGE_B, updateSpriteAttributeTableISR(isr.em2_Buffer));
 
     //printf("Expected Delay: %i %d\n", isr.frameCount6, isr.cpuLoad);
 
@@ -250,6 +246,8 @@ static void loadPhonySprites() {
     
 }
 
+static uint8_t enableOsd;
+                    
 static void mapBrowser() {
     
     enable_keyboard_routine = false;
@@ -305,6 +303,9 @@ static void mapBrowser() {
                     isr.updateScroll = true;
                 }
                 if (key==J_SPACE) {
+                    enableOsd = !enableOsd;
+                    if (enableOsd) PROFILER_ENABLE_GUI();
+                   // if (!enableOsd) PROFILER_DISABLE_GUI();
                 }
             }
         }
@@ -316,6 +317,8 @@ int main(void) {
     // Normal initialization routine
     msxhal_init(); // Bare minimum initialization of the msx support 
     DI(); // This game has normally disabled interrupts. 
+
+//    PROFILER_INIT();
 
 #ifdef MSX    
 __asm
@@ -334,9 +337,14 @@ ld   a,#0x81              ; can be ld a,81h for R800 ROM if you wish
 call z,#0x0180
 __endasm; 
 #endif
+
+
     
     TMS99X8_activateMode2(MODE2_ALL_ROWS); 
     // Activates mode 2 and clears the screen (in black)
+
+//    TMS99X8.generateInterrupts = false;
+//    TMS99X8_syncFlags();
     
     while (true) {
         mapBrowser();

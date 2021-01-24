@@ -6,8 +6,9 @@ CCFLAGS_MSX   += -DKONAMI5
 CCFLAGS_MSX   += --all-callee-saves --opt-code-speed
 #CCFLAGS_MSX   += --reserve-regs-iy --callee-saves-bc
 
-OPENMSX_BIN = /opt/openMSX/bin/openmsx
-OPENMSX_PARAM = -command "profile::section_scope_bp frame 0xFD9F; profile_osd p;" 
+OPENMSX_BIN = openmsx
+#OPENMSX_PARAM = -command "profile::section_scope_bp frame 0xFD9F; profile_osd p;" 
+OPENMSX_PARAM = -command "profile::enable_z80_interface;" 
 
 ADDR_DATA = 0xC000
 

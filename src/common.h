@@ -10,6 +10,11 @@ __sfr __at 0x2D END_PROFILE_SECTION;
 
 const char * __at 0xF931 DEBUG_MSG_PTR;
 
+#define executeProfile(command) do { \
+    DEBUG_MSG_PTR = "exec:" command; \
+    START_PROFILE_SECTION = 0; \
+} while(false)
+
 #define startProfile(l, msg, expected) do { if (l<DEBUG_LEVEL) { \
     DEBUG_MSG_PTR = #msg; \
     START_PROFILE_SECTION = expected; \
@@ -20,11 +25,15 @@ const char * __at 0xF931 DEBUG_MSG_PTR;
 } } while(false)
 
 #else
+#define executeProfile(command) do { } while(false)
 #define startProfile(l, v, expected) do { } while(false)
 #define endProfile(l, v, expected) do { } while(false)
 #endif
 
-#define PROFILE(level, message, expected, content) do {  startProfile(level, message, expected); { content; } isr.cpuLoad += expected; endProfile(level, message, expected); }  while(false)
+#define PROFILER_ENABLE_GUI() executeProfile("profile::gui true")
+#define PROFILER_DISABLE_GUI() executeProfile("profile::gui false")
+
+#define PROFILE(level, message, expected, content) do {  startProfile(level, message, isr.cpuLoad); { content; } isr.cpuLoad += expected; endProfile(level, message, isr.cpuLoad); }  while(false)
 
 
 
