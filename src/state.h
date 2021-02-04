@@ -1,21 +1,37 @@
 #pragma once
 #include <common.h>
 
-typedef struct {
+struct Entity_T {
     
-    int16_tp pos, vel;
+    uint8_t enabled;
+    uint8_t active;
     
-} Entity;
+    uint8_t life;
+    uint8_t info; // to be used by the update routine
+    uint8_t invulnerable_frames;
+    
+    uint8_t segment;
+    uint8_t (*update)(struct Entity_T *, uint8_t entityIdx);
+    
+    uint16_tp pos;
+    int16_tp vel;
+    uint16_tp anchor;
+    uint8_t animationCounter;
+    
+};
+
+typedef struct Entity_T Entity;
 
 
 typedef struct {
+
+    uint8_t nEntities;
+    Entity entities[64]; // Entity 0 is the main player
     
-    // Entities can have a bounding box and or are interactive: e.g., player, enemies, obstacles, traps, triggers, spawn points.
-    SplitList_T(196,17,Entity) entities;
+    uint8_t nActiveEntities;
+    int8_t activeEntities[8];
     
     uint8_t joy; // Joystick status;
-    
-    Entity player;
     
 } State;
 

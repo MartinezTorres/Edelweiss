@@ -588,9 +588,7 @@ INLINE void _draw_col(uint8_t colScreen8) {
     }
 }
 
-void APPEND(MAP_NAME,_draw_col)(uint8_t colScreen8) {   
-    PROFILE(0, _draw_col, 25, _draw_col(colScreen8) ); 
-}
+void APPEND(MAP_NAME,_draw_col)(uint8_t colScreen8) {  _draw_col(colScreen8); }
 
 
 INLINE void _draw_tile8(uint8_t rowScreen8, uint8_t colScreen8) {
@@ -617,9 +615,7 @@ INLINE void _draw_tile8(uint8_t rowScreen8, uint8_t colScreen8) {
 }
 
 
-void APPEND(MAP_NAME,_draw_tile8)(uint8_t rowScreen8, uint8_t colScreen8) {
-    PROFILE(4, _draw_tile8, 0, _draw_tile8(rowScreen8, colScreen8) ); 
-}
+void APPEND(MAP_NAME,_draw_tile8)(uint8_t rowScreen8, uint8_t colScreen8) { _draw_tile8(rowScreen8, colScreen8); }
 
 static void renew_row_int_block();
 #ifdef MSX
@@ -669,130 +665,119 @@ static void renew_row_int_block() {
 
 void APPEND(MAP_NAME,_draw_row)(uint8_t rowScreen8) {
     
-    PROFILE(4, _draw_row, 30,
+	uint8_t rowWorld8 = rowScreen8 + map.pos.i;
+	uint8_t colWorld8 =  map.pos.j;
 
-        uint8_t rowWorld8 = rowScreen8 + map.pos.i;
-        uint8_t colWorld8 =  map.pos.j;
+	uint8_t rowWorld16 = rowWorld8 >> 1;
+	uint8_t colWorld16 = colWorld8 >> 1;
 
-        uint8_t rowWorld16 = rowWorld8 >> 1;
-        uint8_t colWorld16 = colWorld8 >> 1;
+	tile16IdxPtr = &MAP_MAP16[rowWorld16][colWorld16];
+	tile8IdxBase = &MAP_TILES16[0][rowWorld8&1][0];
+		
+		
+	stagesPtr = &map.stages[rowWorld16>>1][colWorld16>>1];
+	mapper_load_segment(*stagesPtr, PAGE_D); // stages apply in blocks of 32x32 pixels
+	
+	PN_Idx =  (rowWorld8<<5) + colWorld8;
+	mapper_load_module(MAP_TILES16, PAGE_C);
+	
+	bank = rowScreen8>>3;
+	bankPtr = &map.bank[bank];
+	
+	if ((map.pos.j&1)==0)  {
+		if ((colWorld16&1)==0) {
+			REPEAT8(
+				renew_row_int_block();
+				renew_row_int_block();
+				{ register const uint8_t *p = stagesPtr; p += 1; mapper_load_segment_fast(*p, PAGE_D); stagesPtr=p; }
+			);
 
-        tile16IdxPtr = &MAP_MAP16[rowWorld16][colWorld16];
-        tile8IdxBase = &MAP_TILES16[0][rowWorld8&1][0];
-            
-            
-        stagesPtr = &map.stages[rowWorld16>>1][colWorld16>>1];
-        mapper_load_segment(*stagesPtr, PAGE_D); // stages apply in blocks of 32x32 pixels
-        
-        PN_Idx =  (rowWorld8<<5) + colWorld8;
-        mapper_load_module(MAP_TILES16, PAGE_C);
-        
-        bank = rowScreen8>>3;
-        bankPtr = &map.bank[bank];
-        
-        if ((map.pos.j&1)==0)  {
-            if ((colWorld16&1)==0) {
-                REPEAT8(
-                    renew_row_int_block();
-                    renew_row_int_block();
-                    { register const uint8_t *p = stagesPtr; p += 1; mapper_load_segment_fast(*p, PAGE_D); stagesPtr=p; }
-                );
+		} else {
+			REPEAT8(
+				renew_row_int_block();
+				{ register const uint8_t *p = stagesPtr; p += 1; mapper_load_segment_fast(*p, PAGE_D); stagesPtr=p; }
+				renew_row_int_block();
+			);
+		}
+	} else {
+		if ((colWorld16&1)==0) {
+			{
+				const uint8_t *tile8IdxPtr = tile8IdxBase + 4 * *tile16IdxPtr;
+				populateTile8R(tile8IdxPtr + 1); PN_Idx ++;
+				tile16IdxPtr ++; 
+			}
+			UNROLL8(0,7,
+				renew_row_int_block();
+				{ register const uint8_t *p = stagesPtr; p += 1; mapper_load_segment_fast(*p, PAGE_D); stagesPtr=p; }
+				renew_row_int_block();
+			);
+			renew_row_int_block();
+			{ register const uint8_t *p = stagesPtr; p += 1; mapper_load_segment_fast(*p, PAGE_D); stagesPtr=p; }
+			{
+				const uint8_t *tile8IdxPtr = tile8IdxBase + 4 * *tile16IdxPtr;
+				populateTile8L(tile8IdxPtr); PN_Idx ++;
+			}
+		
 
-            } else {
-                REPEAT8(
-                    renew_row_int_block();
-                    { register const uint8_t *p = stagesPtr; p += 1; mapper_load_segment_fast(*p, PAGE_D); stagesPtr=p; }
-                    renew_row_int_block();
-                );
-            }
-        } else {
-            if ((colWorld16&1)==0) {
-                {
-                    const uint8_t *tile8IdxPtr = tile8IdxBase + 4 * *tile16IdxPtr;
-                    populateTile8R(tile8IdxPtr + 1); PN_Idx ++;
-                    tile16IdxPtr ++; 
-                }
-                UNROLL8(0,7,
-                    renew_row_int_block();
-                    { register const uint8_t *p = stagesPtr; p += 1; mapper_load_segment_fast(*p, PAGE_D); stagesPtr=p; }
-                    renew_row_int_block();
-                );
-                renew_row_int_block();
-                { register const uint8_t *p = stagesPtr; p += 1; mapper_load_segment_fast(*p, PAGE_D); stagesPtr=p; }
-                {
-                    const uint8_t *tile8IdxPtr = tile8IdxBase + 4 * *tile16IdxPtr;
-                    populateTile8L(tile8IdxPtr); PN_Idx ++;
-                }
-            
-
-            } else {
-                {
-                    const uint8_t *tile8IdxPtr = tile8IdxBase + 4 * *tile16IdxPtr;
-                    populateTile8R(tile8IdxPtr + 1); PN_Idx ++;
-                    tile16IdxPtr ++; 
-                }
-                { register const uint8_t *p = stagesPtr; p += 1; mapper_load_segment_fast(*p, PAGE_D); stagesPtr=p; }
-                UNROLL8(0,7,
-                    renew_row_int_block();
-                    renew_row_int_block();
-                    { register const uint8_t *p = stagesPtr; p += 1; mapper_load_segment_fast(*p, PAGE_D); stagesPtr=p; }
-                );
-                renew_row_int_block();
-                {
-                    const uint8_t *tile8IdxPtr = tile8IdxBase + 4 * *tile16IdxPtr;
-                    populateTile8L(tile8IdxPtr); PN_Idx ++;
-                    tile16IdxPtr ++; 
-                }                        
-            }
-        }
-        
-    );
+		} else {
+			{
+				const uint8_t *tile8IdxPtr = tile8IdxBase + 4 * *tile16IdxPtr;
+				populateTile8R(tile8IdxPtr + 1); PN_Idx ++;
+				tile16IdxPtr ++; 
+			}
+			{ register const uint8_t *p = stagesPtr; p += 1; mapper_load_segment_fast(*p, PAGE_D); stagesPtr=p; }
+			UNROLL8(0,7,
+				renew_row_int_block();
+				renew_row_int_block();
+				{ register const uint8_t *p = stagesPtr; p += 1; mapper_load_segment_fast(*p, PAGE_D); stagesPtr=p; }
+			);
+			renew_row_int_block();
+			{
+				const uint8_t *tile8IdxPtr = tile8IdxBase + 4 * *tile16IdxPtr;
+				populateTile8L(tile8IdxPtr); PN_Idx ++;
+				tile16IdxPtr ++; 
+			}                        
+		}
+    }
 }
 
 
 void APPEND(MAP_NAME,_erase_tile8)(uint8_t rowScreen8, uint8_t colScreen8) {
     
-    PROFILE(0, _erase_tile8, 0,
+	uint8_t rowWorld8 = rowScreen8 + map.pos.i;
+	uint8_t colWorld8 = colScreen8 + map.pos.j;
 
-        uint8_t rowWorld8 = rowScreen8 + map.pos.i;
-        uint8_t colWorld8 = colScreen8 + map.pos.j;
-
-        bank = rowScreen8>>3;
-        bankPtr = &map.bank[bank];
-        PN_Idx =  (rowWorld8<<5) + colWorld8;
-        
-        {
-            uint8_t oldTile = bankPtr->tile8[PN_Idx];
-            if (oldTile) {
-                if ((colWorld8&1)==0) {
-                    bankPtr->tilesToReleaseL[bankPtr->numTilesToReleaseL++] = oldTile;
-                } else {
-                    bankPtr->tilesToReleaseR[bankPtr->numTilesToReleaseR++] = oldTile;
-                }
-            }
-        }
-        
-        bankPtr->tile8[PN_Idx] = 0;
-        bankPtr->PN[PN_Idx] = 0;
-    );
+	bank = rowScreen8>>3;
+	bankPtr = &map.bank[bank];
+	PN_Idx =  (rowWorld8<<5) + colWorld8;
+	
+	{
+		uint8_t oldTile = bankPtr->tile8[PN_Idx];
+		if (oldTile) {
+			if ((colWorld8&1)==0) {
+				bankPtr->tilesToReleaseL[bankPtr->numTilesToReleaseL++] = oldTile;
+			} else {
+				bankPtr->tilesToReleaseR[bankPtr->numTilesToReleaseR++] = oldTile;
+			}
+		}
+	}
+	
+	bankPtr->tile8[PN_Idx] = 0;
+	bankPtr->PN[PN_Idx] = 0;
 }
 
 void APPEND(MAP_NAME,_erase_col)(uint8_t colScreen8) {
 
-    PROFILE(0, _erase_col, 0,
-        uint8_t i=0;
-        for (i=0; i<24; i++)
-            APPEND(MAP_NAME,_erase_tile8)(i,colScreen8);
-    );
+	uint8_t i=0;
+	for (i=0; i<24; i++)
+		APPEND(MAP_NAME,_erase_tile8)(i,colScreen8);
 }
 
 void APPEND(MAP_NAME,_erase_row)(uint8_t rowScreen8) {
     
-    PROFILE(0, _erase_row, 0, 
-        uint8_t j=0;
-        for (j=0; j<32; j++)
-            APPEND(MAP_NAME,_erase_tile8)(rowScreen8,j);        
-    );
+	uint8_t j=0;
+	for (j=0; j<32; j++)
+		APPEND(MAP_NAME,_erase_tile8)(rowScreen8,j);        
 }
 
 
@@ -821,11 +806,9 @@ static void free_int_2() { free_int_inline(2); }
 
 void APPEND(MAP_NAME,_free)() {
     
-    PROFILE(4, _free, 41,
-        free_int_0();
-        free_int_1();
-        free_int_2();
-    );
+	free_int_0();
+	free_int_1();
+	free_int_2();
 }
 
 static void update_animation(uint8_t animatedFrame) __z88dk_fastcall {
@@ -847,9 +830,7 @@ static void update_animation(uint8_t animatedFrame) __z88dk_fastcall {
 
 void APPEND(MAP_NAME,_update_animation)() {
 
-    PROFILE(4, _update_animation, 21,
-        update_animation(map.animatedFrame);
-    );
+	update_animation(map.animatedFrame);
 }
 
 void APPEND(MAP_NAME,_iterate_animation)() {
@@ -865,7 +846,6 @@ void APPEND(MAP_NAME,_iterate_animation)() {
 void APPEND(MAP_NAME,_init)() {
     
     //printf("%d 0x%04X\n",sizeof(MapStatus), sizeof(MapStatus));
-
 
     TMS99X8_memset(MODE2_ADDRESS_PG, 0, 3*8*256);
     TMS99X8_memset(MODE2_ADDRESS_CT, 0, 3*8*256);
@@ -903,12 +883,40 @@ void APPEND(MAP_NAME,_init)() {
 
 #ifdef MSX
 
+static void PN_Copy0s(uint8_t *p) __z88dk_fastcall;
+static void PN_Copy1s(uint8_t *p) __z88dk_fastcall;
 static void PN_Copy0(uint8_t *p) __z88dk_fastcall;
 static void PN_Copy1(uint8_t *p) __z88dk_fastcall;
 
 inline static void PN_Copy_Placeholder() {
 
     __asm
+_PN_Copy0s:
+	ld  a, l
+	add a, #0x40
+	ld  l, a
+	ld	c, l
+	ld	b, h
+    ld  hl, #_PN_Copy0_loop
+	ld	e, #0x30
+_PN_Copy0s_loop:
+	ld	a, (bc)
+	out	(_VDP0), a
+	inc	c
+    nop
+	ld	a, (bc)
+	out	(_VDP0), a
+	inc	c
+	ld	a, (bc)
+	inc	c
+	out	(_VDP0), a
+	ld	a, (bc)
+	inc	c    
+	dec	e
+	out	(_VDP0), a
+	ret Z
+    jp	(hl)
+
 _PN_Copy0:
 	ld	c, l
 	ld	b, h
@@ -931,6 +939,47 @@ _PN_Copy0_loop:
 	out	(_VDP0), a
 	ret Z
     jp	(hl)
+
+_PN_Copy1s:
+	ld  a, l
+	add a, #0x40
+	ld  l, a
+	ld	b, #0x18
+_PN_Copy1s_loop:
+	ld	a, (hl)
+	inc	l
+	inc	a
+	out	(_VDP0), a
+	ld	a, (hl)
+	inc	l
+	inc	a
+	out	(_VDP0), a
+	ld	a, (hl)
+	inc	l
+	inc	a
+	out	(_VDP0), a
+	ld	a, (hl)
+	inc	l
+	inc	a
+	out	(_VDP0), a
+	ld	a, (hl)
+	inc	l
+	inc	a
+	out	(_VDP0), a
+	ld	a, (hl)
+	inc	l
+	inc	a
+	out	(_VDP0), a
+	ld	a, (hl)
+	inc	l
+	inc	a
+	out	(_VDP0), a
+	ld	a, (hl)
+	inc	l
+	inc	a
+	out	(_VDP0), a
+    djnz _PN_Copy1s_loop
+    ret
 
     
 _PN_Copy1:
@@ -977,10 +1026,10 @@ _PN_Copy1_loop:
 
 INLINE void copyPN0() {
     
-    TMS99X8_setPtr(MODE2_ADDRESS_PN0);
+    TMS99X8_setPtr(MODE2_ADDRESS_PN0+32+32);
     {
         uint8_t PN_Start = (map.pos.i<<5) + map.pos.j;
-        PN_Copy0(&map.bank[0].PN[PN_Start]);
+        PN_Copy0s(&map.bank[0].PN[PN_Start]);
         PN_Copy0(&map.bank[1].PN[PN_Start]);
         PN_Copy0(&map.bank[2].PN[PN_Start]);
     }
@@ -988,10 +1037,10 @@ INLINE void copyPN0() {
 
 INLINE void copyPN1() {
 
-    TMS99X8_setPtr(MODE2_ADDRESS_PN1);
+    TMS99X8_setPtr(MODE2_ADDRESS_PN1+32+32);
     {
         uint8_t PN_Start = (map.pos.i<<5) + map.pos.j;
-        PN_Copy1(&map.bank[0].PN[PN_Start]);
+        PN_Copy1s(&map.bank[0].PN[PN_Start]);
         PN_Copy1(&map.bank[1].PN[PN_Start]);
         PN_Copy1(&map.bank[2].PN[PN_Start]);
     }
@@ -1030,6 +1079,42 @@ INLINE void copyPN1() { PN_Copy(1); }
 
 #endif
 
-void APPEND(MAP_NAME,_copyPN0)() { PROFILE(4, _copyPN0, 40, copyPN0() ); }
-void APPEND(MAP_NAME,_copyPN1)() { PROFILE(4, _copyPN1, 42, copyPN1() ); }
+void APPEND(MAP_NAME,_copyPN0)() { copyPN0(); }
+void APPEND(MAP_NAME,_copyPN1)() { copyPN1(); }
 
+uint8_t APPEND(MAP_NAME,_get_flags)(uint16_t row, uint16_t col) {
+
+
+	mapper_load_segment(map.stages[row>>10][col>>10], PAGE_D); // stages apply in blocks of 32x32 pixels
+
+//	CALL_PAGE( printf, PAGE_D, printf_("flags. Tile: %2d %2d ", row>>9, col>>9); );
+//	CALL_PAGE( printf, PAGE_D, printf_("%3d\n", (uint16_t)MAP_MAP16[row>>9][col>>9]); );
+
+	
+	const uint8_t *ptr = &MAP_TILES16_TRAV[MAP_MAP16[row>>9][col>>9]][(uint8_t)(row>>8)&0x1][(uint8_t)(col>>8)&0x1][((uint8_t)row>>5)&0x7];
+
+	uint8_t trav, trig, damg;
+	{
+		mapper_load_module(MAP_TILES16_TRAV, PAGE_C);
+		trav = *ptr;
+
+		mapper_load_module(MAP_TILES16_TRIG, PAGE_C);
+		trig = *ptr;
+
+		mapper_load_module(MAP_TILES16_DAMG, PAGE_C);
+		damg = *ptr;
+	}
+
+	uint8_t col8 = 7-(((uint8_t)col>>5)&0x7);
+	while (col8--) {
+		trav = trav>>1;
+		trig = trig>>1;
+		damg = damg>>1;
+	}
+	
+	trav  = !(trav&1);
+	trig &= 1;
+	damg &= 1;
+	
+	return trav | (trig<<1) | (damg<<2);
+}

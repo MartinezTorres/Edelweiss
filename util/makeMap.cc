@@ -3,7 +3,7 @@
 //
 // Manuel Martinez (salutte@gmail.com)
 //
-// FLAGS: -std=gnu++14 -g `pkg-config opencv --cflags --libs` -Ofast -lpthread -fopenmp -lgomp -Wno-format-nonliteral
+// FLAGS: -std=gnu++14 -g `pkg-config opencv4 --cflags --libs` -Ofast -lpthread -fopenmp -lgomp -Wno-format-nonliteral
 
 #include <opencv2/core.hpp>
 #include <opencv2/imgproc.hpp>
@@ -425,7 +425,7 @@ int main(int argc, const char *argv[]) {
     //  original map, and any number of altered maps. Traversability is independent of mapping (as are objects).
     //  animations will be handled at the tile level.
     
-    if (argc<4) { std::cerr << "usage: makeMap name standardTiles map0 {map1} {map2} {map3}" << std::endl; exit(-1); }
+    if (argc<4) { std::cerr << "usage: makeMap name animatedTiles tileMap tileFlags map0 {map1} {map2} {map3}" << std::endl; exit(-1); }
 
     // Load image corresponding to animated tiles
     struct Tile8 {
@@ -472,24 +472,31 @@ int main(int argc, const char *argv[]) {
     // Process all Maps, find all unique 16x16 tiles.
     struct Map {
         cv::Mat3b img;
+        cv::Mat3b flags;
         cv::Mat1b map16;
     };    
     std::vector<Map> maps;
     
     struct Tile16 {
         cv::Mat3b img;
+        cv::Mat3b flags;
         cv::Matx< int, 2, 2 > idx;
         size_t count;
     };
     std::vector<Tile16> tiles16;
     
     {
-        for (int i=3; i<argc; i++) {
+		cv::Mat3b tileMap = cv::imread(argv[3]);
+		cv::Mat3b tileFlags = cv::imread(argv[4]);
+		
+        for (int i=5; i<argc; i++) {
             
             maps.push_back(Map());
             Map &map = maps.front();
             
             map.img = cv::imread(argv[i]);
+            map.flags = map.img.clone();
+            
             if (maps.size() and map.img.size() != maps.front().img.size()) { std::cerr << "inconsistnt map size" << std::endl; exit(-1); }
             if (map.img.rows % 16) { std::cerr << "map size not multiple of 16" << std::endl; exit(-1); }
             if (map.img.cols % 16) { std::cerr << "map size not multiple of 16" << std::endl; exit(-1); }
@@ -506,6 +513,7 @@ int main(int argc, const char *argv[]) {
                         if (n<1) {
                             
                             tiles16[k].img.copyTo(tile);
+							tiles16[k].flags.copyTo(map.flags(cv::Rect(j,i,16,16)));
                             tiles16[k].count++;
                             map.map16(i/16,j/16) = k;
                             found = true;
@@ -516,10 +524,29 @@ int main(int argc, const char *argv[]) {
                         Tile16 tile16;
                         tile16.img = tile.clone();
                         tile16.count = 1;
+
+						for (int ii=0; ii+15<tileMap.rows; ii+=16) {
+							for (int jj=0; jj+15<tileMap.cols; jj+=16) {
+								cv::Mat3b t = tileMap(cv::Rect(jj,ii,16,16));
+								cv::Mat3b f = tileFlags(cv::Rect(jj,ii,16,16));
+								double n = cv::norm(tile-t) + cv::norm(t-tile);
+								if (n<1) {
+									if (tile16.flags.rows==0) {
+										tile16.flags = f.clone();
+									} else {
+										tile16.flags = cv::max(tile16.flags, f.clone());
+									}
+								}
+							}
+						}
+						tile16.flags.copyTo(map.flags(cv::Rect(j,i,16,16)));
+
                         tiles16.push_back(tile16);
                     }
                 }
             }
+            
+            cv::imwrite("flags.png", map.flags);
         }
         std::cout << "Found " << tiles16.size() << " unique 16x16 tiles." << std::endl;
         if (tiles16.size()>256) { std::cerr << "Too many unique 16x16 tiles." << std::endl; exit(-1); }
@@ -668,6 +695,18 @@ int main(int argc, const char *argv[]) {
         src << "USING_MODULE("  << (MAP_NAME + "_tiles16") << ", PAGE_C);" << std::endl;
         src << "extern const uint8_t " << (MAP_NAME + "_tiles16") << "[256][2][2];" << std::endl;
 
+        src << "#define MAP_TILES16_TRAV " << (MAP_NAME + "_tiles16_flag_traversability") << std::endl;
+        src << "USING_MODULE("  << (MAP_NAME + "_tiles16_flag_traversability") << ", PAGE_C);" << std::endl;
+        src << "extern const uint8_t " << (MAP_NAME + "_tiles16_flag_traversability") << "[256][2][2][8];" << std::endl;
+
+        src << "#define MAP_TILES16_TRIG " << (MAP_NAME + "_tiles16_flag_trigger") << std::endl;
+        src << "USING_MODULE("  << (MAP_NAME + "_tiles16_flag_trigger") << ", PAGE_C);" << std::endl;
+        src << "extern const uint8_t " << (MAP_NAME + "_tiles16_flag_trigger") << "[256][2][2][8];" << std::endl;
+
+        src << "#define MAP_TILES16_DAMG " << (MAP_NAME + "_tiles16_flag_damage") << std::endl;
+        src << "USING_MODULE("  << (MAP_NAME + "_tiles16_flag_damage") << ", PAGE_C);" << std::endl;
+        src << "extern const uint8_t " << (MAP_NAME + "_tiles16_flag_damage") << "[256][2][2][8];" << std::endl;
+
         src << "#define MAP_TILES8L " << (MAP_NAME + "_tiles8L") << std::endl;
         src << "USING_MODULE("  << (MAP_NAME + "_tiles8L") << ", PAGE_C);" << std::endl;
         src << "extern const uint8_t " << (MAP_NAME + "_tiles8L") << "[256][2][16];" << std::endl;
@@ -753,6 +792,111 @@ int main(int argc, const char *argv[]) {
         ofs << "};" << std::endl;
         ofs << "const uint8_t " << (MAP_NAME + "_tiles16_filler") << "[7*1024] = { 0 };" << std::endl;
     }
+
+    // Spawn tile16_flags
+    {
+		{
+			std::ofstream ofs(MAP_NAME + "_tiles16_flag_traversability" + ".c");
+			ofs << "#include <stdint.h>" << std::endl;
+			ofs << "const uint8_t " << (MAP_NAME + "_tiles16_flag_traversability") << "[256][2][2][8];" << std::endl;
+			ofs << "const uint8_t " << (MAP_NAME + "_tiles16_flag_traversability") << "[256][2][2][8] = {" << std::endl;
+			
+			for (size_t i=0; i<tiles16.size(); i++) {
+
+				if (i) ofs << std::endl; 
+				ofs << "{ ";
+				for (size_t ii=0; ii<2; ii++) {
+					ofs << "{ ";
+					for (size_t jj=0; jj<2; jj++) {
+						ofs << "{ ";
+						for (size_t j=0; j<8; j++) {
+							int val = 0;
+							for (size_t k=0; k<8; k++) {
+								val *= 2;
+								if (tiles16[i].flags(ii*8+j,jj*8+k)[1]>128) {
+									val++;
+								}
+							}
+							sprintf(msg,"0x%02X, ", val);
+							ofs << msg;
+						}
+						ofs << "}, ";
+					}
+					ofs << "}, ";
+				}
+				ofs << "}, ";
+			}
+			ofs << "};" << std::endl;
+		}
+
+		{
+			std::ofstream ofs(MAP_NAME + "_tiles16_flag_trigger" + ".c");
+			ofs << "#include <stdint.h>" << std::endl;
+			ofs << "const uint8_t " << (MAP_NAME + "_tiles16_flag_trigger") << "[256][2][2][8];" << std::endl;
+			ofs << "const uint8_t " << (MAP_NAME + "_tiles16_flag_trigger") << "[256][2][2][8] = {" << std::endl;
+			
+			for (size_t i=0; i<tiles16.size(); i++) {
+
+				if (i) ofs << std::endl; 
+				ofs << "{ ";
+				for (size_t ii=0; ii<2; ii++) {
+					ofs << "{ ";
+					for (size_t jj=0; jj<2; jj++) {
+						ofs << "{ ";
+						for (size_t j=0; j<8; j++) {
+							int val = 0;
+							for (size_t k=0; k<8; k++) {
+								val *= 2;
+								if (tiles16[i].flags(ii*8+j,jj*8+k)[0]>128) {
+									val++;
+								}
+							}
+							sprintf(msg,"0x%02X, ", val);
+							ofs << msg;
+						}
+						ofs << "}, ";
+					}
+					ofs << "}, ";
+				}
+				ofs << "}, ";
+			}
+			ofs << "};" << std::endl;
+		}
+
+		{
+			std::ofstream ofs(MAP_NAME + "_tiles16_flag_damage" + ".c");
+			ofs << "#include <stdint.h>" << std::endl;
+			ofs << "const uint8_t " << (MAP_NAME + "_tiles16_flag_damage") << "[256][2][2][8];" << std::endl;
+			ofs << "const uint8_t " << (MAP_NAME + "_tiles16_flag_damage") << "[256][2][2][8] = {" << std::endl;
+			
+			for (size_t i=0; i<tiles16.size(); i++) {
+
+				if (i) ofs << std::endl; 
+				ofs << "{ ";
+				for (size_t ii=0; ii<2; ii++) {
+					ofs << "{ ";
+					for (size_t jj=0; jj<2; jj++) {
+						ofs << "{ ";
+						for (size_t j=0; j<8; j++) {
+							int val = 0;
+							for (size_t k=0; k<8; k++) {
+								val *= 2;
+								if (tiles16[i].flags(ii*8+j,jj*8+k)[2]>128) {
+									val++;
+								}
+							}
+							sprintf(msg,"0x%02X, ", val);
+							ofs << msg;
+						}
+						ofs << "}, ";
+					}
+					ofs << "}, ";
+				}
+				ofs << "}, ";
+			}
+			ofs << "};" << std::endl;
+		}
+	}
     
     // Spawn tile8L
     {

@@ -16,6 +16,15 @@ extern const uint8_t overworld_map0_map16[64][128];
 #define MAP_TILES16 overworld_tiles16
 USING_MODULE(overworld_tiles16, PAGE_C);
 extern const uint8_t overworld_tiles16[256][2][2];
+#define MAP_TILES16_TRAV overworld_tiles16_flag_traversability
+USING_MODULE(overworld_tiles16_flag_traversability, PAGE_C);
+extern const uint8_t overworld_tiles16_flag_traversability[256][2][2][8];
+#define MAP_TILES16_TRIG overworld_tiles16_flag_trigger
+USING_MODULE(overworld_tiles16_flag_trigger, PAGE_C);
+extern const uint8_t overworld_tiles16_flag_trigger[256][2][2][8];
+#define MAP_TILES16_DAMG overworld_tiles16_flag_damage
+USING_MODULE(overworld_tiles16_flag_damage, PAGE_C);
+extern const uint8_t overworld_tiles16_flag_damage[256][2][2][8];
 #define MAP_TILES8L overworld_tiles8L
 USING_MODULE(overworld_tiles8L, PAGE_C);
 extern const uint8_t overworld_tiles8L[256][2][16];

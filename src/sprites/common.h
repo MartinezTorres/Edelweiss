@@ -30,7 +30,9 @@ typedef struct {
     const TSpriteInterlaced *spriteInfo;
 }  TSpriteStatus;
 
-extern TSpriteStatus sprites[16];
+extern TSpriteStatus sprites[8];
+extern T_SA SA0, SA1;
+
 
 void updateSpriteAttributeTableISR0();
 void updateSpriteAttributeTableISR1();

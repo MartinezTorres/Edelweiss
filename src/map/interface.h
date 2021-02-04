@@ -28,3 +28,6 @@ void APPEND(MAP_NAME,_iterate_animation)();
 void APPEND(MAP_NAME,_copyPN0)();
 void APPEND(MAP_NAME,_copyPN1)();
 INLINE void APPEND(MAP_NAME,_copyPN)(EM2_Buffer buffer) { buffer==0?APPEND(MAP_NAME,_copyPN0)():APPEND(MAP_NAME,_copyPN1)(); }
+
+uint8_t APPEND(MAP_NAME,_get_flags)(uint16_t row, uint16_t col);
+
