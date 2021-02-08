@@ -139,42 +139,42 @@ static void prepareInfoBar() {
 		SA1[i].y = 209;
 	}
 
-	SA0[4].y = 191-16;
+	SA0[4].y = (uint8_t)(191-16);
 	SA0[4].x = 0;
 	SA0[4].pattern = 128;
 	SA0[4].color = (uint8_t)0x80 + (uint8_t)BWhite; //ec
 
-	SA0[5].y = 191-16;
+	SA0[5].y = (uint8_t)(191-16);
 	SA0[5].x = 0;
 	SA0[5].pattern = 128;
 	SA0[5].color = (uint8_t)0x80 + (uint8_t)BWhite; //ec
 
-	SA0[6].y = 191-16;
+	SA0[6].y = (uint8_t)(191-16);
 	SA0[6].x = 0;
 	SA0[6].pattern = 128;
 	SA0[6].color = (uint8_t)0x80 + (uint8_t)BWhite; //ec
 
-	SA0[7].y = 191-16;
+	SA0[7].y = (uint8_t)(191-16);
 	SA0[7].x = 0;
 	SA0[7].pattern = 128;
 	SA0[7].color = (uint8_t)0x80 + (uint8_t)BWhite; //ec
 
-	SA1[4].y = 191-16;
+	SA1[4].y = (uint8_t)(191-16);
 	SA1[4].x = 0;
 	SA1[4].pattern = 128;
 	SA1[4].color = (uint8_t)0x80 + (uint8_t)BWhite; //ec
 
-	SA1[5].y = 191-16;
+	SA1[5].y = (uint8_t)(191-16);
 	SA1[5].x = 0;
 	SA1[5].pattern = 128;
 	SA1[5].color = (uint8_t)0x80 + (uint8_t)BWhite; //ec
 
-	SA1[6].y = 191-16;
+	SA1[6].y = (uint8_t)(191-16);
 	SA1[6].x = 0;
 	SA1[6].pattern = 128;
 	SA1[6].color = (uint8_t)0x80 + (uint8_t)BWhite; //ec
 
-	SA1[7].y = 191-16;
+	SA1[7].y = (uint8_t)(191-16);
 	SA1[7].x = 0;
 	SA1[7].pattern = 128;
 	SA1[7].color = (uint8_t)0x80 + (uint8_t)BWhite; //ec	
@@ -192,6 +192,17 @@ static void spawnOverworldEntities() {
 		state.entities[0x00].despawn = despawn_wolfi;
 		state.entities[0x00].update = update_wolfi;
 		state.entities[0x00].enabled = true;
+	}
+
+	// WEAPONS (placeholder)
+	{
+		state.entities[0x01].pos.i = 0x4200;
+		state.entities[0x01].pos.j = 0x7D00;
+		state.entities[0x01].segment = MODULE_SEGMENT(update_wolfi, PAGE_C);
+		state.entities[0x01].spawn = spawn_wolfi;
+		state.entities[0x01].despawn = despawn_wolfi;
+		state.entities[0x01].update = update_wolfi;
+		state.entities[0x01].enabled = false;
 	}
 	
 	// GHOSTS
@@ -297,6 +308,15 @@ static void mainGameRoutine() {
 		state.activeEntities[i] = -1;
 		
 	spawnOverworldEntities();
+	
+	// SPAWN wolfi
+	state.activeEntities[0] = 0;
+	IN_SEGMENT( state.entities[0].segment, 
+		PAGE_C,         
+		(*state.entities[0].spawn)(&state.entities[0],0);
+		state.entities[0].active = true;
+	);
+	state.nActiveEntities++;	
 
 	map.pos.j = ( (state.entities[0].pos.j + 0x80) >> 8)-16;
 	map.pos.i = ( (state.entities[0].pos.i + 0x80) >> 8)-11;
@@ -394,23 +414,26 @@ static void mainGameRoutine() {
 			// CHECK IF WE CAN ACTIVATE OTHER ENTITIES 
 			{
 				uint8_t i = (isr.globalFrameCount<<1)&63;
-				for (uint8_t j=0; j<2; j++) {
+				for (uint8_t j=0; j<4; j++) {
 					
 					Entity *entity = &state.entities[i+j];
 					
-					if (state.nActiveEntities==8) continue;
 					if (!entity->enabled) continue;
 					if (entity->active) continue;
 
 					
 					// Check out of bounds
-					if ((uint8_t)((entity->pos.i >> 8) + 3 - map.pos.i) >= 24+6) continue; 
-					if ((uint8_t)((entity->pos.j >> 8) + 3 - map.pos.j) >= 32+6) continue;
+					if ((uint8_t)((entity->pos.i >> 8) + 6 - map.pos.i) >= 24+12) continue; 
+					if ((uint8_t)((entity->pos.j >> 8) + 6 - map.pos.j) >= 32+12) continue;
+
+					if (((uint8_t)((entity->pos.i >> 8) - map.pos.i) < 24) &&
+						((uint8_t)((entity->pos.j >> 8) - map.pos.j) < 32)) continue;
 					
 					//fprintf(stderr, "i %d, j %d \n", (entity->pos.i >> 8) + 3 - map.pos.i, (entity->pos.j >> 8) + 3 - map.pos.j);
 					
 					
-					for (uint8_t k=0; k<8; k++) {
+					// Entity 0 is wolfie, Entity 1 is wolfie's weapon
+					for (uint8_t k=2; k<8; k++) { 
 						if (state.activeEntities[k] < 0) {
 							state.activeEntities[k] = i + j;
 
@@ -420,12 +443,10 @@ static void mainGameRoutine() {
 								(*entity->spawn)(entity,k);
 							);
 							state.nActiveEntities++;
+							entity->active = true;
 							break;
 						}
 					}
-					
-					entity->active = true;
-					
 				}
 			}
 			
