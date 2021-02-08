@@ -783,6 +783,9 @@ void APPEND(MAP_NAME,_erase_row)(uint8_t rowScreen8) {
 
 INLINE void free_int_inline(uint8_t b) {
     
+//    printf("Freeing from bank %d: %d and %d tiles\n", b, map.bank[b].numTilesToReleaseL, map.bank[b].numTilesToReleaseR);
+//    printf("Freeing from bank %d: uses %d tiles\n", b, map.bank[b].numUsedPatterns);
+    
     while (map.bank[b].numTilesToReleaseL) {
         uint8_t oldTile = map.bank[b].tilesToReleaseL[--map.bank[b].numTilesToReleaseL];
         if (--map.bank[b].countL[oldTile]==0) {
@@ -800,28 +803,30 @@ INLINE void free_int_inline(uint8_t b) {
     }
 }
 
-static void free_int_0() { free_int_inline(0); }
-static void free_int_1() { free_int_inline(1); }
-static void free_int_2() { free_int_inline(2); }
+void APPEND(MAP_NAME,_free0)() { free_int_inline(0); }
+void APPEND(MAP_NAME,_free1)() { free_int_inline(1); }
+void APPEND(MAP_NAME,_free2)() { free_int_inline(2); }
 
 void APPEND(MAP_NAME,_free)() {
     
-	free_int_0();
-	free_int_1();
-	free_int_2();
+	APPEND(MAP_NAME,_free0)();
+	APPEND(MAP_NAME,_free1)();
+	APPEND(MAP_NAME,_free2)();
 }
 
 static void update_animation(uint8_t animatedFrame) __z88dk_fastcall {
     
     uint8_t oldSegmentPageC = mapper_load_module(MAP_ANIMATED, PAGE_C);
-    
-    TMS99X8_memcpy( MODE2_ADDRESS_PG + 0*(8*256) + (1<<4), &MAP_ANIMATED[animatedFrame][0][0], 16*NUM_ANIMATED_TILES); 
-    TMS99X8_memcpy( MODE2_ADDRESS_PG + 1*(8*256) + (1<<4), &MAP_ANIMATED[animatedFrame][0][0], 16*NUM_ANIMATED_TILES); 
-    TMS99X8_memcpy( MODE2_ADDRESS_PG + 2*(8*256) + (1<<4), &MAP_ANIMATED[animatedFrame][0][0], 16*NUM_ANIMATED_TILES); 
+    const uint8_t *p = &MAP_ANIMATED[animatedFrame][0][0];
+    TMS99X8_memcpy( MODE2_ADDRESS_PG + 0*(8*256) + (1<<4), p, 16*NUM_ANIMATED_TILES); 
+    TMS99X8_memcpy( MODE2_ADDRESS_PG + 1*(8*256) + (1<<4), p, 16*NUM_ANIMATED_TILES); 
+    TMS99X8_memcpy( MODE2_ADDRESS_PG + 2*(8*256) + (1<<4), p, 16*NUM_ANIMATED_TILES); 
 
-    TMS99X8_memcpy( MODE2_ADDRESS_CT + 0*(8*256) + (1<<4), &MAP_ANIMATED[animatedFrame][1][0], 16*NUM_ANIMATED_TILES); 
-    TMS99X8_memcpy( MODE2_ADDRESS_CT + 1*(8*256) + (1<<4), &MAP_ANIMATED[animatedFrame][1][0], 16*NUM_ANIMATED_TILES); 
-    TMS99X8_memcpy( MODE2_ADDRESS_CT + 2*(8*256) + (1<<4), &MAP_ANIMATED[animatedFrame][1][0], 16*NUM_ANIMATED_TILES); 
+    p += 16*NUM_ANIMATED_TILES;
+
+    TMS99X8_memcpy( MODE2_ADDRESS_CT + 0*(8*256) + (1<<4), p, 16*NUM_ANIMATED_TILES); 
+    TMS99X8_memcpy( MODE2_ADDRESS_CT + 1*(8*256) + (1<<4), p, 16*NUM_ANIMATED_TILES); 
+    TMS99X8_memcpy( MODE2_ADDRESS_CT + 2*(8*256) + (1<<4), p, 16*NUM_ANIMATED_TILES); 
     
     mapper_load_segment(oldSegmentPageC, PAGE_C);
 
@@ -892,9 +897,6 @@ inline static void PN_Copy_Placeholder() {
 
     __asm
 _PN_Copy0s:
-	ld  a, l
-	add a, #0x40
-	ld  l, a
 	ld	c, l
 	ld	b, h
     ld  hl, #_PN_Copy0_loop
@@ -941,9 +943,6 @@ _PN_Copy0_loop:
     jp	(hl)
 
 _PN_Copy1s:
-	ld  a, l
-	add a, #0x40
-	ld  l, a
 	ld	b, #0x18
 _PN_Copy1s_loop:
 	ld	a, (hl)
@@ -1026,26 +1025,48 @@ _PN_Copy1_loop:
 
 INLINE void copyPN0() {
     
-    TMS99X8_setPtr(MODE2_ADDRESS_PN0+32+32);
+    TMS99X8_setPtr(MODE2_ADDRESS_PN0);
     {
         uint8_t PN_Start = (map.pos.i<<5) + map.pos.j;
-        PN_Copy0s(&map.bank[0].PN[PN_Start]);
+        PN_Copy0(&map.bank[0].PN[PN_Start]);
         PN_Copy0(&map.bank[1].PN[PN_Start]);
-        PN_Copy0(&map.bank[2].PN[PN_Start]);
+        PN_Copy0s(&map.bank[2].PN[PN_Start]);
     }
 }
 
 INLINE void copyPN1() {
 
-    TMS99X8_setPtr(MODE2_ADDRESS_PN1+32+32);
+    TMS99X8_setPtr(MODE2_ADDRESS_PN1);
     {
         uint8_t PN_Start = (map.pos.i<<5) + map.pos.j;
-        PN_Copy1s(&map.bank[0].PN[PN_Start]);
+        PN_Copy1(&map.bank[0].PN[PN_Start]);
+        PN_Copy1(&map.bank[1].PN[PN_Start]);
+        PN_Copy1s(&map.bank[2].PN[PN_Start]);
+    }
+}
+
+
+INLINE void copyPN0full() {
+    
+    TMS99X8_setPtr(MODE2_ADDRESS_PN0);
+    {
+        uint8_t PN_Start = (map.pos.i<<5) + map.pos.j;
+        PN_Copy0(&map.bank[0].PN[PN_Start]);
+        PN_Copy0(&map.bank[1].PN[PN_Start]);
+        PN_Copy0(&map.bank[2].PN[PN_Start]);
+    }
+}
+
+INLINE void copyPN1full() {
+
+    TMS99X8_setPtr(MODE2_ADDRESS_PN1);
+    {
+        uint8_t PN_Start = (map.pos.i<<5) + map.pos.j;
+        PN_Copy1(&map.bank[0].PN[PN_Start]);
         PN_Copy1(&map.bank[1].PN[PN_Start]);
         PN_Copy1(&map.bank[2].PN[PN_Start]);
     }
 }
-
 #else
 
 INLINE void PN_Copy(EM2_Buffer buffer) {
@@ -1077,13 +1098,22 @@ INLINE void PN_Copy(EM2_Buffer buffer) {
 INLINE void copyPN0() { PN_Copy(0); }
 INLINE void copyPN1() { PN_Copy(1); }
 
+INLINE void copyPN0full() { PN_Copy(0); }
+INLINE void copyPN1full() { PN_Copy(1); }
+
 #endif
 
 void APPEND(MAP_NAME,_copyPN0)() { copyPN0(); }
 void APPEND(MAP_NAME,_copyPN1)() { copyPN1(); }
 
+void APPEND(MAP_NAME,_copyPN0full)() { copyPN0full(); }
+void APPEND(MAP_NAME,_copyPN1full)() { copyPN1full(); }
+
 uint8_t APPEND(MAP_NAME,_get_flags)(uint16_t row, uint16_t col) {
 
+
+	uint8_t old_c = CURRENT_SEGMENT(PAGE_C);
+	uint8_t old_d = CURRENT_SEGMENT(PAGE_D);
 
 	mapper_load_segment(map.stages[row>>10][col>>10], PAGE_D); // stages apply in blocks of 32x32 pixels
 
@@ -1115,6 +1145,9 @@ uint8_t APPEND(MAP_NAME,_get_flags)(uint16_t row, uint16_t col) {
 	trav  = !(trav&1);
 	trig &= 1;
 	damg &= 1;
+
+	mapper_load_segment(old_d, PAGE_D);
+	mapper_load_segment(old_c, PAGE_C);
 	
 	return trav | (trig<<1) | (damg<<2);
 }

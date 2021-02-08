@@ -7,10 +7,12 @@ struct Entity_T {
     uint8_t active;
     
     uint8_t life;
-    uint8_t info; // to be used by the update routine
+    uint8_t info[8]; // to be used by the update routine
     uint8_t invulnerable_frames;
     
     uint8_t segment;
+    void (*spawn)(struct Entity_T *, uint8_t entityIdx);
+    void (*despawn)(struct Entity_T *, uint8_t entityIdx);
     uint8_t (*update)(struct Entity_T *, uint8_t entityIdx);
     
     uint16_tp pos;

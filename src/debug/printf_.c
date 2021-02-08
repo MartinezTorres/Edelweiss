@@ -276,18 +276,20 @@ static size_t _ntoa_format(out_fct_type out, char* buffer, size_t idx, size_t ma
   return _out_rev(out, buffer, idx, maxlen, buf, len, width, flags);
 }
 
-char mod(unsigned long value, unsigned long base) {
+static char mod(unsigned long value, unsigned long base) {
 	
 	while (value >= base) value -= base;
 	return value;
 }
 
-unsigned long div(unsigned long value, unsigned long base) {
+static unsigned long div(unsigned long value, unsigned long base) {
 	
 	unsigned long count = 0;
 	while (value >= base) { count ++; value -= base; }
 	return count;
 }
+
+
 
 // internal itoa for 'long' type
 static size_t _ntoa_long(out_fct_type out, char* buffer, size_t idx, size_t maxlen, unsigned long value, bool negative, unsigned long base, unsigned int prec, unsigned int width, unsigned int flags)

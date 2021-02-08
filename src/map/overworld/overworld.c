@@ -3,7 +3,7 @@
 #include <map/interface.h>
 #define NUM_ANIMATED_TILES 4
 #define NUM_ANIMATED_FRAMES 4
-#define NUM_MAPS 1
+#define NUM_MAPS 4
 #define MAP16_Y 64
 #define MAP16_X 128
 #define MAP_ANIMATED overworld_animated
@@ -13,6 +13,15 @@ extern const uint8_t overworld_animated[4][2][64];
 #define MAP0_MAP16 overworld_map0_map16
 USING_MODULE(overworld_map0_map16, PAGE_D);
 extern const uint8_t overworld_map0_map16[64][128];
+#define MAP1_MAP16 overworld_map1_map16
+USING_MODULE(overworld_map1_map16, PAGE_D);
+extern const uint8_t overworld_map1_map16[64][128];
+#define MAP2_MAP16 overworld_map2_map16
+USING_MODULE(overworld_map2_map16, PAGE_D);
+extern const uint8_t overworld_map2_map16[64][128];
+#define MAP3_MAP16 overworld_map3_map16
+USING_MODULE(overworld_map3_map16, PAGE_D);
+extern const uint8_t overworld_map3_map16[64][128];
 #define MAP_TILES16 overworld_tiles16
 USING_MODULE(overworld_tiles16, PAGE_C);
 extern const uint8_t overworld_tiles16[256][2][2];

@@ -3,7 +3,7 @@
 //
 // Manuel Martinez (salutte@gmail.com)
 //
-// FLAGS: -std=gnu++14 -g `pkg-config opencv4 --cflags --libs` -Ofast -lpthread -fopenmp -lgomp -Wno-format-nonliteral
+// FLAGS: -std=gnu++14 -g `pkg-config opencv4 --cflags --libs` -O0 -lpthread -fopenmp -lgomp -Wno-format-nonliteral
 
 #include <opencv2/core.hpp>
 #include <opencv2/imgproc.hpp>
@@ -351,13 +351,13 @@ struct Tpalette {
                         best = cost;
                         colorA = i;
                         colorB = j;
-                        std::cerr << int(colorA) << " " << int(colorB) << " " << cost << std::endl;
+                        //std::cerr << int(colorA) << " " << int(colorB) << " " << cost << std::endl;
                     }
                 }
             }
             if (Colorspace::luminance(colorMatrix(0,colorA)) < Colorspace::luminance(colorMatrix(0,colorB))) std::swap(colorA, colorB);
             if (line%2) std::swap(colorA, colorB);
-            std::cerr << int(colorA) << " " << int(colorB) << " " << std::endl;
+            //std::cerr << int(colorA) << " " << int(colorB) << " " << std::endl;
             
                 
             ret[0].pattern[line] = 0;
@@ -393,7 +393,7 @@ struct Tpalette {
             ret[1].color[line] = (colorB>6?colorB+2:colorB+1)<<4;
 
             if (best > 50) {
-                std::cerr << line << ": " << best << std::endl;
+                //std::cerr << line << ": " << best << std::endl;
                 showDebug = true;
             }
         }
@@ -492,7 +492,7 @@ int main(int argc, const char *argv[]) {
         for (int i=5; i<argc; i++) {
             
             maps.push_back(Map());
-            Map &map = maps.front();
+            Map &map = maps.back();
             
             map.img = cv::imread(argv[i]);
             map.flags = map.img.clone();
@@ -510,7 +510,8 @@ int main(int argc, const char *argv[]) {
                     for (uint k=0; not found and k<tiles16.size(); k++) {
                         auto &t = tiles16[k].img;
                         double n = cv::norm(tile-t) + cv::norm(t-tile);
-                        if (n<1) {
+                        //if (n<1) {
+						if (n<1) {
                             
                             tiles16[k].img.copyTo(tile);
 							tiles16[k].flags.copyTo(map.flags(cv::Rect(j,i,16,16)));
@@ -524,6 +525,8 @@ int main(int argc, const char *argv[]) {
                         Tile16 tile16;
                         tile16.img = tile.clone();
                         tile16.count = 1;
+                        
+                        tile16.flags = cv::Mat3b(16,16);
 
 						for (int ii=0; ii+15<tileMap.rows; ii+=16) {
 							for (int jj=0; jj+15<tileMap.cols; jj+=16) {
@@ -611,12 +614,13 @@ int main(int argc, const char *argv[]) {
                             size_t tile8Idx = tile16.idx((i+ii)%2,(j+jj)%2);
 
                             if (tile8Idx<animatedTiles.size()) continue;
-                            uniqueTiles[{m,tile8Idx}]++;
+                            uniqueTiles[{jj%2,tile8Idx}]++;
                         }
                     }
                 }
-                if (uniqueTiles.size()>64) { std::cerr << uniqueTiles.size() << " unique 8x8 tiles at: (" << i << ", " << j << ")" << std::endl; }
-                if (uniqueTiles.size()>96) { std::cerr << "Too many unique 8x8 tiles at: (" << i << ", " << j << ")" << std::endl; exit(-1); }
+                if (uniqueTiles.size()>96) { std::cerr << uniqueTiles.size() << " unique 8x8 tiles at: (" << i << ", " << j << ")" << std::endl; }
+//                if (uniqueTiles.size()>96) { std::cerr << "Too many unique 8x8 tiles at: (" << i << ", " << j << ")" << std::endl; }
+//                if (uniqueTiles.size()>112) { std::cerr << "Too many unique 8x8 tiles at: (" << i << ", " << j << ")" << std::endl; exit(-1); }
 
                 score = std::max(score,int(uniqueTiles.size()));
                 for (int ii=0; ii<window.height; ii++) {
@@ -634,9 +638,9 @@ int main(int argc, const char *argv[]) {
                 for (int j=0; j<histMap.cols; j++) {
                     if (histMap(i,j)<64) {
                         heatMap(i,j)=cv::Vec3b(0,255,0);
-                    } else if (histMap(i,j)<88) {
-                        heatMap(i,j)=cv::Vec3b(0,255,255);
                     } else if (histMap(i,j)<96) {
+                        heatMap(i,j)=cv::Vec3b(0,255,255);
+                    } else if (histMap(i,j)<112) {
                         heatMap(i,j)=cv::Vec3b(0,128,255);                        
                     } else {
                         heatMap(i,j)=cv::Vec3b(0,0,255);

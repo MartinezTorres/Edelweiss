@@ -1,4 +1,6 @@
-#pragma once
+#ifndef MAP_INTERFACE
+#define MAP_INTERFACE
+
 #include <msxhal.h>
 #include <tms99X8.h>
 
@@ -18,6 +20,9 @@ void APPEND(MAP_NAME,_erase_row)(uint8_t row);
 
 // Pattern previously marked to be released ARE released, allowing them to be recycled.
 void APPEND(MAP_NAME,_free)();
+void APPEND(MAP_NAME,_free0)();
+void APPEND(MAP_NAME,_free1)();
+void APPEND(MAP_NAME,_free2)();
 
 // Inits the map structure
 void APPEND(MAP_NAME,_init)();
@@ -27,7 +32,11 @@ void APPEND(MAP_NAME,_iterate_animation)();
 
 void APPEND(MAP_NAME,_copyPN0)();
 void APPEND(MAP_NAME,_copyPN1)();
-INLINE void APPEND(MAP_NAME,_copyPN)(EM2_Buffer buffer) { buffer==0?APPEND(MAP_NAME,_copyPN0)():APPEND(MAP_NAME,_copyPN1)(); }
+void APPEND(MAP_NAME,_copyPN0full)();
+void APPEND(MAP_NAME,_copyPN1full)();
+
+//INLINE void APPEND(MAP_NAME,_copyPN)(EM2_Buffer buffer) { buffer==0?APPEND(MAP_NAME,_copyPN0)():APPEND(MAP_NAME,_copyPN1)(); }
 
 uint8_t APPEND(MAP_NAME,_get_flags)(uint16_t row, uint16_t col);
 
+#endif

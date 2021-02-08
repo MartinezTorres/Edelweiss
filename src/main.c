@@ -12,6 +12,7 @@ USING_MODULE(front_page, PAGE_B);
 USING_MODULE(menu, PAGE_B);
 
 USING_MODULE(overworld, PAGE_B);
+USING_MODULE(title, PAGE_B);
 
 T_ISR isr;
 
@@ -76,23 +77,25 @@ static void overworld_isr(void) {
     case 3:
         if (isr.requestPatternNameTransfer) {
 			
-			//TMS99X8_memset(MODE2_ADDRESS_PN1, 0, 2*32);
-			overworld_copyPN(1);
+			overworld_copyPN1();
+			overworld_free0();
 		}
         break;
         
     case 4:    
         if (isr.requestPatternNameTransfer) {
 			
-			//TMS99X8_memset(MODE2_ADDRESS_PN0, 0, 2*32);
-            overworld_copyPN(0);
+            overworld_copyPN0();
+			overworld_free1();
         } else {
             CALL_PAGE(sprites, PAGE_B, updateSpriteISR());
         }
         break;
         
     case 5:
-        if (isr.requestPatternNameTransfer) overworld_free();
+        if (isr.requestPatternNameTransfer) {
+			overworld_free2();
+		}
         isr.requestPatternNameTransfer = false;            
 
 		{
@@ -121,289 +124,165 @@ static void overworld_isr(void) {
 }
 
 
-USING_MODULE(wolfi, PAGE_D);
-USING_MODULE(ghosti, PAGE_D);
-USING_MODULE(ghosti2, PAGE_D);
-USING_MODULE(ghosti3, PAGE_D);
+static void title_isr(void) {
 
-static void loadPhonySprites() {
+    isr.frameCount++;
+    isr.em2_Buffer = isr.frameCount & 0x01;
 
-    sprites[0].enabled = true;
-    sprites[0].patternBlackRequired = true;
-    sprites[0].patternColorRequired = true;
-    sprites[0].pos.i = 0x4000;
-    sprites[0].pos.j = 0x4000;
-    sprites[0].spriteInfoSegment = MODULE_SEGMENT(wolfi, PAGE_D);
-    sprites[0].spriteInfo = &wolfi_0_0;
-
-    sprites[1].enabled = true;
-    sprites[1].patternBlackRequired = true;
-    sprites[1].patternColorRequired = true;
-    sprites[1].pos.i = 0x4000;
-    sprites[1].pos.j = 0x4200;
-    sprites[1].spriteInfoSegment = MODULE_SEGMENT(wolfi, PAGE_D);
-    sprites[1].spriteInfo = &wolfi_0_1;
-
-    sprites[2].enabled = true;
-    sprites[2].patternBlackRequired = true;
-    sprites[2].patternColorRequired = true;
-    sprites[2].pos.i = 0x4200;
-    sprites[2].pos.j = 0x4000;
-    sprites[2].spriteInfoSegment = MODULE_SEGMENT(wolfi, PAGE_D);
-    sprites[2].spriteInfo = &wolfi_1_0;
-
-    sprites[3].enabled = true;
-    sprites[3].patternBlackRequired = true;
-    sprites[3].patternColorRequired = true;
-    sprites[3].pos.i = 0x4200;
-    sprites[3].pos.j = 0x4200;
-    sprites[3].spriteInfoSegment = MODULE_SEGMENT(wolfi, PAGE_D);
-    sprites[3].spriteInfo = &wolfi_1_1;
-
-    sprites[4].enabled = true;
-    sprites[4].patternBlackRequired = true;
-    sprites[4].patternColorRequired = true;
-    sprites[4].pos.i = 0x4400;
-    sprites[4].pos.j = 0x4000;
-    sprites[4].spriteInfoSegment = MODULE_SEGMENT(wolfi, PAGE_D);
-    sprites[4].spriteInfo = &wolfi_2_0;
-
-    sprites[5].enabled = true;
-    sprites[5].patternBlackRequired = true;
-    sprites[5].patternColorRequired = true;
-    sprites[5].pos.i = 0x4400;
-    sprites[5].pos.j = 0x4200;
-    sprites[5].spriteInfoSegment = MODULE_SEGMENT(wolfi, PAGE_D);
-    sprites[5].spriteInfo = &wolfi_2_1;
-
-    sprites[6].enabled = true;
-    sprites[6].patternBlackRequired = true;
-    sprites[6].patternColorRequired = true;
-    sprites[6].pos.i = 0x4600;
-    sprites[6].pos.j = 0x4000;
-    sprites[6].spriteInfoSegment = MODULE_SEGMENT(wolfi, PAGE_D);
-    sprites[6].spriteInfo = &wolfi_3_0;
-
-    sprites[7].enabled = true;
-    sprites[7].patternBlackRequired = true;
-    sprites[7].patternColorRequired = true;
-    sprites[7].pos.i = 0x4600;
-    sprites[7].pos.j = 0x4200;
-    sprites[7].spriteInfoSegment = MODULE_SEGMENT(wolfi, PAGE_D);
-    sprites[7].spriteInfo = &wolfi_3_1;
+    TMS99X8_activateBuffer(!isr.em2_Buffer);
 }
 
-void _putchar(char character) {
+static void prepareInfoBar() {
 	
-	static __sfr __at 0x2C putchar_sfr;
-	putchar_sfr = character;
-}
+	for (int i=0; i<32; i++) {
+		SA0[i].y = 209;
+		SA1[i].y = 209;
+	}
 
-
-void prepareInfoBar() {
-
-	SA0[4].y = 255;
+	SA0[4].y = 191-16;
 	SA0[4].x = 0;
-	SA0[4].pattern = 0;
-	SA0[4].color = (uint8_t)0x80 + (uint8_t)BBlack; //ec
+	SA0[4].pattern = 128;
+	SA0[4].color = (uint8_t)0x80 + (uint8_t)BWhite; //ec
 
-	SA0[5].y = 255;
+	SA0[5].y = 191-16;
 	SA0[5].x = 0;
-	SA0[5].pattern = 0;
-	SA0[5].color = (uint8_t)0x80 + (uint8_t)BBlack; //ec
+	SA0[5].pattern = 128;
+	SA0[5].color = (uint8_t)0x80 + (uint8_t)BWhite; //ec
 
-	SA0[6].y = 255;
+	SA0[6].y = 191-16;
 	SA0[6].x = 0;
-	SA0[6].pattern = 0;
-	SA0[6].color = (uint8_t)0x80 + (uint8_t)BBlack; //ec
+	SA0[6].pattern = 128;
+	SA0[6].color = (uint8_t)0x80 + (uint8_t)BWhite; //ec
 
-	SA0[7].y = 255;
+	SA0[7].y = 191-16;
 	SA0[7].x = 0;
-	SA0[7].pattern = 0;
-	SA0[7].color = (uint8_t)0x80 + (uint8_t)BBlack; //ec
+	SA0[7].pattern = 128;
+	SA0[7].color = (uint8_t)0x80 + (uint8_t)BWhite; //ec
 
-	SA1[4].y = 255;
+	SA1[4].y = 191-16;
 	SA1[4].x = 0;
-	SA1[4].pattern = 0;
-	SA1[4].color = (uint8_t)0x80 + (uint8_t)BBlack; //ec
+	SA1[4].pattern = 128;
+	SA1[4].color = (uint8_t)0x80 + (uint8_t)BWhite; //ec
 
-	SA1[5].y = 255;
+	SA1[5].y = 191-16;
 	SA1[5].x = 0;
-	SA1[5].pattern = 0;
-	SA1[5].color = (uint8_t)0x80 + (uint8_t)BBlack; //ec
+	SA1[5].pattern = 128;
+	SA1[5].color = (uint8_t)0x80 + (uint8_t)BWhite; //ec
 
-	SA1[6].y = 255;
+	SA1[6].y = 191-16;
 	SA1[6].x = 0;
-	SA1[6].pattern = 0;
-	SA1[6].color = (uint8_t)0x80 + (uint8_t)BBlack; //ec
+	SA1[6].pattern = 128;
+	SA1[6].color = (uint8_t)0x80 + (uint8_t)BWhite; //ec
 
-	SA1[7].y = 255;
+	SA1[7].y = 191-16;
 	SA1[7].x = 0;
-	SA1[7].pattern = 0;
-	SA1[7].color = (uint8_t)0x80 + (uint8_t)BBlack; //ec
-	
+	SA1[7].pattern = 128;
+	SA1[7].color = (uint8_t)0x80 + (uint8_t)BWhite; //ec	
 }
 
-static uint8_t updateWolfi(Entity *entity, uint8_t entityIdx) {
 
-	// KEYBOARD AND MOVE WOLFI
-	if (isr.globalFrameCount3 == 0) return true;
-	if (state.joy==0) {
+static void spawnOverworldEntities() {
 
-		// SPRITE POS
-		sprites[entityIdx].pos.i = entity->pos.i;
-		sprites[entityIdx].pos.j = entity->pos.j;
-
-		entity->animationCounter = 0;
-		return true;
-	}
-		
-	uint16_t tpi = entity->pos.i + 14*32;
-	uint16_t tpj1 = entity->pos.j + 4*32;
-	uint16_t tpjm1 = entity->pos.j + 6*32;
-	uint16_t tpjm2 = entity->pos.j + 9*32;
-	uint16_t tpj2 = entity->pos.j + 11*32;
-	
-	entity->animationCounter++;
-	if (state.joy & J_UP) {
-		
-		for (int i=0; i<2; i++) {
-			uint8_t flags = overworld_get_flags(tpi-32, tpj1) | overworld_get_flags(tpi-32, tpj2);
-			flags |= overworld_get_flags(tpi-32, tpjm1) | overworld_get_flags(tpi-32, tpjm2);
-			if ((flags & 0x1) == 0) {
-				entity->pos.i -= 32;
-				tpi-=32;
-			} else {
-				//entity->pos.i -= 32;
-			}
-		}
-		sprites[entityIdx].spriteInfo = (entity->animationCounter & 0x04? &wolfi_1_0 : &wolfi_1_1) ;
-	}
-	if (state.joy & J_DOWN) {
-
-		for (int i=0; i<2; i++) {
-			uint8_t flags = overworld_get_flags(tpi+32, tpj1) | overworld_get_flags(tpi+32, tpj2);
-			flags |= overworld_get_flags(tpi+32, tpjm1) | overworld_get_flags(tpi+32, tpjm2);
-			if ((flags & 0x1) == 0) {
-				entity->pos.i += 32;
-				tpi+=32;
-			} else {
-				//entity->pos.i += 32;
-			}
-		}
-
-		sprites[entityIdx].spriteInfo = (entity->animationCounter & 0x04? &wolfi_2_0 : &wolfi_2_1);
-	}
-	if (state.joy & J_RIGHT) {
-
-		for (int i=0; i<2; i++) {
-			uint8_t flags = overworld_get_flags(tpi, tpj2+32);
-			if ((flags & 0x1) == 0) {
-				entity->pos.j += 32;
-				tpj1+=32;
-				tpj2+=32;
-			} else {
-				//entity->pos.j += 32;
-			}
-		}
-		sprites[entityIdx].spriteInfo = (entity->animationCounter & 0x04? &wolfi_3_0 : &wolfi_3_1);
-	} 
-	if (state.joy & J_LEFT) {
-
-		for (int i=0; i<2; i++) {
-			uint8_t flags = overworld_get_flags(tpi, tpj1-32);
-			if ((flags & 0x1) == 0) {
-				entity->pos.j -= 32;
-				tpj1-=32;
-				tpj2-=32;
-			} else {
-				//entity->pos.j -= 32;
-			}
-		}
-		sprites[entityIdx].spriteInfo = (entity->animationCounter & 0x04? &wolfi_4_0 : &wolfi_4_1);
-	}
-		
-	// SPRITE POS
-	sprites[entityIdx].pos.i = entity->pos.i;
-	sprites[entityIdx].pos.j = entity->pos.j;
-
-
-	// SCROLLING			
+	// WOLFI
 	{
-		if ( (state.entities[0].pos.j + 0x80 >> 8) < 16 ) {
+		state.entities[0x00].pos.i = 0x4200;
+		state.entities[0x00].pos.j = 0x7D00;
+		state.entities[0x00].segment = MODULE_SEGMENT(update_wolfi, PAGE_C);
+		state.entities[0x00].spawn = spawn_wolfi;
+		state.entities[0x00].despawn = despawn_wolfi;
+		state.entities[0x00].update = update_wolfi;
+		state.entities[0x00].enabled = true;
+	}
+	
+	// GHOSTS
+	{
+		for (int i=0; i<7; i++) {
 			
-			isr.targetPos.j = 0;
-		
-		} else if ( (state.entities[0].pos.j + 0x80 >> 8) > (256-16) ) {
-
-			isr.targetPos.j = (uint8_t)(255-31);
-			
-		} else {
-			
-			isr.targetPos.j = (state.entities[0].pos.j + 0x80 >> 8)-16;
+			state.entities[0x10+i].segment = MODULE_SEGMENT(update_ghosti, PAGE_C);
+			state.entities[0x10+i].spawn = spawn_ghosti;
+			state.entities[0x10+i].despawn = despawn_ghosti;
+			state.entities[0x10+i].update = update_ghosti;
+			state.entities[0x10+i].enabled = true;
 		}
-
-		if ( (state.entities[0].pos.i + 0x80 >> 8) < 11 ) {
 			
-			isr.targetPos.i = 0;
-		
-		} else if ( (state.entities[0].pos.i + 0x80 >> 8) > (128-14) ) {
+		state.entities[0x10].pos.i = 0x6400;
+		state.entities[0x10].pos.j = 0x1000;
+		state.entities[0x10].anchor.i = 0x6600;
+		state.entities[0x10].anchor.j = 0x1800;
+		state.entities[0x10].vel.i = 5;
 
-			isr.targetPos.i = 127-23;
-			
-		} else {
-			
-			isr.targetPos.i = (state.entities[0].pos.i + 0x80 >> 8)-11;
-		}
+		state.entities[0x11].pos.i = 0x6800;
+		state.entities[0x11].pos.j = 0x2000;
+		state.entities[0x11].anchor.i = 0x6A00;
+		state.entities[0x11].anchor.j = 0x2800;
+		state.entities[0x11].vel.i = -5;
+		state.entities[0x11].vel.j = -1;
 
-		isr.updateScroll |= (map.pos.j != isr.targetPos.j);
-		isr.updateScroll |= (map.pos.i != isr.targetPos.i);
+		state.entities[0x12].pos.i = 0x6500;
+		state.entities[0x12].pos.j = 0x3000;
+		state.entities[0x12].anchor.i = 0x6700;
+		state.entities[0x12].anchor.j = 0x3800;
+		state.entities[0x12].vel.i = +3;
+		state.entities[0x12].vel.j = -3;
+
+		state.entities[0x13].pos.i = 0x6A00;
+		state.entities[0x13].pos.j = 0x0C00;
+		state.entities[0x13].anchor.i = 0x6C00;
+		state.entities[0x13].anchor.j = 0x1400;
+		state.entities[0x13].vel.i = +6;
+		state.entities[0x13].vel.j = +3;
+
+		state.entities[0x14].pos.i = 0x6C00;
+		state.entities[0x14].pos.j = 0x1800;
+		state.entities[0x14].anchor.i = 0x6E00;
+		state.entities[0x14].anchor.j = 0x2000;
+		state.entities[0x14].vel.i = 5;
+
+		state.entities[0x15].pos.i = 0x6A00;
+		state.entities[0x15].pos.j = 0x2800;
+		state.entities[0x15].anchor.i = 0x6C00;
+		state.entities[0x15].anchor.j = 0x3000;
+		state.entities[0x15].vel.i = -5;
+		state.entities[0x15].vel.j = -1;
+
+		state.entities[0x16].pos.i = 0x6C00;
+		state.entities[0x16].pos.j = 0x3800;
+		state.entities[0x16].anchor.i = 0x6E00;
+		state.entities[0x16].anchor.j = 0x4000;
+		state.entities[0x16].vel.i = +3;
+		state.entities[0x16].vel.j = -3;
 	}
 
+	// SKELETIONS 1
+	{
+		for (int i=0; i<2; i++) {
+			
+			state.entities[0x17+i].segment = MODULE_SEGMENT(update_skeleti, PAGE_C);
+			state.entities[0x17+i].spawn = spawn_skeleti;
+			state.entities[0x17+i].despawn = despawn_skeleti;
+			state.entities[0x17+i].update = update_skeleti;
+			state.entities[0x17+i].enabled = true;
+		}
 
-	return true;
-}
+		state.entities[0x17].pos.i = 0x5600;
+		state.entities[0x17].pos.j = 0x1400;
+		state.entities[0x17].anchor.i = 0x5600;
+		state.entities[0x17].anchor.j = 0x1600;
 
-static uint8_t updateGhosti(Entity *entity, uint8_t entityIdx) {
-
-	// KEYBOARD AND MOVE WOLFI
-	if (((isr.globalFrameCount+entityIdx)&3) != 0) return true;
-
-	entity->vel.i += ((int16_t)(entity->anchor.i - entity->pos.i))/512;
-	entity->vel.j += ((int16_t)(entity->anchor.j - entity->pos.j))/512;
-
-	entity->pos.i += entity->vel.i;
-	entity->pos.j += entity->vel.j;
-
-	sprites[entityIdx].pos.i = entity->pos.i;
-	sprites[entityIdx].pos.j = entity->pos.j;
-    sprites[entityIdx].enabled = true;
-    sprites[entityIdx].patternBlackRequired = true;
-    sprites[entityIdx].patternColorRequired = true;
-
-	if ((entityIdx&3) == 0) {
-		sprites[entityIdx].spriteInfoSegment = MODULE_SEGMENT(ghosti, PAGE_D);
-		sprites[entityIdx].spriteInfo = (entity->vel.j>0?&ghosti_0_0 : &ghosti_1_0) ;
-	} else if ((entityIdx&3) == 1) {
-		sprites[entityIdx].spriteInfoSegment = MODULE_SEGMENT(ghosti2, PAGE_D);
-		sprites[entityIdx].spriteInfo = (entity->vel.j>0?&ghosti2_0_0 : &ghosti2_1_0) ;
-	} else {
-		sprites[entityIdx].spriteInfoSegment = MODULE_SEGMENT(ghosti3, PAGE_D);
-		sprites[entityIdx].spriteInfo = (entity->vel.j>0?&ghosti3_0_0 : &ghosti3_1_0) ;
+		state.entities[0x18].pos.i = 0x5800;
+		state.entities[0x18].pos.j = 0x1A00;
+		state.entities[0x18].anchor.i = 0x5800;
+		state.entities[0x18].anchor.j = 0x1A00;
 	}
-
-	return true;
 }
 
-static void wolfiWalks() {
+static void mainGameRoutine() {
 	
     enable_keyboard_routine = false;
     
     mapper_load_module(overworld, PAGE_B);
     overworld_init();
     CALL_PAGE(sprites, PAGE_B, sprites_init());
-
-    loadPhonySprites();    
     
     TMS99X8.sprites16 = true;
     TMS99X8_syncFlags();
@@ -416,79 +295,11 @@ static void wolfiWalks() {
     memset(&state,0,sizeof(state));    
 	for (int i=0; i<8; i++)
 		state.activeEntities[i] = -1;
-    
-    state.entities[0].pos.i = 0x4000;
-    state.entities[0].pos.j = 0x8000;
-    state.entities[0].update = updateWolfi;
-    state.entities[0].enabled = true;
-	
-	state.entities[0x10].pos.i = 0x6400;
-    state.entities[0x10].pos.j = 0x1000;
-	state.entities[0x10].anchor.i = 0x6600;
-    state.entities[0x10].anchor.j = 0x1800;
-	state.entities[0x10].vel.i = 5;
-    state.entities[0x10].update = updateGhosti;
-    state.entities[0x10].enabled = true;
+		
+	spawnOverworldEntities();
 
-	state.entities[0x11].pos.i = 0x6800;
-    state.entities[0x11].pos.j = 0x2000;
-	state.entities[0x11].anchor.i = 0x6A00;
-    state.entities[0x11].anchor.j = 0x2800;
-	state.entities[0x11].vel.i = -5;
-	state.entities[0x11].vel.j = -1;
-    state.entities[0x11].update = updateGhosti;
-    state.entities[0x11].enabled = true;
-
-	state.entities[0x12].pos.i = 0x6500;
-    state.entities[0x12].pos.j = 0x3000;
-	state.entities[0x12].anchor.i = 0x6700;
-    state.entities[0x12].anchor.j = 0x3800;
-	state.entities[0x12].vel.i = +3;
-	state.entities[0x12].vel.j = -3;
-    state.entities[0x12].update = updateGhosti;
-    state.entities[0x12].enabled = true;
-
-	state.entities[0x13].pos.i = 0x6A00;
-    state.entities[0x13].pos.j = 0x0C00;
-	state.entities[0x13].anchor.i = 0x6C00;
-    state.entities[0x13].anchor.j = 0x1400;
-	state.entities[0x13].vel.i = +6;
-	state.entities[0x13].vel.j = +3;
-    state.entities[0x13].update = updateGhosti;
-    state.entities[0x13].enabled = true;
-
-	state.entities[0x14].pos.i = 0x6C00;
-    state.entities[0x14].pos.j = 0x1800;
-	state.entities[0x14].anchor.i = 0x6E00;
-    state.entities[0x14].anchor.j = 0x2000;
-	state.entities[0x14].vel.i = 5;
-    state.entities[0x14].update = updateGhosti;
-    state.entities[0x14].enabled = true;
-
-	state.entities[0x15].pos.i = 0x6A00;
-    state.entities[0x15].pos.j = 0x2800;
-	state.entities[0x15].anchor.i = 0x6C00;
-    state.entities[0x15].anchor.j = 0x3000;
-	state.entities[0x15].vel.i = -5;
-	state.entities[0x15].vel.j = -1;
-    state.entities[0x15].update = updateGhosti;
-    state.entities[0x15].enabled = true;
-
-	state.entities[0x16].pos.i = 0x6C00;
-    state.entities[0x16].pos.j = 0x3800;
-	state.entities[0x16].anchor.i = 0x6E00;
-    state.entities[0x16].anchor.j = 0x4000;
-	state.entities[0x16].vel.i = +3;
-	state.entities[0x16].vel.j = -3;
-    state.entities[0x16].update = updateGhosti;
-    state.entities[0x16].enabled = true;
-
-
-
-
-
-	map.pos.j = (state.entities[0].pos.j + 0x80 >> 8)-16;
-	map.pos.i = (state.entities[0].pos.i + 0x80 >> 8)-11;
+	map.pos.j = ( (state.entities[0].pos.j + 0x80) >> 8)-16;
+	map.pos.i = ( (state.entities[0].pos.i + 0x80) >> 8)-11;
 	isr.targetPos.i = map.pos.i;
 	isr.targetPos.j = map.pos.j;
 
@@ -528,18 +339,22 @@ static void wolfiWalks() {
 		isr.globalFrameCount = 255;
 		isr.globalFrameCount3 = 2;
         while (true) {
-			
-			
 
 			// WAIT FOR FRAME
-			//int8_t pre = isr.frameCount;
+			uint8_t preFrameCount = isr.frameCount;
             wait_frame();
+
+            isr.deltaFrames = isr.frameCount - preFrameCount;
             
             isr.globalFrameCount++;
             isr.globalFrameCount3++;
             if (isr.globalFrameCount3==3) isr.globalFrameCount3=0;
 
-			//CALL_PAGE( printf, PAGE_D, printf_("isr: %d %d\n",isr.frameCount, isr.frameCount - pre); );
+//			CALL_PAGE( printf, PAGE_D, printf_("isr: %d %d\n",(int)isr.frameCount, (int)preFrameCount); );
+
+			if (0) { for (uint8_t i=0; i<isr.deltaFrames; i++)	_putchar('.'); _putchar('\n'); }
+				
+//			CALL_PAGE( printf, PAGE_D, printf_("%d\n",isr.deltaFrames); );
 
 			// UPDATE JOYSTICK
 			state.joy = msxhal_joystick_read(0);
@@ -550,16 +365,29 @@ static void wolfiWalks() {
 				int8_t n = state.activeEntities[i];
 				
 				if (n<0) continue;
+				Entity *entity = &state.entities[n];
 
 				//CALL_PAGE( printf, PAGE_D, printf_("update: %d %d\n",i, n); );
 
 				IN_SEGMENT(
-					state.entities[n].segment, 
+					entity->segment, 
 					PAGE_C,         
-					if ((*state.entities[n].update)(&state.entities[n],i) == false) {
+					if ((*entity->update)(entity,i) == false) {
 						state.activeEntities[i] = -1;
 						state.nActiveEntities--;
+						entity->active = false;
 					};
+
+					// Check out of bounds
+					if (((uint8_t)((entity->pos.i >> 8) + 3 - map.pos.i) >= 24+6) ||
+						((uint8_t)((entity->pos.j >> 8) + 3 - map.pos.j) >= 32+6)) {
+
+						(*entity->despawn)(entity,i);
+
+						state.activeEntities[i] = -1;
+						state.nActiveEntities--;
+						entity->active = false;
+					}
 				);
 			}
 			
@@ -576,13 +404,21 @@ static void wolfiWalks() {
 
 					
 					// Check out of bounds
-					if ((entity->pos.i >> 8) + 3 - map.pos.i >= 24+6) continue; 
-					if ((entity->pos.j >> 8) + 3 - map.pos.j >= 32+6) continue;
+					if ((uint8_t)((entity->pos.i >> 8) + 3 - map.pos.i) >= 24+6) continue; 
+					if ((uint8_t)((entity->pos.j >> 8) + 3 - map.pos.j) >= 32+6) continue;
+					
+					//fprintf(stderr, "i %d, j %d \n", (entity->pos.i >> 8) + 3 - map.pos.i, (entity->pos.j >> 8) + 3 - map.pos.j);
 					
 					
 					for (uint8_t k=0; k<8; k++) {
 						if (state.activeEntities[k] < 0) {
 							state.activeEntities[k] = i + j;
+
+							IN_SEGMENT(
+								entity->segment, 
+								PAGE_C,         
+								(*entity->spawn)(entity,k);
+							);
 							state.nActiveEntities++;
 							break;
 						}
@@ -597,6 +433,56 @@ static void wolfiWalks() {
     }
 }
 
+
+
+static void show_title_screen() {
+	
+    enable_keyboard_routine = false;
+    
+    mapper_load_module(title, PAGE_B);
+    title_init();
+    CALL_PAGE(sprites, PAGE_B, sprites_init());
+
+    TMS99X8.sprites16 = true;
+    TMS99X8_syncFlags();
+    
+    memset(&isr,0,sizeof(isr));    
+    map.pos = isr.targetPos;
+
+    msxhal_install_isr(title_isr);
+
+    memset(&state,0,sizeof(state));    
+	for (int i=0; i<8; i++)
+		state.activeEntities[i] = -1;
+    
+	map.pos.j = 0;
+	map.pos.i = 0;
+	isr.targetPos.i = map.pos.i;
+	isr.targetPos.j = map.pos.j;
+
+    {
+        for (uint8_t i=0; i<8; i++) {
+
+//            title_draw_row(11-i);
+//            title_draw_row(12+i);
+            title_draw_row(8+i);
+//            title_draw_row(19-i);
+			wait_frame();
+			title_copyPN0full();
+			wait_frame();
+			title_copyPN1full();
+			wait_frame();
+			title_free0();
+			wait_frame();
+			title_free1();
+			wait_frame();
+			title_free2();
+			wait_frame();
+        }
+    }
+    
+    while (true) wait_frame();
+}
 
 int main(void) {
 
@@ -626,9 +512,10 @@ __endasm;
     
     TMS99X8_activateMode2(MODE2_ALL_ROWS); 
     
+//    show_title_screen();
+    
     while (true) {
-//        mapBrowser();
-        wolfiWalks();
+        mainGameRoutine();
     }
     
     return 0;

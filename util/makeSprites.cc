@@ -531,7 +531,11 @@ int main(int argc, const char *argv[]) {
                         }
                     }
                     
-                    if (sprite.colorSprites.size()!=2) { std::cerr << "Not two colors needed" << std::endl; exit(-1); }
+                    if (sprite.colorSprites.size()!=2) { 
+						std::cerr << "Not two colors needed" << std::endl; 
+                        sprite.colorSprites.push_back(sprite.colorSprites.back());
+						//exit(-1); 			
+					}
                     
                     sprites[i/16][j/16] = sprite;
                 }

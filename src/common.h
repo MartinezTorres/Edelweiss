@@ -15,28 +15,36 @@
 #include <psg.h>
 USING_MODULE(psg, PAGE_B);
 
+#include <debug/printf.h>
+USING_MODULE(printf, PAGE_D);
+
 #include <state.h>
 
 #include <menu.h>
 #include <front_page.h>
 
+#include <map/title/title.h>
+#undef MAP_INTERFACE
 #include <map/overworld/overworld.h>
+
 #include <map/common.h>
 #include <sprites/common.h>
 #include <sprites/wolfi/wolfi.h>
 #include <sprites/ghosti/ghosti.h>
-#include <sprites/ghosti/ghosti2.h>
-#include <sprites/ghosti/ghosti3.h>
+#include <sprites/skeleti/skeleti.h>
 USING_MODULE(sprites, PAGE_B);
+
+#include <updates/common.h>
 
 typedef struct {
     
     uint8_tp targetPos;
 
-    uint8_t frameCount;
-    uint8_t frameCount6;
-    uint8_t globalFrameCount;
-    uint8_t globalFrameCount3;
+    volatile uint8_t frameCount;
+    volatile uint8_t frameCount6;
+    volatile uint8_t globalFrameCount;
+    volatile uint8_t globalFrameCount3;
+	volatile uint8_t deltaFrames;
     
     uint8_t em2_Buffer;
     uint8_t cpuLoad;
@@ -56,5 +64,3 @@ typedef struct {
 
 extern T_ISR isr;
 
-USING_MODULE(printf, PAGE_D);
-int printf_(const char* format, ...);
