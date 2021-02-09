@@ -157,6 +157,7 @@ uint8_t update_wolfi(Entity *entity, uint8_t entityIdx) {
 		isr.updateScroll |= (map.pos.i != isr.targetPos.i);
 	}
 
+	infoBarUpdateMap();
 
 	return true;
 }

@@ -36,6 +36,10 @@ USING_MODULE(sprites, PAGE_B);
 
 #include <updates/common.h>
 
+#include <canvas/canvas.h>
+
+#include <infobar/infobar.h>
+
 typedef struct {
     
     uint8_tp targetPos;

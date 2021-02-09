@@ -55,7 +55,7 @@ static void updateSprite(uint8_t i) {
             saTemp.y = ((uint8_t)(ts->pos.i>>5)) - ((uint8_t)(map.pos.i<<3)) - 1;
             saTemp.x = ((uint8_t)(ts->pos.j>>5)) - ((uint8_t)(map.pos.j<<3)) + 32;
             saTemp.pattern = (i<<4) + 0;
-            saTemp.color = 0x80 + (uint8_t)BBlack; //ec
+            saTemp.color = (uint8_t)0x80 + (uint8_t)BBlack; //ec
 
         } else {
             saTemp.y = ((uint8_t)(ts->pos.i>>5)) - ((uint8_t)(map.pos.i<<3)) - 1;

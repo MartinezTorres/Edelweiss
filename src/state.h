@@ -6,8 +6,9 @@ struct Entity_T {
     uint8_t enabled;
     uint8_t active;
     
+    uint8_t maximum_life;
     uint8_t life;
-    uint8_t info[8]; // to be used by the update routine
+    uint8_t info[4]; // to be used by the update routine
     uint8_t invulnerable_frames;
     
     uint8_t segment;
@@ -26,6 +27,14 @@ typedef struct Entity_T Entity;
 
 
 typedef struct {
+	
+	bool hasBoots;
+	bool hasCoat;
+	bool hasFruit;
+	uint16_t rupees;
+	enum {E_PAW, E_CLAW, E_SWORD, E_AXE, E_BOMB, E_FIRE, E_BOW, E_MASTER_SWORD} weapon;
+	
+	uint8_tp nextFlower;
 
     uint8_t nEntities;
     Entity entities[64]; // Entity 0 is the main player

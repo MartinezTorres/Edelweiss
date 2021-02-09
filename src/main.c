@@ -132,59 +132,12 @@ static void title_isr(void) {
     TMS99X8_activateBuffer(!isr.em2_Buffer);
 }
 
-static void prepareInfoBar() {
-	
-	for (int i=0; i<32; i++) {
-		SA0[i].y = 209;
-		SA1[i].y = 209;
-	}
-
-	SA0[4].y = (uint8_t)(191-16);
-	SA0[4].x = 0;
-	SA0[4].pattern = 128;
-	SA0[4].color = (uint8_t)0x80 + (uint8_t)BWhite; //ec
-
-	SA0[5].y = (uint8_t)(191-16);
-	SA0[5].x = 0;
-	SA0[5].pattern = 128;
-	SA0[5].color = (uint8_t)0x80 + (uint8_t)BWhite; //ec
-
-	SA0[6].y = (uint8_t)(191-16);
-	SA0[6].x = 0;
-	SA0[6].pattern = 128;
-	SA0[6].color = (uint8_t)0x80 + (uint8_t)BWhite; //ec
-
-	SA0[7].y = (uint8_t)(191-16);
-	SA0[7].x = 0;
-	SA0[7].pattern = 128;
-	SA0[7].color = (uint8_t)0x80 + (uint8_t)BWhite; //ec
-
-	SA1[4].y = (uint8_t)(191-16);
-	SA1[4].x = 0;
-	SA1[4].pattern = 128;
-	SA1[4].color = (uint8_t)0x80 + (uint8_t)BWhite; //ec
-
-	SA1[5].y = (uint8_t)(191-16);
-	SA1[5].x = 0;
-	SA1[5].pattern = 128;
-	SA1[5].color = (uint8_t)0x80 + (uint8_t)BWhite; //ec
-
-	SA1[6].y = (uint8_t)(191-16);
-	SA1[6].x = 0;
-	SA1[6].pattern = 128;
-	SA1[6].color = (uint8_t)0x80 + (uint8_t)BWhite; //ec
-
-	SA1[7].y = (uint8_t)(191-16);
-	SA1[7].x = 0;
-	SA1[7].pattern = 128;
-	SA1[7].color = (uint8_t)0x80 + (uint8_t)BWhite; //ec	
-}
-
-
 static void spawnOverworldEntities() {
 
 	// WOLFI
 	{
+		state.entities[0x00].maximum_life = 30;
+		state.entities[0x00].life = 22;
 		state.entities[0x00].pos.i = 0x4200;
 		state.entities[0x00].pos.j = 0x7D00;
 		state.entities[0x00].segment = MODULE_SEGMENT(update_wolfi, PAGE_C);
@@ -306,7 +259,9 @@ static void mainGameRoutine() {
     memset(&state,0,sizeof(state));    
 	for (int i=0; i<8; i++)
 		state.activeEntities[i] = -1;
-		
+	
+	state.rupees = 274;
+	
 	spawnOverworldEntities();
 	
 	// SPAWN wolfi
@@ -349,7 +304,7 @@ static void mainGameRoutine() {
         }
     }
     
-    prepareInfoBar();
+    infoBarInit();
     
         
     {
@@ -450,6 +405,7 @@ static void mainGameRoutine() {
 				}
 			}
 			
+			//largePopupInitCanvas(3);
         }
     }
 }
