@@ -56,6 +56,11 @@ void spawn_weapon_bow(Entity *entity, uint8_t entityIdx);
 void despawn_weapon_bow(Entity *entity, uint8_t entityIdx);
 uint8_t update_weapon_bow(Entity *entity, uint8_t entityIdx);
 
+USING_MODULE(entity_weapon_fire, PAGE_C);
+void spawn_weapon_fire(Entity *entity, uint8_t entityIdx);
+void despawn_weapon_fire(Entity *entity, uint8_t entityIdx);
+uint8_t update_weapon_fire(Entity *entity, uint8_t entityIdx);
+
 USING_MODULE(entity_weapon_bomb, PAGE_C);
 void spawn_weapon_bomb(Entity *entity, uint8_t entityIdx);
 void despawn_weapon_bomb(Entity *entity, uint8_t entityIdx);

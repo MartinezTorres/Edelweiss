@@ -50,7 +50,7 @@ void despawn_weapon_fire(Entity *entity, uint8_t active_entity_index) {
 
 static const TSpriteInterlaced * const sprite_table[4] =
 { &weapon_fire_0_0, &weapon_fire_1_0, &weapon_fire_2_0, &weapon_fire_3_0,};
-{
+
 uint8_t update_weapon_fire(Entity *entity, uint8_t active_entity_index) {
 
 	for (uint8_t i=0; i<isr.deltaFrames; i++) {
@@ -59,7 +59,7 @@ uint8_t update_weapon_fire(Entity *entity, uint8_t active_entity_index) {
 		entity->pos.j += entity->vel.j;
 
 		
-		sprites[active_entity_index].spriteInfo = sprite_table[((entity->animationCounter++)>>2)%&3];
+		sprites[active_entity_index].spriteInfo = sprite_table[((entity->animationCounter++)>>2)&3];
 	}
 	sprites[active_entity_index].pos.i = entity->pos.i;
 	sprites[active_entity_index].pos.j = entity->pos.j;
