@@ -551,7 +551,7 @@ int main(int argc, const char *argv[]) {
     {
         std::ofstream header(SPRITE_NAME+".h");
         header << "#pragma once" << std::endl;
-        header << "#include <sprites/common.h>" << std::endl;
+        header << "#include <common.h>" << std::endl;
         for (auto &sr : sprites) {
             for (auto &sc : sr.second) {
                 header << "extern const TSpriteInterlaced " << SPRITE_NAME << "_" << sr.first << "_" << sc.first << ";" << std::endl;
@@ -563,7 +563,7 @@ int main(int argc, const char *argv[]) {
     // Spawn Implementation
     {
         std::ofstream src(SPRITE_NAME+".c");
-        src << "#include <sprites/common.h>" << std::endl;
+        src << "#include <common.h>" << std::endl;
         for (auto &sr : sprites) {
             for (auto &sc : sr.second) {
                 src << "const TSpriteInterlaced " << SPRITE_NAME << "_" << sr.first << "_" << sc.first << " = {" << std::endl;

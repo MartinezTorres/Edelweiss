@@ -1,0 +1,14 @@
+#pragma once
+#include <common.h>
+extern const TSpriteInterlaced weapon_slash_small_0_0;
+extern const TSpriteInterlaced weapon_slash_small_0_1;
+extern const TSpriteInterlaced weapon_slash_small_0_2;
+extern const TSpriteInterlaced weapon_slash_small_0_3;
+extern const TSpriteInterlaced weapon_slash_small_1_0;
+extern const TSpriteInterlaced weapon_slash_small_1_3;
+extern const TSpriteInterlaced weapon_slash_small_2_0;
+extern const TSpriteInterlaced weapon_slash_small_2_3;
+extern const TSpriteInterlaced weapon_slash_small_3_0;
+extern const TSpriteInterlaced weapon_slash_small_3_1;
+extern const TSpriteInterlaced weapon_slash_small_3_2;
+extern const TSpriteInterlaced weapon_slash_small_3_3;

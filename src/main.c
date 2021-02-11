@@ -1,33 +1,23 @@
 #include <common.h>
 
-////////////////////////////////////////////////////////////////////////
-// AUDIO
-
-////////////////////////////////////////////////////////////////////////
-// GAME
-
-////////////////////////////////////////////////////////////////////////
-// MAIN
-USING_MODULE(front_page, PAGE_B);
-USING_MODULE(menu, PAGE_B);
-
-USING_MODULE(overworld, PAGE_B);
-USING_MODULE(title, PAGE_B);
-
 T_ISR isr;
 
-static void overworld_isr(void) {
+T_State state;
+
+#ifndef MSX
+    T_Map map;
+#endif
+
+void main_isr(void) {
 
     uint8_t oldSegmentPageB = mapper_load_module(overworld, PAGE_B);
-
+ 
     isr.frameCount++;
     isr.em2_Buffer = isr.frameCount & 0x01;
     
-    isr.cpuLoad = 2; // base IRC cost is 2%
-
     TMS99X8_activateBuffer(!isr.em2_Buffer);
 
-    switch (isr.frameCount6++) {
+	switch (isr.frameCount6++) {
     case 0:
         if (isr.updateScroll) {
             if        (isr.targetPos.j<map.pos.j) {
@@ -88,7 +78,7 @@ static void overworld_isr(void) {
             overworld_copyPN0();
 			overworld_free1();
         } else {
-            CALL_PAGE(sprites, PAGE_B, updateSpriteISR());
+           CALL_PAGE(sprites, PAGE_B, updateSpriteISR());
         }
         break;
         
@@ -116,20 +106,9 @@ static void overworld_isr(void) {
         break;
     }
 
-    CALL_PAGE(sprites, PAGE_B, updateSpriteAttributeTableISR(isr.em2_Buffer));
-
-    //printf("Expected Delay: %i %d\n", isr.frameCount6, isr.cpuLoad);
+    updateSpriteAttributeTableISR(isr.em2_Buffer);
 
     mapper_load_segment(oldSegmentPageB, PAGE_B);
-}
-
-
-static void title_isr(void) {
-
-    isr.frameCount++;
-    isr.em2_Buffer = isr.frameCount & 0x01;
-
-    TMS99X8_activateBuffer(!isr.em2_Buffer);
 }
 
 static void spawnOverworldEntities() {
@@ -140,7 +119,8 @@ static void spawnOverworldEntities() {
 		state.entities[0x00].life = 22;
 		state.entities[0x00].pos.i = 0x4200;
 		state.entities[0x00].pos.j = 0x7D00;
-		state.entities[0x00].segment = MODULE_SEGMENT(update_wolfi, PAGE_C);
+		state.entities[0x00].invulnerable_frames = 255;
+		state.entities[0x00].segment = MODULE_SEGMENT(entity_wolfi, PAGE_C);
 		state.entities[0x00].spawn = spawn_wolfi;
 		state.entities[0x00].despawn = despawn_wolfi;
 		state.entities[0x00].update = update_wolfi;
@@ -151,7 +131,7 @@ static void spawnOverworldEntities() {
 	{
 		state.entities[0x01].pos.i = 0x4200;
 		state.entities[0x01].pos.j = 0x7D00;
-		state.entities[0x01].segment = MODULE_SEGMENT(update_wolfi, PAGE_C);
+		state.entities[0x01].segment = MODULE_SEGMENT(entity_wolfi, PAGE_C);
 		state.entities[0x01].spawn = spawn_wolfi;
 		state.entities[0x01].despawn = despawn_wolfi;
 		state.entities[0x01].update = update_wolfi;
@@ -162,7 +142,7 @@ static void spawnOverworldEntities() {
 	{
 		for (int i=0; i<7; i++) {
 			
-			state.entities[0x10+i].segment = MODULE_SEGMENT(update_ghosti, PAGE_C);
+			state.entities[0x10+i].segment = MODULE_SEGMENT(entity_ghosti, PAGE_C);
 			state.entities[0x10+i].spawn = spawn_ghosti;
 			state.entities[0x10+i].despawn = despawn_ghosti;
 			state.entities[0x10+i].update = update_ghosti;
@@ -217,11 +197,11 @@ static void spawnOverworldEntities() {
 		state.entities[0x16].vel.j = -3;
 	}
 
-	// SKELETIONS 1
+	// SKELETONS 1
 	{
 		for (int i=0; i<2; i++) {
 			
-			state.entities[0x17+i].segment = MODULE_SEGMENT(update_skeleti, PAGE_C);
+			state.entities[0x17+i].segment = MODULE_SEGMENT(entity_skeleti, PAGE_C);
 			state.entities[0x17+i].spawn = spawn_skeleti;
 			state.entities[0x17+i].despawn = despawn_skeleti;
 			state.entities[0x17+i].update = update_skeleti;
@@ -242,26 +222,27 @@ static void spawnOverworldEntities() {
 
 static void mainGameRoutine() {
 	
-    enable_keyboard_routine = false;
     
     mapper_load_module(overworld, PAGE_B);
     overworld_init();
     CALL_PAGE(sprites, PAGE_B, sprites_init());
-    
+
     TMS99X8.sprites16 = true;
     TMS99X8_syncFlags();
     
     memset(&isr,0,sizeof(isr));    
     map.pos = isr.targetPos;
 
-    msxhal_install_isr(overworld_isr);
+    msxhal_install_isr(main_isr);
 
     memset(&state,0,sizeof(state));    
-	for (int i=0; i<8; i++)
+	for (uint8_t i=0; i<8; i++)
 		state.activeEntities[i] = -1;
-	
-	state.rupees = 274;
-	
+
+	state.rupees = 474;
+	for (uint8_t i=0; i<8; i++) state.hasWeapon[i]=true;
+	state.hasCoat = true;
+		
 	spawnOverworldEntities();
 	
 	// SPAWN wolfi
@@ -271,7 +252,7 @@ static void mainGameRoutine() {
 		(*state.entities[0].spawn)(&state.entities[0],0);
 		state.entities[0].active = true;
 	);
-	state.nActiveEntities++;	
+	state.nActiveEntities=2;	
 
 	map.pos.j = ( (state.entities[0].pos.j + 0x80) >> 8)-16;
 	map.pos.i = ( (state.entities[0].pos.i + 0x80) >> 8)-11;
@@ -282,7 +263,7 @@ static void mainGameRoutine() {
 
         overworld_draw_row(0);
         overworld_draw_row(1);
-		wait_frame();
+        wait_frame();
 		wait_frame();
 		wait_frame();
 		wait_frame();
@@ -290,10 +271,10 @@ static void mainGameRoutine() {
 		wait_frame();
         for (uint8_t i=0; i<11; i++) {
 
-            overworld_draw_row(2+i);
-            overworld_draw_row(23-i);
-            overworld_draw_col(31-i);
-            overworld_draw_col(i);
+			overworld_draw_row(2+i);
+			overworld_draw_row(23-i);
+			overworld_draw_col(31-i);
+			overworld_draw_col(i);
 			isr.updateScroll = true;
 			wait_frame();
 			wait_frame();
@@ -306,7 +287,6 @@ static void mainGameRoutine() {
     
     infoBarInit();
     
-        
     {
         isr.enableSprites = true;
         isr.enableAnimations = true;
@@ -318,6 +298,86 @@ static void mainGameRoutine() {
 			// WAIT FOR FRAME
 			uint8_t preFrameCount = isr.frameCount;
             wait_frame();
+			// UPDATE JOYSTICK
+			update_keyboard_and_joystick();
+
+			
+			if (state.keyboard_click[4] & K_M) {
+//				CALL_PAGE( printf_, PAGE_D, printf_("update_keyboard_and_joystick: %02X %02X\n",state.weapon, state.keyboard_click[4]); );
+				
+				do {
+					state.weapon = (state.weapon + 1) & 7;
+				} while (!state.hasWeapon[state.weapon]);
+				infoBarUpdateWeapon();
+			}
+
+			if (!!(state.keyboard_click[8] & K_SPACE) && state.activeEntities[1] < 0) {
+
+				state.activeEntities[1] = 1;
+
+				state.entities[0x01].type = state.weapon;
+
+				switch (state.weapon) {
+				case E_PAW:
+					state.entities[0x01].segment = MODULE_SEGMENT(entity_weapon_slash, PAGE_C);
+					state.entities[0x01].spawn = spawn_weapon_slash;
+					state.entities[0x01].despawn = despawn_weapon_slash;
+					state.entities[0x01].update = update_weapon_slash;
+					break;
+				case E_CLAW:
+					state.entities[0x01].segment = MODULE_SEGMENT(entity_weapon_slash, PAGE_C);
+					state.entities[0x01].spawn = spawn_weapon_slash;
+					state.entities[0x01].despawn = despawn_weapon_slash;
+					state.entities[0x01].update = update_weapon_slash;
+					break;
+				case E_SWORD:
+					state.entities[0x01].segment = MODULE_SEGMENT(entity_weapon_slash, PAGE_C);
+					state.entities[0x01].spawn = spawn_weapon_slash;
+					state.entities[0x01].despawn = despawn_weapon_slash;
+					state.entities[0x01].update = update_weapon_slash;
+					break;
+				case E_AXE:
+					state.entities[0x01].segment = MODULE_SEGMENT(entity_weapon_slash, PAGE_C);
+					state.entities[0x01].spawn = spawn_weapon_slash;
+					state.entities[0x01].despawn = despawn_weapon_slash;
+					state.entities[0x01].update = update_weapon_slash;
+					break;
+				case E_BOMB:
+					state.entities[0x01].segment = MODULE_SEGMENT(entity_weapon_bomb, PAGE_C);
+					state.entities[0x01].spawn = spawn_weapon_bomb;
+					state.entities[0x01].despawn = despawn_weapon_bomb;
+					state.entities[0x01].update = update_weapon_bomb;
+					break;
+				case E_FIRE:
+					state.entities[0x01].segment = MODULE_SEGMENT(entity_weapon_fire, PAGE_C);
+					state.entities[0x01].spawn = spawn_weapon_fire;
+					state.entities[0x01].despawn = despawn_weapon_fire;
+					state.entities[0x01].update = update_weapon_fire;
+					break;
+				case E_BOW:
+					state.entities[0x01].segment = MODULE_SEGMENT(entity_weapon_bow, PAGE_C);
+					state.entities[0x01].spawn = spawn_weapon_bow;
+					state.entities[0x01].despawn = despawn_weapon_bow;
+					state.entities[0x01].update = update_weapon_bow;
+					break;
+				case E_BUTTER_KNIFE:
+					state.entities[0x01].segment = MODULE_SEGMENT(entity_weapon_slash, PAGE_C);
+					state.entities[0x01].spawn = spawn_weapon_slash;
+					state.entities[0x01].despawn = despawn_weapon_slash;
+					state.entities[0x01].update = update_weapon_slash;
+					break;
+				}
+
+				state.entities[0x01].enabled = true;
+
+				IN_SEGMENT( state.entities[1].segment, 
+					PAGE_C,         
+					(*state.entities[1].spawn)(&state.entities[1],1);
+					state.entities[1].active = true;
+				);
+
+			}
+
 
             isr.deltaFrames = isr.frameCount - preFrameCount;
             
@@ -331,8 +391,6 @@ static void mainGameRoutine() {
 				
 //			CALL_PAGE( printf, PAGE_D, printf_("%d\n",isr.deltaFrames); );
 
-			// UPDATE JOYSTICK
-			state.joy = msxhal_joystick_read(0);
 			
 			// UPDATE ACTIVE ENTITIES
 			for (int i=0; i<8; i++) {
@@ -348,6 +406,9 @@ static void mainGameRoutine() {
 					entity->segment, 
 					PAGE_C,         
 					if ((*entity->update)(entity,i) == false) {
+						
+						(*entity->despawn)(entity,i);
+						
 						state.activeEntities[i] = -1;
 						state.nActiveEntities--;
 						entity->active = false;
@@ -411,57 +472,14 @@ static void mainGameRoutine() {
 }
 
 
-
-static void show_title_screen() {
-	
-    enable_keyboard_routine = false;
-    
-    mapper_load_module(title, PAGE_B);
-    title_init();
-    CALL_PAGE(sprites, PAGE_B, sprites_init());
-
-    TMS99X8.sprites16 = true;
-    TMS99X8_syncFlags();
-    
-    memset(&isr,0,sizeof(isr));    
-    map.pos = isr.targetPos;
-
-    msxhal_install_isr(title_isr);
-
-    memset(&state,0,sizeof(state));    
-	for (int i=0; i<8; i++)
-		state.activeEntities[i] = -1;
-    
-	map.pos.j = 0;
-	map.pos.i = 0;
-	isr.targetPos.i = map.pos.i;
-	isr.targetPos.j = map.pos.j;
-
-    {
-        for (uint8_t i=0; i<8; i++) {
-
-//            title_draw_row(11-i);
-//            title_draw_row(12+i);
-            title_draw_row(8+i);
-//            title_draw_row(19-i);
-			wait_frame();
-			title_copyPN0full();
-			wait_frame();
-			title_copyPN1full();
-			wait_frame();
-			title_free0();
-			wait_frame();
-			title_free1();
-			wait_frame();
-			title_free2();
-			wait_frame();
-        }
-    }
-    
-    while (true) wait_frame();
-}
-
 int main(void) {
+
+#ifdef MSX    
+	{
+	    static __at 48*1024U uint8_t buffer[8+1024U];
+	    memset(buffer,0,sizeof(buffer));
+	}
+#endif
 
     // Normal initialization routine
     msxhal_init(); // Bare minimum initialization of the msx support 
@@ -482,18 +500,16 @@ ld   A,(#0x0180) ; CHGCPU
 cp   #0xC3
 ld   a,#0x81              ; can be ld a,81h for R800 ROM if you wish
 call z,#0x0180
+di
 __endasm; 
 #endif
 
+    enable_keyboard_routine = false;
 
-    
     TMS99X8_activateMode2(MODE2_ALL_ROWS); 
     
-//    show_title_screen();
-    
-    while (true) {
-        mainGameRoutine();
-    }
+    while (true) 
+		mainGameRoutine();
     
     return 0;
 }

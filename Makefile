@@ -11,6 +11,7 @@ OPENMSX_BIN = /opt/openMSX/bin/openmsx
 
 ADDR_DATA = 0xC000
 
-CCZ80 = sdcc_msx/bin/sdcc-3.9.0/bin/sdcc
+#CCZ80 = sdcc_msx/bin/sdcc-3.9.0/bin/sdcc
+CCZ80 = sdcc_msx/bin/sdcc-4.0.0/bin/sdcc
 
 MAX_ALLOCS = 20000

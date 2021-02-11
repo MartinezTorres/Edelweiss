@@ -25,8 +25,9 @@
 
 init:
 	ld      sp,(0xfc4a) ; Stack at the top of memory.
+;	ld      sp,#0xf380 ; Stack at the top of memory.
 	call    find_rom_page_2
-	call 	gsinit ; Initialize global variables
+;	call 	gsinit ; Initialize global variables
 	call    _main ; Initialise global variables
 	jp      init
 

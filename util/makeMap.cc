@@ -668,7 +668,7 @@ int main(int argc, const char *argv[]) {
         std::ofstream header(MAP_NAME+".h");
         header << "#pragma once" << std::endl;
         header << "#define MAP_NAME " << MAP_NAME << std::endl;
-        header << "#include <map/interface.h>" << std::endl;
+        header << "#include <map_interface.h>" << std::endl;
         header << "#undef MAP_NAME" << std::endl;
     }
 
@@ -677,7 +677,7 @@ int main(int argc, const char *argv[]) {
         std::ofstream src(MAP_NAME+".c");
         src << "#include <common.h>" << std::endl;
         src << "#define MAP_NAME " << MAP_NAME << std::endl;
-        src << "#include <map/interface.h>" << std::endl;
+        src << "#include <map_interface.h>" << std::endl;
         src << "#define NUM_ANIMATED_TILES " << NUM_ANIMATED_TILES << std::endl;
         src << "#define NUM_ANIMATED_FRAMES " << NUM_ANIMATED_FRAMES << std::endl;        
         src << "#define NUM_MAPS " << NUM_MAPS << std::endl;
@@ -720,7 +720,7 @@ int main(int argc, const char *argv[]) {
         src << "extern const uint8_t " << (MAP_NAME + "_tiles8R") << "[256][2][16];" << std::endl;
 
 
-        src << "#include <map/implementation.h>" << std::endl;
+        src << "#include <map_implementation.h>" << std::endl;
     }
     
     // Spawn Animated Tiles
