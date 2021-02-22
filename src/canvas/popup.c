@@ -1,4 +1,4 @@
-#include <canvas/canvas.h>
+#include <common.h>
 
 /*static const uint16_t offset_y[256] = {
 0x0000, 0x0001, 0x0002, 0x0003, 0x0004, 0x0005, 0x0006, 0x0007, 0x0008, 0x0009, 0x000A, 0x000B, 0x000C, 0x000D, 0x000E, 0x000F, 
@@ -78,9 +78,8 @@ void popupInitCanvas(uint8_t x, uint8_t y) {
 	TMS99X8_memcpy(MODE2_ADDRESS_PG + 0x800 + 0x0A * 8, screen_copy, sizeof(screen_copy));
 	TMS99X8_memset(MODE2_ADDRESS_CT + 0x800 + 0x0A * 8, FBlack + BWhite, sizeof(screen_copy));
     
-    popupTextProperties.x = 8;
+    popupTextProperties.x = 5;
     popupTextProperties.y = 2;
-    popupWriteText("PopUp!\nPopUp!\nPopUp!");
     
     for (uint8_t i=0; i<7*8; i++) popupSetPoint( i, 0,1,FBlack + BWhite);
     for (uint8_t i=0; i<7*8; i++) popupSetPoint( i,23,1,FBlack + BWhite);

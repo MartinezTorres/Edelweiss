@@ -42,6 +42,27 @@ uint8_t update_weapon_bomb(Entity *entity, uint8_t active_entity_index) {
 			sprites[active_entity_index].spriteInfo = &weapon_bomb_1_0;
 		} else if (entity->animationCounter<190) {
 			sprites[active_entity_index].spriteInfo = &weapon_bomb_2_0;
+			uint8_t tile16 =  overworld_get_tile16(entity->pos.i+0x100, entity->pos.j+0x100);
+			//debug_printf("Tile: %d\n",tile16);
+			if (tile16==30 || tile16==95 || tile16==162) {
+				overworld_set_map_index(entity->pos.i+0x100, entity->pos.j+0x100, 1);
+				
+				uint8_t rowScreen8 =  (((entity->pos.i+0x100)>>10)<<2) - map.pos.i;
+				uint8_t colScreen8 =  (((entity->pos.j+0x100)>>10)<<2) - map.pos.j;
+				for (uint8_t ii=0; ii<4; ii++) {
+					for (uint8_t jj=0; jj<4; jj++) {
+						uint8_t row = rowScreen8+ii;
+						uint8_t col = colScreen8+jj;
+
+						//debug_printf("Row: %d, Col; %d\n",row, col);
+
+						if (row<24 && col<32)
+							overworld_draw_tile8(row,col);
+					}
+				}
+				overworld_free();
+				isr.requestPatternNameTransfer = 3;
+			}
 		} else if (entity->animationCounter<194) {
 			sprites[active_entity_index].pos.i = entity->pos.i-0x96;
 			sprites[active_entity_index].pos.j = entity->pos.j-0x68;

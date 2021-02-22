@@ -33,8 +33,6 @@ extern TTextProperties popupTextProperties;
 extern TTextProperties largePopupTextProperties;
 
 
-USING_MODULE(popup, PAGE_C);
-
 extern const uint16_t font_newsgeek_pts[];
 extern const uint16_t font_newsgeek_pos[];
 extern const uint8_t font_newsgeek_len[];
@@ -58,3 +56,5 @@ USING_MODULE(font_thin, PAGE_D);
 
 //void graphicsInitCO(uint8_t co, EObjectClass oClass);
 //void graphicsUpdateCOs();
+
+

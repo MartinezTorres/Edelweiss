@@ -1,21 +1,39 @@
 #include <common.h>
 
-T_ISR isr;
+struct T_ISR isr;
 
-T_State state;
+struct T_State state;
+
+struct T_Tmp tmp;
 
 #ifndef MSX
     T_Map map;
 #endif
 
+void trampoline_page_c( uint8_t segment, void (*f)() ) {
+	
+    uint8_t oldSegmentPageC = mapper_load_segment(segment, PAGE_C);
+    (*f)();
+    mapper_load_segment(oldSegmentPageC, PAGE_C);
+}
+
 void main_isr(void) {
 
     uint8_t oldSegmentPageB = mapper_load_module(overworld, PAGE_B);
+    uint8_t oldSegmentPageC = CURRENT_SEGMENT(PAGE_C);
+    uint8_t oldSegmentPageD = CURRENT_SEGMENT(PAGE_D);
  
     isr.frameCount++;
     isr.em2_Buffer = isr.frameCount & 0x01;
     
     TMS99X8_activateBuffer(!isr.em2_Buffer);
+
+	if (isr.requestPatternNameTransferDelayed) {
+		isr.requestPatternNameTransferDelayed--;
+		if (isr.requestPatternNameTransferDelayed==0) {
+			isr.requestPatternNameTransfer=3;
+		}
+	}
 
 	switch (isr.frameCount6++) {
     case 0:
@@ -36,7 +54,7 @@ void main_isr(void) {
                 overworld_draw_row(7);
                 isr.updateScrollStep2 = 1;
             }
-            isr.requestPatternNameTransfer = true;
+            isr.requestPatternNameTransfer = 3;
             isr.updateScroll = false;
         } else {
             CALL_PAGE(sprites, PAGE_B, updateSpriteISR());
@@ -69,7 +87,9 @@ void main_isr(void) {
 			
 			overworld_copyPN1();
 			overworld_free0();
+			isr.requestPatternNameTransfer--;            
 		}
+		IN_MODULE(infobar, PAGE_B, infobar_update_life());
         break;
         
     case 4:    
@@ -77,6 +97,7 @@ void main_isr(void) {
 			
             overworld_copyPN0();
 			overworld_free1();
+			isr.requestPatternNameTransfer--;            
         } else {
            CALL_PAGE(sprites, PAGE_B, updateSpriteISR());
         }
@@ -85,8 +106,8 @@ void main_isr(void) {
     case 5:
         if (isr.requestPatternNameTransfer) {
 			overworld_free2();
+			isr.requestPatternNameTransfer--;            
 		}
-        isr.requestPatternNameTransfer = false;            
 
 		{
             isr.nAnimationCount++;
@@ -101,6 +122,9 @@ void main_isr(void) {
                 isr.animationUpdateRequested=false;
             }                
 		}
+		
+
+		IN_MODULE(infobar, PAGE_B, infobar_update_rupees());
 
         isr.frameCount6 = 0;
         break;
@@ -109,16 +133,18 @@ void main_isr(void) {
     updateSpriteAttributeTableISR(isr.em2_Buffer);
 
     mapper_load_segment(oldSegmentPageB, PAGE_B);
+    mapper_load_segment(oldSegmentPageC, PAGE_C);
+    mapper_load_segment(oldSegmentPageD, PAGE_D);
 }
 
 static void spawnOverworldEntities() {
 
 	// WOLFI
 	{
-		state.entities[0x00].maximum_life = 30;
-		state.entities[0x00].life = 22;
-		state.entities[0x00].pos.i = 0x4200;
-		state.entities[0x00].pos.j = 0x7D00;
+		state.entities[0x00].maximum_life = 8;
+		state.entities[0x00].life = 7;
+		state.entities[0x00].pos.i = 63<<9;
+		state.entities[0x00].pos.j = (62<<9)+0x200;
 		state.entities[0x00].invulnerable_frames = 255;
 		state.entities[0x00].segment = MODULE_SEGMENT(entity_wolfi, PAGE_C);
 		state.entities[0x00].spawn = spawn_wolfi;
@@ -239,11 +265,18 @@ static void mainGameRoutine() {
 	for (uint8_t i=0; i<8; i++)
 		state.activeEntities[i] = -1;
 
-	state.rupees = 474;
-	for (uint8_t i=0; i<8; i++) state.hasWeapon[i]=true;
-	state.hasCoat = true;
 		
 	spawnOverworldEntities();
+
+	state.entities[0].maximum_life = 6;
+	state.entities[0].life = 6;
+	state.rupees = 0;
+//	for (uint8_t i=0; i<8; i++) state.hasWeapon[i]=true;
+	state.hasWeapon[0]=true;
+//	state.hasCoat = true;
+//	state.hasBoots = true;
+//	state.hasLamp = true;
+//	state.hasPear = true;
 	
 	// SPAWN wolfi
 	state.activeEntities[0] = 0;
@@ -256,6 +289,7 @@ static void mainGameRoutine() {
 
 	map.pos.j = ( (state.entities[0].pos.j + 0x80) >> 8)-16;
 	map.pos.i = ( (state.entities[0].pos.i + 0x80) >> 8)-11;
+	map.pos.i = 128-22;
 	isr.targetPos.i = map.pos.i;
 	isr.targetPos.j = map.pos.j;
 
@@ -285,7 +319,7 @@ static void mainGameRoutine() {
         }
     }
     
-    infoBarInit();
+    IN_MODULE(infobar, PAGE_B, infobar_init());
     
     {
         isr.enableSprites = true;
@@ -308,7 +342,7 @@ static void mainGameRoutine() {
 				do {
 					state.weapon = (state.weapon + 1) & 7;
 				} while (!state.hasWeapon[state.weapon]);
-				infoBarUpdateWeapon();
+				IN_MODULE(infobar, PAGE_B, infobar_update_weapon());
 			}
 
 			if (!!(state.keyboard_click[8] & K_SPACE) && state.activeEntities[1] < 0) {
@@ -415,7 +449,8 @@ static void mainGameRoutine() {
 					};
 
 					// Check out of bounds
-					if (((uint8_t)((entity->pos.i >> 8) + 3 - map.pos.i) >= 24+6) ||
+					if (i > 0 && // We don't want to despawn wolfi
+						((uint8_t)((entity->pos.i >> 8) + 3 - map.pos.i) >= 24+6) ||
 						((uint8_t)((entity->pos.j >> 8) + 3 - map.pos.j) >= 32+6)) {
 
 						(*entity->despawn)(entity,i);
@@ -430,7 +465,7 @@ static void mainGameRoutine() {
 			// CHECK IF WE CAN ACTIVATE OTHER ENTITIES 
 			{
 				uint8_t i = (isr.globalFrameCount<<1)&63;
-				for (uint8_t j=0; j<4; j++) {
+				for (uint8_t j=0; j<16; j++) {
 					
 					Entity *entity = &state.entities[i+j];
 					
@@ -439,8 +474,8 @@ static void mainGameRoutine() {
 
 					
 					// Check out of bounds
-					if ((uint8_t)((entity->pos.i >> 8) + 6 - map.pos.i) >= 24+12) continue; 
-					if ((uint8_t)((entity->pos.j >> 8) + 6 - map.pos.j) >= 32+12) continue;
+					if ((uint8_t)((entity->pos.i >> 8) + 3 - map.pos.i) >= 24+6) continue; 
+					if ((uint8_t)((entity->pos.j >> 8) + 3 - map.pos.j) >= 32+6) continue;
 
 					if (((uint8_t)((entity->pos.i >> 8) - map.pos.i) < 24) &&
 						((uint8_t)((entity->pos.j >> 8) - map.pos.j) < 32)) continue;

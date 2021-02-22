@@ -12,6 +12,8 @@
   #define debug_printf(...) do {} while (false)
 #endif
 
+struct T_Entity;
+typedef struct T_Entity Entity;
 
 ////////////////////////////////////////////////////////////////////////
 // SDCC_MSX LIBRARY ROUTINES
@@ -48,20 +50,34 @@ USING_MODULE(sprites, PAGE_B);
 ////////////////////////////////////////////////////////////////////////
 // CANVAS
 #include <canvas/canvas.h>
+USING_MODULE(popup, PAGE_B);
+USING_MODULE(largePopup, PAGE_B);
+
+////////////////////////////////////////////////////////////////////////
+// MESSAGES
+#include <messages.h>
 
 ////////////////////////////////////////////////////////////////////////
 // INFOBAR
 #include <infobar/infobar.h>
+USING_MODULE(infobar, PAGE_B);
 
 ////////////////////////////////////////////////////////////////////////
 // ENTITIES
 #include <entities/entities.h>
+#include <entities/wolfi/subentities.h>
 
+
+////////////////////////////////////////////////////////////////////////
+// TRAMPOLINE
+void trampoline_page_c( uint8_t segment, void (*f)() );
+#define TRAMPOLINE_PAGE_C(a) trampoline_page_c( MODULE_SEGMENT(a, PAGE_C), a);
+	
 ////////////////////////////////////////////////////////////////////////
 // COMMON STRUCTURES AND DEFINITIONS
 
 //////////////////////////// T_ISR
-typedef struct {
+struct T_ISR {
     
     uint8_tp targetPos;
 
@@ -77,7 +93,8 @@ typedef struct {
     bool updateScroll;
     uint8_t updateScrollStep2;
     
-    bool requestPatternNameTransfer;
+    uint8_t requestPatternNameTransferDelayed;
+    uint8_t requestPatternNameTransfer;
     
     bool enableSprites;
     
@@ -85,9 +102,49 @@ typedef struct {
     bool enableAnimations;
     bool animationUpdateRequested;
     
-} T_ISR;
+};
 
-extern T_ISR isr;
+extern struct T_ISR isr;
+
+
+//////////////////////////// T_Tmp
+struct T_Tmp {
+
+	uint16_tp old_pos;
+
+} T_Tmp;
+
+extern struct T_Tmp tmp;
+
+//////////////////////////// T_Entity
+
+struct T_Entity {
+    union {
+		uint8_t buffer[32];
+		
+		struct {
+			uint8_t enabled;
+			uint8_t active;
+			
+			uint8_t maximum_life;
+			uint8_t life;
+			uint8_t type;
+			uint8_t info[4]; // to be used by the update routine
+			uint8_t invulnerable_frames;
+			
+			uint8_t segment;
+			void (*spawn)(struct T_Entity *, uint8_t entityIdx);
+			void (*despawn)(struct T_Entity *, uint8_t entityIdx);
+			uint8_t (*update)(struct T_Entity *, uint8_t entityIdx);
+			
+			uint16_tp pos;
+			int16_tp vel;
+			uint16_tp anchor;
+			uint8_t animationCounter;
+		};
+	};
+};
+
 
 //////////////////////////// T_State
 
@@ -96,7 +153,7 @@ enum    { K_R=0x80,K_Q=0x40,K_P=0x20,K_O=0x10,K_N=0x08,K_M=0x04,K_L=0x02,K_K=0x0
 
 enum    { E_REST, E_LEFT, E_RIGHT,  E_UP, E_DOWN };
 
-typedef struct {
+struct T_State {
 
     uint8_t keyboard[16];
     uint8_t keyboard_prev[16];
@@ -110,6 +167,8 @@ typedef struct {
 	bool hasPear;
 	bool hasWeapon[8];
 	
+	uint8_t fallen_in_the_well;
+	
 	uint16_t rupees;
 	enum {E_PAW, E_CLAW, E_SWORD, E_AXE, E_BOMB, E_FIRE, E_BOW, E_BUTTER_KNIFE} weapon;
 	
@@ -121,9 +180,9 @@ typedef struct {
     uint8_t nEntities;
     Entity entities[64]; // Entity 0 is the main player
 
-} T_State;
+};
 
-extern T_State state;
+extern struct T_State state;
 
 //////////////////////////// T_Map
 

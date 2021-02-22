@@ -38,5 +38,7 @@ void APPEND(MAP_NAME,_copyPN1full)();
 //INLINE void APPEND(MAP_NAME,_copyPN)(EM2_Buffer buffer) { buffer==0?APPEND(MAP_NAME,_copyPN0)():APPEND(MAP_NAME,_copyPN1)(); }
 
 uint8_t APPEND(MAP_NAME,_get_flags)(uint16_t row, uint16_t col);
+uint8_t APPEND(MAP_NAME,_get_tile16)(uint16_t row, uint16_t col);
+void APPEND(MAP_NAME,_set_map_index)(uint16_t row, uint16_t col, uint8_t n);
 
 #endif

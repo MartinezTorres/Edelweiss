@@ -28,14 +28,20 @@ uint8_t update_ghosti(Entity *entity, uint8_t entityIdx) {
 	sprites[entityIdx].pos.i = entity->pos.i;
 	sprites[entityIdx].pos.j = entity->pos.j;
 
-	if ((entityIdx&3) == 0) {
+	if ((entityIdx&7) == 0) {
 		sprites[entityIdx].spriteInfo = (entity->vel.j>0?&ghosti_0_0 : &ghosti_0_1) ;
-	} else if ((entityIdx&3) == 1) {
+	} else if ((entityIdx&7) == 1) {
 		sprites[entityIdx].spriteInfo = (entity->vel.j>0?&ghosti_1_0 : &ghosti_1_1) ;
-	} else if ((entityIdx&3) == 2) {
+	} else if ((entityIdx&7) == 2) {
 		sprites[entityIdx].spriteInfo = (entity->vel.j>0?&ghosti_2_0 : &ghosti_2_1) ;
-	} else {
+	} else if ((entityIdx&7) == 3) {
 		sprites[entityIdx].spriteInfo = (entity->vel.j>0?&ghosti_3_0 : &ghosti_3_1) ;
+	} else if ((entityIdx&7) == 4) {
+		sprites[entityIdx].spriteInfo = (entity->vel.j>0?&ghosti_4_0 : &ghosti_4_1) ;
+	} else if ((entityIdx&7) == 5) {
+		sprites[entityIdx].spriteInfo = (entity->vel.j>0?&ghosti_5_0 : &ghosti_5_1) ;
+	} else {
+		sprites[entityIdx].spriteInfo = (entity->vel.j>0?&ghosti_6_0 : &ghosti_6_1) ;
 	}
 
 	return true;

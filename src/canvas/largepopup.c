@@ -1,4 +1,4 @@
-#include <canvas/canvas.h>
+#include <common.h>
 
 /*static const uint16_t offset_y[256] = {
 0x0000, 0x0001, 0x0002, 0x0003, 0x0004, 0x0005, 0x0006, 0x0007, 0x0008, 0x0009, 0x000A, 0x000B, 0x000C, 0x000D, 0x000E, 0x000F, 
@@ -83,7 +83,7 @@ void largePopupInitCanvas(uint8_t x) {
     largePopupTextProperties.x = 2;
     largePopupTextProperties.y = 2;
 //  largePopupWriteText("PopUp!\nPopUp!\nPopUp!\nPopUp!");
-    largePopupWriteText("I AM EDELWEISS,\n THANKS FOR SAVING\n ME!");
+//    largePopupWriteText("I AM EDELWEISS,\n THANKS FOR SAVING\n ME!");
     
     for (uint8_t i=0; i<11*8; i++) largePopupSetPoint( i, 0,1,FBlack + BWhite);
     for (uint8_t i=0; i<11*8; i++) largePopupSetPoint( i,31,1,FBlack + BWhite);

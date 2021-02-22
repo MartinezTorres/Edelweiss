@@ -495,7 +495,6 @@ int main(int argc, const char *argv[]) {
             Map &map = maps.back();
             
             map.img = cv::imread(argv[i]);
-            map.flags = map.img.clone();
             
             if (maps.size() and map.img.size() != maps.front().img.size()) { std::cerr << "inconsistnt map size" << std::endl; exit(-1); }
             if (map.img.rows % 16) { std::cerr << "map size not multiple of 16" << std::endl; exit(-1); }
@@ -514,7 +513,6 @@ int main(int argc, const char *argv[]) {
 						if (n<1) {
                             
                             tiles16[k].img.copyTo(tile);
-							tiles16[k].flags.copyTo(map.flags(cv::Rect(j,i,16,16)));
                             tiles16[k].count++;
                             map.map16(i/16,j/16) = k;
                             found = true;
@@ -526,7 +524,7 @@ int main(int argc, const char *argv[]) {
                         tile16.img = tile.clone();
                         tile16.count = 1;
                         
-                        tile16.flags = cv::Mat3b(16,16);
+                        tile16.flags = cv::Mat3b(16,16,cv::Vec3b(0,0,0));
 
 						for (int ii=0; ii+15<tileMap.rows; ii+=16) {
 							for (int jj=0; jj+15<tileMap.cols; jj+=16) {
@@ -534,20 +532,25 @@ int main(int argc, const char *argv[]) {
 								cv::Mat3b f = tileFlags(cv::Rect(jj,ii,16,16));
 								double n = cv::norm(tile-t) + cv::norm(t-tile);
 								if (n<1) {
-									if (tile16.flags.rows==0) {
-										tile16.flags = f.clone();
-									} else {
-										tile16.flags = cv::max(tile16.flags, f.clone());
-									}
+									tile16.flags = cv::max(tile16.flags, f.clone());
 								}
 							}
 						}
-						tile16.flags.copyTo(map.flags(cv::Rect(j,i,16,16)));
-
                         tiles16.push_back(tile16);
                     }
                 }
             }
+
+            map.flags = map.img.clone();
+            for (int i=0; i+15<map.img.rows; i+=16) {
+                for (int j=0; j+15<map.img.cols; j+=16) {
+
+					int k = map.map16(i/16,j/16);
+
+					tiles16[k].flags.copyTo(map.flags(cv::Rect(j,i,16,16)));
+                }
+            }
+
             
             cv::imwrite("flags.png", map.flags);
         }

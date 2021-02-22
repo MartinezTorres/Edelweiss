@@ -605,13 +605,14 @@ INLINE void _draw_tile8(uint8_t rowScreen8, uint8_t colScreen8) {
     
     
     mapper_load_segment(map.stages[rowWorld16>>1][colWorld16>>1], PAGE_D); // stages apply in blocks of 32x32 pixels
-    mapper_load_module(MAP_TILES16, PAGE_C);
+    uint8_t old_c = mapper_load_module(MAP_TILES16, PAGE_C);
     {
         uint8_t tile16Idx = MAP_MAP16[rowWorld16][colWorld16];
         const uint8_t *tile8IdxPtr = &MAP_TILES16[tile16Idx][rowWorld8&1][colWorld8&1];
         
         populateTile8(tile8IdxPtr);
     }
+    mapper_load_segment(old_c, PAGE_C);
 }
 
 
@@ -1122,7 +1123,7 @@ uint8_t APPEND(MAP_NAME,_get_flags)(uint16_t row, uint16_t col) {
 //	CALL_PAGE( printf, PAGE_D, printf_("%3d\n", (uint16_t)MAP_MAP16[row>>9][col>>9]); );
 
 	
-	const uint8_t *ptr = &MAP_TILES16_TRAV[MAP_MAP16[row>>9][col>>9]][(uint8_t)(row>>8)&0x1][(uint8_t)(col>>8)&0x1][((uint8_t)row>>5)&0x7];
+	const volatile uint8_t *ptr = &MAP_TILES16_TRAV[MAP_MAP16[row>>9][col>>9]][(uint8_t)(row>>8)&0x1][(uint8_t)(col>>8)&0x1][((uint8_t)row>>5)&0x7];
 
 	uint8_t trav, trig, damg;
 	{
@@ -1151,4 +1152,26 @@ uint8_t APPEND(MAP_NAME,_get_flags)(uint16_t row, uint16_t col) {
 	mapper_load_segment(old_c, PAGE_C);
 	
 	return trav | (trig<<1) | (damg<<2);
+}
+
+uint8_t APPEND(MAP_NAME,_get_tile16)(uint16_t row, uint16_t col) {
+
+
+	uint8_t old_d = CURRENT_SEGMENT(PAGE_D);
+
+	mapper_load_segment(map.stages[row>>10][col>>10], PAGE_D); // stages apply in blocks of 32x32 pixels
+	
+	uint8_t tile16 = MAP_MAP16[row>>9][col>>9];
+
+	mapper_load_segment(old_d, PAGE_D);
+	
+	return tile16;
+}
+
+void APPEND(MAP_NAME,_set_map_index)(uint16_t row, uint16_t col, uint8_t n) {
+
+	if (n==0) map.stages[row>>10][col>>10] = MODULE_SEGMENT(MAP0_MAP16, PAGE_D);
+	if (n==1) map.stages[row>>10][col>>10] = MODULE_SEGMENT(MAP1_MAP16, PAGE_D);
+	if (n==2) map.stages[row>>10][col>>10] = MODULE_SEGMENT(MAP2_MAP16, PAGE_D);
+	if (n==3) map.stages[row>>10][col>>10] = MODULE_SEGMENT(MAP3_MAP16, PAGE_D);	
 }

@@ -1,14 +1,14 @@
 #pragma once
 #include <common.h>
 
-void infoBarInit();
+void infobar_init();
 
-void infoBarUpdateWeapon();
+void infobar_update_weapon();
 
-void infoBarUpdateLife();
+void infobar_update_life();
 
-void infoBarUpdateMap();
+void infobar_update_map();
 
-void infoBarUpdateRupees();
+void infobar_update_rupees();
 
-void infoBarUpdateItems();
+void infobar_update_items();

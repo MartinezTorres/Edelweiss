@@ -4,10 +4,13 @@
 USING_MODULE(infobar_weapons, PAGE_D);
 
 
+static uint16_t rupees_in_display;
+static uint8_t life_in_display;
+
 static uint16_t oldMapDotWolfi;
 static uint16_t oldMapDotTarget;
 
-void infoBarInit() {
+void infobar_init() {
 
 static const uint8_t hearts[5][8] = {
 {	0b00000000,
@@ -285,18 +288,21 @@ static const uint8_t pear[2][8] = {
 	SA1[7].color =  BWhite;
 
 
+	life_in_display = 0;
+	rupees_in_display = 5;
 	oldMapDotWolfi = 0;
 	oldMapDotTarget = 0;
 
-	infoBarUpdateWeapon();
-	infoBarUpdateLife();
-	infoBarUpdateMap();
-	infoBarUpdateRupees();
-	infoBarUpdateItems();
+
+	infobar_update_weapon();
+	infobar_update_life();
+	infobar_update_map();
+	infobar_update_rupees();
+	infobar_update_items();
 	
 }
 
-void infoBarUpdateWeapon() {
+void infobar_update_weapon() {
 
 	IN_MODULE(infobar_weapons, PAGE_D, 
 		TMS99X8_setPtr(MODE2_ADDRESS_SG+(((uint16_t)136)<<3));
@@ -354,28 +360,37 @@ void infoBarUpdateWeapon() {
 
 }
 
-void infoBarUpdateLife() {
+void infobar_update_life() {
+
+	if (state.entities[0].life == life_in_display) return;
+	if (state.entities[0].life < life_in_display) {
+		life_in_display--;
+	} else {
+		life_in_display++;
+	}
 	
 	TMS99X8_setPtr(MODE2_ADDRESS_PN0 + 0x2C0 + 0 * 32 + 22);
-	for (uint8_t i=0; i<state.entities[0].maximum_life; i+=10) {
+	for (uint8_t i=0; i<state.entities[0].maximum_life; i+=2) {
 		TMS99X8_write(0x0A);
-		if (i==100)
+		if (i==18)
 			TMS99X8_setPtr(MODE2_ADDRESS_PN0 + 0x2C0 + 1 * 32 + 22);
 	}
 	
 	TMS99X8_setPtr(MODE2_ADDRESS_PN1 + 0x2C0 + 0 * 32 + 22);
-	for (uint8_t i=0; i<state.entities[0].life; i+=10) {
-		if (i+5<=state.entities[0].life) {
+	for (uint8_t i=0; i<state.entities[0].maximum_life; i+=2) {
+		if (i+2<=life_in_display) {
 			TMS99X8_write(0x0E);
-		} else {
+		} else if (i+1<=life_in_display) {
 			TMS99X8_write(0x0D);
+		} else {
+			TMS99X8_write(0x00);		
 		}
-		if (i==100)
+		if (i==18)
 			TMS99X8_setPtr(MODE2_ADDRESS_PN1 + 0x2C0 + 1 * 32 + 22);		
 	}
 }
 
-void infoBarUpdateMap() {
+void infobar_update_map() {
 
 	SA0[4].x = SA1[4].x = 16 + (state.entities[0].pos.x >> 11);
 	if (oldMapDotWolfi) {
@@ -400,7 +415,19 @@ void infoBarUpdateMap() {
 	}
 }
 
-void infoBarUpdateRupees() {
+void infobar_update_rupees() {
+	
+	if (state.rupees > 999) state.rupees = 999;
+	if (state.rupees == rupees_in_display) return;
+	
+	if (state.rupees+5 < rupees_in_display) {
+		rupees_in_display -= 5;
+	} else if (state.rupees > rupees_in_display + 5) {
+		rupees_in_display += 5;
+	} else {
+		rupees_in_display = state.rupees;
+	}
+	
 static const uint8_t cypherLeft[10][8] = {
 {	0b00000000,
 	0b00000000,
@@ -593,7 +620,7 @@ uint8_t cypherRupees [8] = {
 	0b00000000,
 	0b00000000, };
 	
-	uint16_t rupees = state.rupees;
+	uint16_t rupees = rupees_in_display;
 	
 	if (rupees>999) rupees = 999;
 	uint8_t n = 0;
@@ -610,7 +637,7 @@ uint8_t cypherRupees [8] = {
 	TMS99X8_memcpy(MODE2_ADDRESS_PG + 0x1000 + 0x15*8, &cypherRupees[0], 8);
 }
 
-void infoBarUpdateItems() {
+void infobar_update_items() {
 
 	TMS99X8_setPtr(MODE2_ADDRESS_PN0 + 0x2C0 + 1 * 32 + 10);
 
@@ -635,7 +662,9 @@ void infoBarUpdateItems() {
 	if (state.hasCoat) {
 		TMS99X8_write(0x1B); NOP(); NOP();
 		TMS99X8_write(0x1C); NOP(); NOP();
+		TMS99X8_write(0x00); NOP(); NOP();
 	} else {
+		TMS99X8_write(0x00); NOP(); NOP();
 		TMS99X8_write(0x00); NOP(); NOP();
 		TMS99X8_write(0x00); NOP(); NOP();
 	}
@@ -670,7 +699,9 @@ void infoBarUpdateItems() {
 	if (state.hasCoat) {
 		TMS99X8_write(0x1B); NOP(); NOP();
 		TMS99X8_write(0x1C); NOP(); NOP();
+		TMS99X8_write(0x00); NOP(); NOP();
 	} else {
+		TMS99X8_write(0x00); NOP(); NOP();
 		TMS99X8_write(0x00); NOP(); NOP();
 		TMS99X8_write(0x00); NOP(); NOP();
 	}
