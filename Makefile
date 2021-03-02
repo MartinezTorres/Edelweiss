@@ -3,7 +3,7 @@ NAME := weiss
 include sdcc_msx/Makefile.in
 
 CCFLAGS_MSX   += -DKONAMI5
-CCFLAGS_MSX   += --all-callee-saves --opt-code-speed
+CCFLAGS_MSX   += --all-callee-saves --opt-code-speed --std-sdcc11
 #CCFLAGS_MSX   += --reserve-regs-iy --callee-saves-bc
 
 OPENMSX_BIN = /opt/openMSX/bin/openmsx
@@ -23,8 +23,9 @@ tmp/%.rel: %.c tmp/inc/resources.h $(HEADERS)
 	@$(CCZ80) -S -D MSX $(INCLUDES) $(CCFLAGS_MSX) $< -o tmp/$*.asm
 	@#cp tmp/$*.asm tmp/$*.asm.mdl.asm
 	@#echo -n `java -jar mdl.jar tmp/$*.asm -dialect sdcc -po speed -asm-dialect tmp/$*.asm.mdl.asm | grep summary | cut -f 1 -d. | cut -f 3 -d:`
-	@#echo -n `java -jar mdl.jar tmp/$*.asm -dialect sdcc -ro -po speed -ro -asm-dialect tmp/$*.asm.mdl.ro.asm | grep summary | cut -f 1 -d. | cut -f 3 -d:`
+	@echo -n `java -jar mdl.jar tmp/$*.asm -dialect sdcc -ro -po speed -ro -po speed -ro -asm-dialect tmp/$*.asm.mdl.ro.asm | grep summary | cut -f 1 -d. | cut -f 3 -d:`
 	@#$(ASM) -ogslp $@ tmp/$*.asm.mdl.asm
+	@#$(ASM) -ogslp $@ tmp/$*.asm.mdl.ro.asm
 	@$(ASM) -ogslp $@ tmp/$*.asm
 	@echo " "`grep "size" tmp/$*.sym | awk 'strtonum("0x"$$4) {print $$2": "strtonum("0x"$$4)" bytes"}'` 
 

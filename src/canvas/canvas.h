@@ -3,11 +3,15 @@
 
 void popupInitCanvas(uint8_t x, uint8_t y);
 
+void popupCenteredText(uint8_t x, uint8_t y, const char *str);
+
 void popupSetPoint(uint8_t x, uint8_t y, uint8_t value, uint8_t color);
 
 void popupWriteText(const char *str);
 
 void largePopupInitCanvas(uint8_t x);
+
+void largePopupCenteredText(uint8_t x, const char *str);
 
 void largePopupSetPoint(uint8_t x, uint8_t y, uint8_t value, uint8_t color);
 

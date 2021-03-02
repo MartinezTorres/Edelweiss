@@ -18,7 +18,7 @@ void trampoline_page_c( uint8_t segment, void (*f)() ) {
 }
 
 void main_isr(void) {
-
+	
     uint8_t oldSegmentPageB = mapper_load_module(overworld, PAGE_B);
     uint8_t oldSegmentPageC = CURRENT_SEGMENT(PAGE_C);
     uint8_t oldSegmentPageD = CURRENT_SEGMENT(PAGE_D);
@@ -464,7 +464,7 @@ static void mainGameRoutine() {
 			
 			// CHECK IF WE CAN ACTIVATE OTHER ENTITIES 
 			{
-				uint8_t i = (isr.globalFrameCount<<1)&63;
+				uint8_t i = (isr.globalFrameCount<<4)&63;
 				for (uint8_t j=0; j<16; j++) {
 					
 					Entity *entity = &state.entities[i+j];

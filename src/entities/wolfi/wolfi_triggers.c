@@ -83,11 +83,11 @@ static void well_warp_to(uint8_t i, uint8_t j) {
 	TRAMPOLINE_PAGE_C(wolfi_door_warp_enter);
 
 	if (state.fallen_in_the_well==0) {
-		small_message(2,9, "AAAAARGH!");
+		small_message("AAAAARGH!");
 	} else if (state.fallen_in_the_well==1) {
-		small_message(2,2, "AGAIN?\nREALLY?\nAAAAARGH!");
+		small_message("AGAIN?\nREALLY?\nAAAAARGH!");
 	} else if (state.fallen_in_the_well<5) {
-		small_message(2,2, "HERE WE GO\nAGAIN!\nAAAAARGH!");
+		small_message("HERE WE GO\nAGAIN!\nAAAAARGH!");
 	}
 
 	state.entities[0].pos.i = (((uint16_t)i)<<9)-16;
@@ -99,10 +99,10 @@ static void well_warp_to(uint8_t i, uint8_t j) {
 	TRAMPOLINE_PAGE_C(wolfi_door_warp_exit);
 
 	if (state.fallen_in_the_well==0) {
-		small_message(2,4, "THERE WERE\nRATS!");
+		small_message("THERE WERE\nRATS!");
 		state.fallen_in_the_well++;
 	} else if (state.fallen_in_the_well<5) {
-		small_message(2,4, "THIS ISN'T\nFUN!");
+		small_message("THIS ISN'T\nFUN!");
 		state.fallen_in_the_well++;
 	}
 }
@@ -123,7 +123,7 @@ void wolfi_triggers() {
 		 
 		if (!state.hasLamp) {
 			TRAMPOLINE_PAGE_C(wolfi_door_warp_enter);
-			small_message(2,7, "IT'S TOO DARK!");
+			small_message("IT'S TOO DARK!");
 			TRAMPOLINE_PAGE_C(wolfi_door_warp_exit);
 		} else if (ti==17 && tj==89) { // Mountain entrance
 			door_warp_to(11,89);
@@ -180,7 +180,7 @@ void wolfi_triggers() {
 
 		if ((tile16Feet1==31 || tile16Feet1==154 || tile16Feet1==212 || tile16Feet2==31 || tile16Feet2==154 || tile16Feet2==212 ) && !state.hasBoots) {
 
-			small_message(2,5, "THESE ROCKS\nHURT MY FEET!");
+			small_message("THESE ROCKS\nHURT MY FEET!");
 			state.entities[0].pos = tmp.old_pos;
 		}
 	}

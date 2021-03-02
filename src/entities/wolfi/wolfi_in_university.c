@@ -1,7 +1,7 @@
 #include <common.h>
 
 
-static void exit_message(const char *msg) {
+static void message(const char *msg) {
 	uint8_t pj = ((state.entities[0].pos.j+0x80)>>8) - map.pos.j;
 	IN_MODULE( popup, PAGE_B,
 		if (pj>16) {
@@ -100,7 +100,7 @@ static void learn_self_defense() {
 			state.hasWeapon[E_CLAW] = true;
 			state.weapon = E_CLAW;
 			IN_MODULE(infobar, PAGE_B, infobar_update_weapon());
-			exit_message("\nYOU LEARNED THE\nLATENT POWER OF\n YOUR CLAWS");
+			message("\nYOU LEARNED THE\nLATENT POWER OF\n YOUR CLAWS");
 			break;
 		}			
 		wait_frame();
@@ -188,7 +188,7 @@ static void learn_self_demolitions() {
 			state.hasWeapon[E_BOMB] = true;
 			state.weapon = E_BOMB;
 			IN_MODULE(infobar, PAGE_B, infobar_update_weapon());
-			exit_message("\nYOU LEARNED THE\nLATENT POWER OF\nTRINITROLUENE");
+			message("\nYOU LEARNED THE\nLATENT POWER OF\nTRINITROLUENE");
 			break;
 		}			
 		wait_frame();
@@ -198,7 +198,7 @@ static void learn_self_demolitions() {
 void wolfi_in_university() {
 	
 	
-	exit_message("\nWELCOME TO THE \nUNIVERSITY. WHAT CAN\n WE DO FOR YOU?");
+	message("\nWELCOME TO THE \nUNIVERSITY. WHAT CAN\n WE DO FOR YOU?");
 	if (state.hasWeapon[E_CLAW]==false) learn_self_defense();
 	if (state.hasWeapon[E_BOMB]==false) learn_self_demolitions();
 }

@@ -30,130 +30,68 @@ void wolfi_in_town_door() {
 	} else if (ti==48 && tj==57) { // Town Hall
 		TRAMPOLINE_PAGE_C(wolfi_in_town_hall);
 	} else if (ti==59 && tj==60) { // House south west
-
-		IN_MODULE( popup, PAGE_B,
-			popupInitCanvas(pj+2,pi);
-			popupTextProperties.y = 7;
-			popupTextProperties.x = 2;
 			
-			if (rand7()&4) {
+		if (rand7()&4) {
 
-				popupWriteText("THIS IS NOT!\n");
-				for (uint8_t k=0; k<10; k++) wait_frame();
-				popupWriteText("A HOUSE!\n");						
-				for (uint8_t k=0; k<90; k++) wait_frame();
-				migrate_wolfi(47, 65);
-			} else if (rand7()&4) {
-				
-				popupWriteText("THIS IS A\n");
-				for (uint8_t k=0; k<10; k++) wait_frame();
-				popupWriteText("DARK TUNNEL\n");
-				for (uint8_t k=0; k<90; k++) wait_frame();
-				migrate_wolfi(46, 71);
-			} else {
-				
-				popupWriteText("WEIRD!\n");
-				for (uint8_t k=0; k<10; k++) wait_frame();
-				popupWriteText("WEEEEEIRD!\n");
-				for (uint8_t k=0; k<90; k++) wait_frame();
-				migrate_wolfi(59, 71);
-			}
-		);
+			small_message(T_HOUSE12);
+			migrate_wolfi(47, 65);
+		} else if (rand7()&4) {
+			
+			small_message(T_HOUSE13);
+			migrate_wolfi(46, 71);
+		} else {
+			
+			small_message(T_HOUSE14);
+			migrate_wolfi(59, 71);
+		}
 		
 	} else if (ti==47 && tj==65) { // House north west
 
 
-		IN_MODULE( popup, PAGE_B,
-			popupInitCanvas(pj+2,pi);
-			popupTextProperties.y = 7;
-			popupTextProperties.x = 2;
-
-			if (rand7()&4) {
-				
-				popupWriteText("HERE WE GO\n");
-				for (uint8_t k=0; k<10; k++) wait_frame();
-				popupWriteText("AGAIN!\n");
-				for (uint8_t k=0; k<90; k++) wait_frame();
-				migrate_wolfi(59, 60);
-			} else if (rand7()&4) {
-				
-				popupWriteText("THIS IS A\n");
-				for (uint8_t k=0; k<10; k++) wait_frame();
-				popupWriteText("DARK TUNNEL\n");
-				for (uint8_t k=0; k<90; k++) wait_frame();
-				migrate_wolfi(46, 71);
-			} else {
-				
-				popupWriteText("THIS ISN'T\n");
-				for (uint8_t k=0; k<10; k++) wait_frame();
-				popupWriteText("NORMAL AT ALL\n");
-				for (uint8_t k=0; k<90; k++) wait_frame();
-				migrate_wolfi(59, 71);
-			}
-		);
-
-
+		if (rand7()&4) {
+			
+			small_message(T_HOUSE21);
+			migrate_wolfi(59, 60);
+		} else if (rand7()&4) {
+			
+			small_message(T_HOUSE23);
+			migrate_wolfi(46, 71);
+		} else {
+			
+			small_message(T_HOUSE24);
+			migrate_wolfi(59, 71);
+		}
 
 	} else if (ti==46 && tj==71) { // House north east
 
-		IN_MODULE( popup, PAGE_B,
-			popupInitCanvas(pj+2,pi);
-			popupTextProperties.y = 7;
-			popupTextProperties.x = 2;
-
-			if (rand7()&4) {
-				
-				popupWriteText("LOOK! A HOLE IN\n");
-				for (uint8_t k=0; k<10; k++) wait_frame();
-				popupWriteText("THE WALL!\n");
-				for (uint8_t k=0; k<90; k++) wait_frame();
-				migrate_wolfi(59, 60);
-			} else if (rand7()&4) {
-				
-				popupWriteText("THIS IS A\n");
-				for (uint8_t k=0; k<10; k++) wait_frame();
-				popupWriteText("DARK TUNNEL\n");
-				for (uint8_t k=0; k<90; k++) wait_frame();
-				migrate_wolfi(47, 65);
-			} else {
-				
-				popupWriteText("THIS IS A\n");
-				for (uint8_t k=0; k<10; k++) wait_frame();
-				popupWriteText("DARK TUNNEL\n");
-				for (uint8_t k=0; k<90; k++) wait_frame();
-				migrate_wolfi(59, 71);
-			}
-		);
+		if (rand7()&4) {
+			
+			small_message(T_HOUSE31);
+			migrate_wolfi(59, 60);
+		} else if (rand7()&4) {
+			
+			small_message(T_HOUSE32);
+			migrate_wolfi(47, 65);
+		} else {
+			
+			small_message(T_HOUSE34);
+			migrate_wolfi(59, 71);
+		}
 	} else if (ti==59 && tj==71) { // House south
 
-		IN_MODULE( popup, PAGE_B,
-			popupInitCanvas(pj+2,pi);
-			popupTextProperties.y = 7;
-			popupTextProperties.x = 2;
-
-			if (rand7()&4) {
-				
-				popupWriteText("LOOK! A HOLE IN\n");
-				for (uint8_t k=0; k<10; k++) wait_frame();
-				popupWriteText("THE WALL!\n");
-				for (uint8_t k=0; k<90; k++) wait_frame();
-				migrate_wolfi(59, 60);
-			} else if (rand7()&4) {
-				
-				popupWriteText("THIS IS A\n");
-				for (uint8_t k=0; k<10; k++) wait_frame();
-				popupWriteText("DARK TUNNEL\n");
-				for (uint8_t k=0; k<90; k++) wait_frame();
-				migrate_wolfi(47, 65);
-			} else {
-				
-				popupWriteText("THIS IS A\n");
-				for (uint8_t k=0; k<10; k++) wait_frame();
-				popupWriteText("DARK TUNNEL\n");
-				for (uint8_t k=0; k<90; k++) wait_frame();
-				migrate_wolfi(46, 71);
-			}
-		);				
+		if (rand7()&4) {
+			
+			small_message(T_HOUSE41);
+			migrate_wolfi(59, 60);
+		} else if (rand7()&4) {
+			
+			small_message(T_HOUSE42);
+			migrate_wolfi(47, 65);
+		} else {
+			
+			small_message(T_HOUSE43);
+			migrate_wolfi(46, 71);
+		}
 		
 		
 	} else if (ti==53 && tj==73) { // University
@@ -166,6 +104,5 @@ void wolfi_in_town_door() {
 	}
 
 
-	isr.requestPatternNameTransferDelayed = 10;
 	TRAMPOLINE_PAGE_C(wolfi_door_warp_exit);
 }

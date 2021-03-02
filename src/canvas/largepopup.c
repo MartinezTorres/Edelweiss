@@ -117,6 +117,115 @@ void largePopupInitCanvas(uint8_t x) {
 }
 
 
+
+static uint8_t dx, dy;
+static void getCharSize(char cr) {
+    
+    yield();
+
+    IN_SEGMENT( largePopupTextProperties.font_segment, PAGE_D, {
+		uint8_t c = cr-32;
+		const uint16_t *begin = &largePopupTextProperties.font_pts[largePopupTextProperties.font_pos[c]];
+		const uint16_t *end   = &largePopupTextProperties.font_pts[largePopupTextProperties.font_pos[c+1]];
+		while (begin != end) {
+			uint16_t xy0 = *begin++;
+			uint16_t xy = 0; 
+			for (uint8_t i=largePopupTextProperties.sz; i; i--) { xy += xy0; }
+			
+			uint8_t x = largePopupTextProperties.x + (xy>>8);
+			uint8_t y = largePopupTextProperties.y + (xy&0xFF);
+			if (x>dx) dx = x;
+			if (y>dy) dy = y;
+		}
+		uint8_t len0 = largePopupTextProperties.font_len[c];
+		uint8_t len  = 0;
+		for (uint8_t i=largePopupTextProperties.sz; i; i--) { len += (int8_t)len0; }
+		largePopupTextProperties.x += len;
+   	});
+}
+
+static void getTextSize(const char *str) {
+    
+
+	uint16_t orig_x = 0;
+	uint16_t orig_y = 0;
+	dx = 0;
+	dy = 0;
+
+	while (*str) {
+		if (*str == '\n') {
+			largePopupTextProperties.x = orig_x;
+			orig_y = largePopupTextProperties.y = orig_y + largePopupTextProperties.space_between_lines;
+			str++;
+			continue;
+		}
+		getCharSize(*str++);
+	}
+}
+
+
+
+void largePopupCenteredText(uint8_t x, const char *str) {
+
+    memset(&largePopupTextProperties,0,sizeof(largePopupTextProperties));
+
+	largePopupTextProperties.font_segment = MODULE_SEGMENT(font_tiny,PAGE_D);
+    largePopupTextProperties.font_pts = font_tiny_pts;
+    largePopupTextProperties.font_pos = font_tiny_pos;
+    largePopupTextProperties.font_len = font_tiny_len;
+    
+    largePopupTextProperties.value = 1;
+    largePopupTextProperties.color = FBlack + BWhite;
+    largePopupTextProperties.sz = 1;
+    largePopupTextProperties.space_between_lines = 7;
+    
+    memset(screen_copy,0x0,sizeof(screen_copy));
+	TMS99X8_memcpy(MODE2_ADDRESS_PG + 0x000 + 0x0A * 8, screen_copy, sizeof(screen_copy)/2);
+	TMS99X8_memcpy(MODE2_ADDRESS_PG + 0x800 + 0x0A * 8, &screen_copy[sizeof(screen_copy)/2], sizeof(screen_copy)/2);
+	TMS99X8_memset(MODE2_ADDRESS_CT + 0x000 + 0x0A * 8, FBlack + BWhite, sizeof(screen_copy)/2);
+	TMS99X8_memset(MODE2_ADDRESS_CT + 0x800 + 0x0A * 8, FBlack + BWhite, sizeof(screen_copy)/2);
+ 
+   
+    for (uint8_t i=0; i<11*8; i++) largePopupSetPoint( i, 0,1,FBlack + BWhite);
+    for (uint8_t i=0; i<11*8; i++) largePopupSetPoint( i,31,1,FBlack + BWhite);
+    for (uint8_t i=0; i< 4*8; i++) largePopupSetPoint( 0, i,1,FBlack + BWhite);
+    for (uint8_t i=0; i< 4*8; i++) largePopupSetPoint(87, i,1,FBlack + BWhite);
+
+    largePopupSetPoint( 1, 1, 1, FBlack + BWhite);
+    largePopupSetPoint( 1,30, 1, FBlack + BWhite);
+    largePopupSetPoint(86, 1, 1, FBlack + BWhite);
+    largePopupSetPoint(86,30, 1, FBlack + BWhite);
+
+    // Places the tiles in a way that columns are consective tiles
+    {
+		
+		static const uint8_t scratchpad[22] = {
+			0x0A,0x0C,0x0E,0x10,0x12,0x14,0x16,0x18,0x1A,0x1C,0x1E,
+			0x0B,0x0D,0x0F,0x11,0x13,0x15,0x17,0x19,0x1B,0x1D,0x1F
+		};
+
+			 
+		TMS99X8_memcpy(MODE2_ADDRESS_PN0 + 0x000 + x + 0x20*6, (const uint8_t *)&scratchpad[ 0], 11);
+		TMS99X8_memcpy(MODE2_ADDRESS_PN0 + 0x000 + x + 0x20*7, (const uint8_t *)&scratchpad[11], 11);
+		TMS99X8_memcpy(MODE2_ADDRESS_PN0 + 0x100 + x + 0x20*0, (const uint8_t *)&scratchpad[ 0], 11);
+		TMS99X8_memcpy(MODE2_ADDRESS_PN0 + 0x100 + x + 0x20*1, (const uint8_t *)&scratchpad[11], 11);
+
+		TMS99X8_memcpy(MODE2_ADDRESS_PN1 + 0x000 + x + 0x20*6, (const uint8_t *)&scratchpad[ 0], 11);
+		TMS99X8_memcpy(MODE2_ADDRESS_PN1 + 0x000 + x + 0x20*7, (const uint8_t *)&scratchpad[11], 11);
+		TMS99X8_memcpy(MODE2_ADDRESS_PN1 + 0x100 + x + 0x20*0, (const uint8_t *)&scratchpad[ 0], 11);
+		TMS99X8_memcpy(MODE2_ADDRESS_PN1 + 0x100 + x + 0x20*1, (const uint8_t *)&scratchpad[11], 11);
+    }
+
+    getTextSize(str);
+    
+    largePopupTextProperties.value = 1;
+    largePopupTextProperties.x = (11*8 - dx - 1)/2;
+    largePopupTextProperties.y = (4*8 - dy - 1)/2;
+
+    largePopupWriteText(str);
+}
+
+
 void largePopupSetPoint(uint8_t x, uint8_t y, uint8_t value, uint8_t color) {
 
     uint8_t shift = shift8[x];

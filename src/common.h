@@ -34,6 +34,10 @@ USING_MODULE(psg, PAGE_B);
 USING_MODULE(printf_, PAGE_D);
 
 ////////////////////////////////////////////////////////////////////////
+// TEXT
+#include <text.h>
+
+////////////////////////////////////////////////////////////////////////
 // INPUT
 #include <input.h>
 
@@ -129,16 +133,18 @@ struct T_Entity {
 			uint8_t maximum_life;
 			uint8_t life;
 			uint8_t type;
-			uint8_t info[4]; // to be used by the update routine
+			uint8_t info[2]; // to be used by the update routine
 			uint8_t invulnerable_frames;
 			
 			uint8_t segment;
 			void (*spawn)(struct T_Entity *, uint8_t entityIdx);
 			void (*despawn)(struct T_Entity *, uint8_t entityIdx);
 			uint8_t (*update)(struct T_Entity *, uint8_t entityIdx);
+			uint8_t (*hit)(struct T_Entity *source, struct T_Entity *target, uint8_t entityIdx);
 			
 			uint16_tp pos;
 			int16_tp vel;
+			int8_tp push;
 			uint16_tp anchor;
 			uint8_t animationCounter;
 		};
@@ -176,6 +182,8 @@ struct T_State {
 
     uint8_t nActiveEntities;
     int8_t activeEntities[8];
+
+	enum {E_ENGLISH, E_SPANISH} language;
 
     uint8_t nEntities;
     Entity entities[64]; // Entity 0 is the main player
@@ -231,3 +239,5 @@ typedef struct {
 #else
     extern T_Map map;
 #endif
+
+

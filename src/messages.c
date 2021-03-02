@@ -1,6 +1,6 @@
 #include <common.h>
 
-void large_message(uint8_t mx, uint8_t my, const char *msg) {
+void large_message(const char *msg) {
 	
 	uint8_t pj = ((state.entities[0].pos.j+0x80)>>8) - map.pos.j;
 
@@ -9,14 +9,10 @@ void large_message(uint8_t mx, uint8_t my, const char *msg) {
 
 	IN_MODULE( popup, PAGE_B,
 		if (pj>16) {
-			largePopupInitCanvas(pj-12);
+			largePopupCenteredText(pj-12,msg);
 		} else {
-			largePopupInitCanvas(pj+1);
+			largePopupCenteredText(pj+1,msg);
 		}
-	
-		largePopupTextProperties.y = my;
-		largePopupTextProperties.x = mx;
-		largePopupWriteText(msg);
 	);	
 	for (uint8_t i=0; i<12; i++) wait_frame();
 	
@@ -30,7 +26,7 @@ void large_message(uint8_t mx, uint8_t my, const char *msg) {
 
 }
 
-void small_message(uint8_t mx, uint8_t my, const char *msg) {
+void small_message(const char *msg) {
 	
 	uint8_t pj = ((state.entities[0].pos.j+0x80)>>8) - map.pos.j + 1;
 	int8_t pi = ((state.entities[0].pos.i+0x80)>>8) - map.pos.i - 8;
@@ -41,10 +37,7 @@ void small_message(uint8_t mx, uint8_t my, const char *msg) {
 	for (uint8_t i=0; i<12; i++) wait_frame();
 
 	IN_MODULE( popup, PAGE_B,
-		popupInitCanvas(pj+2,pi);
-		popupTextProperties.y = my;
-		popupTextProperties.x = mx;
-		popupWriteText(msg);
+		popupCenteredText(pj+2,pi,msg);
 	);	
 	for (uint8_t i=0; i<12; i++) wait_frame();
 	
