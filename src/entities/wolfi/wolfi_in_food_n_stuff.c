@@ -34,20 +34,20 @@ void wolfi_in_food_n_stuff() {
 		largePopupTextProperties.x = 10;
 		largePopupTextProperties.color = (state.rupees>=20?FBlack+BWhite:FMediumRed+BWhite);
 		largePopupWriteText("MEAL       20 RUPEES\n");
-		if (!state.hasLamp) {
+		if (!state.has_lamp) {
 			largePopupTextProperties.color = (state.rupees>=75?FBlack+BWhite:FMediumRed+BWhite);
 			largePopupWriteText("LAMP       75 RUPEES\n");
-		} else if (!state.hasCoat) {
+		} else if (!state.has_coat) {
 			largePopupTextProperties.color = (state.rupees>=200?FBlack+BWhite:FMediumRed+BWhite);
 			largePopupWriteText("COAT      200 RUPEES\n");
 		} else {
 			largePopupTextProperties.color = (state.rupees>=500?FBlack+BWhite:FMediumRed+BWhite);
 			largePopupWriteText("BOOK      500 RUPEES\n");
 		}
-		if (!state.hasWeapon[E_SWORD]) {
+		if (!state.has_weapon[E_SWORD]) {
 			largePopupTextProperties.color = (state.rupees>=150?FBlack+BWhite:FMediumRed+BWhite);
 			largePopupWriteText("SWORD   150 RUPEES\n");
-		} else if (!state.hasWeapon[E_BOW]) {
+		} else if (!state.has_weapon[E_BOW]) {
 			largePopupTextProperties.color = (state.rupees>=100?FBlack+BWhite:FMediumRed+BWhite);
 			largePopupWriteText("BOW       100 RUPEES\n");
 		} else {
@@ -70,7 +70,7 @@ void wolfi_in_food_n_stuff() {
 		
 		// UPDATE JOYSTICK
 		update_keyboard_and_joystick();
-		if (state.keyboard_click[8] & K_UP) {
+		if (keyboard_click[8] & K_UP) {
 			
 			if (option>0) {
 
@@ -89,7 +89,7 @@ void wolfi_in_food_n_stuff() {
 			
 			
 		} 
-		if (state.keyboard_click[8] & K_DOWN) {
+		if (keyboard_click[8] & K_DOWN) {
 			
 			if (option<3) {
 
@@ -107,7 +107,7 @@ void wolfi_in_food_n_stuff() {
 			}
 		}
 		
-		if (state.keyboard_click[8] & K_SPACE) {
+		if (keyboard_click[8] & K_SPACE) {
 
 			if (option==0) {
 				
@@ -122,18 +122,18 @@ void wolfi_in_food_n_stuff() {
 			}
 			
 			if (option==1) {
-				if (!state.hasLamp) {
+				if (!state.has_lamp) {
 					if (state.rupees>=75) {
-						state.hasLamp = true;
+						state.has_lamp = true;
 						state.rupees-=75;
 						IN_MODULE(infobar, PAGE_B, infobar_update_items());
 						exit_message("YOU GOT A NICE\nLAMP");
 						break;
 					} else {
 					}
-				} else if (!state.hasCoat) {
+				} else if (!state.has_coat) {
 					if (state.rupees>=200) {
-						state.hasCoat = true;
+						state.has_coat = true;
 						state.rupees-=200;
 						IN_MODULE(infobar, PAGE_B, infobar_update_items());
 						exit_message("YOU GOT A NICE\nCOAT");
@@ -143,8 +143,8 @@ void wolfi_in_food_n_stuff() {
 				} else {
 					if (state.rupees>=500) {
 						state.rupees-=500;
-						if (!state.hasWeapon[E_FIRE]) {
-							state.hasWeapon[E_FIRE] = true;
+						if (!state.has_weapon[E_FIRE]) {
+							state.has_weapon[E_FIRE] = true;
 							state.weapon = E_FIRE;
 							IN_MODULE(infobar, PAGE_B, infobar_update_weapon());
 							exit_message("WOW! THIS WAS A\nSPELL BOOK!");
@@ -165,19 +165,19 @@ void wolfi_in_food_n_stuff() {
 			}
 
 			if (option==2) {
-				if (!state.hasWeapon[E_SWORD]) {
+				if (!state.has_weapon[E_SWORD]) {
 					if (state.rupees>=150) {
 						state.rupees-=150;
-						state.hasWeapon[E_SWORD] = true;
+						state.has_weapon[E_SWORD] = true;
 						state.weapon = E_SWORD;
 						IN_MODULE(infobar, PAGE_B, infobar_update_weapon());
 						exit_message("\nNICE SWORD!\n   USE WITH CARE!");
 						break;
 					}
-				} else if (!state.hasWeapon[E_BOW]) {
+				} else if (!state.has_weapon[E_BOW]) {
 					if (state.rupees>=100) {
 						state.rupees-=100;
-						state.hasWeapon[E_BOW] = true;
+						state.has_weapon[E_BOW] = true;
 						state.weapon = E_BOW;
 						IN_MODULE(infobar, PAGE_B, infobar_update_weapon());
 						exit_message("\nNICE BOW!\n   SHOOT WITH CARE!");

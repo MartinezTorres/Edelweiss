@@ -58,7 +58,7 @@ void wolfi_in_fish_n_ships() {
 		
 		// UPDATE JOYSTICK
 		update_keyboard_and_joystick();
-		if (state.keyboard_click[8] & K_LEFT) {
+		if (keyboard_click[8] & K_LEFT) {
 			
 			if (option>0) {
 
@@ -77,7 +77,7 @@ void wolfi_in_fish_n_ships() {
 			
 			
 		} 
-		if (state.keyboard_click[8] & K_RIGHT) {
+		if (keyboard_click[8] & K_RIGHT) {
 			
 			if (option<1) {
 
@@ -95,7 +95,7 @@ void wolfi_in_fish_n_ships() {
 			}
 		}
 		
-		if (state.keyboard_click[8] & K_SPACE) {
+		if (keyboard_click[8] & K_SPACE) {
 
 			if (option==0) break;
 			

@@ -71,82 +71,79 @@ USING_MODULE(infobar, PAGE_B);
 #include <entities/entities.h>
 #include <entities/wolfi/subentities.h>
 
+////////////////////////////////////////////////////////////////////////
+// TRAMPOLINES
+void trampoline_page_c( uint8_t segment, void (*f)() );
+void trampoline_page_c_uint8_t( uint8_t segment, void (*f)(uint8_t), uint8_t parameter );
+#define TRAMPOLINE_PAGE_C(a) trampoline_page_c( MODULE_SEGMENT(a, PAGE_C), a);
+
 
 ////////////////////////////////////////////////////////////////////////
-// TRAMPOLINE
-void trampoline_page_c( uint8_t segment, void (*f)() );
-#define TRAMPOLINE_PAGE_C(a) trampoline_page_c( MODULE_SEGMENT(a, PAGE_C), a);
-	
+// SPAWN ENTITY
+bool spawn_entity(uint8_t idx);
+
 ////////////////////////////////////////////////////////////////////////
 // COMMON STRUCTURES AND DEFINITIONS
 
-//////////////////////////// T_ISR
-struct T_ISR {
-    
-    uint8_tp targetPos;
-
-    volatile uint8_t frameCount;
-    volatile uint8_t frameCount6;
-    volatile uint8_t globalFrameCount;
-    volatile uint8_t globalFrameCount3;
-	volatile uint8_t deltaFrames;
-    
-    uint8_t em2_Buffer;
-    uint8_t cpuLoad;
-    
-    bool updateScroll;
-    uint8_t updateScrollStep2;
-    
-    uint8_t requestPatternNameTransferDelayed;
-    uint8_t requestPatternNameTransfer;
-    
-    bool enableSprites;
-    
-    uint8_t nAnimationCount; 
-    bool enableAnimations;
-    bool animationUpdateRequested;
-    
-};
-
-extern struct T_ISR isr;
-
-
-//////////////////////////// T_Tmp
-struct T_Tmp {
-
-	uint16_tp old_pos;
-
-} T_Tmp;
-
-extern struct T_Tmp tmp;
-
 //////////////////////////// T_Entity
 
+enum { 
+	ENTITY_WOLFI = 0, 
+	ENTITY_PAW = 1, 
+	ENTITY_CLAW = 2,
+	ENTITY_SWORD = 3,
+	ENTITY_AXE = 4,
+	ENTITY_BOMB_0 = 5,
+	ENTITY_BOMB_1 = 6,
+	ENTITY_FIRE_0 = 7,
+	ENTITY_FIRE_1 = 8,
+	ENTITY_BOW_0 = 9,
+	ENTITY_BOW_1 = 10,
+	ENTITY_BUTTER_KNIFE = 11
+};
+	
 struct T_Entity {
     union {
 		uint8_t buffer[32];
 		
 		struct {
 			uint8_t enabled;
-			uint8_t active;
-			
-			uint8_t maximum_life;
-			uint8_t life;
-			uint8_t type;
-			uint8_t info[2]; // to be used by the update routine
-			uint8_t invulnerable_frames;
-			
-			uint8_t segment;
-			void (*spawn)(struct T_Entity *, uint8_t entityIdx);
-			void (*despawn)(struct T_Entity *, uint8_t entityIdx);
-			uint8_t (*update)(struct T_Entity *, uint8_t entityIdx);
-			uint8_t (*hit)(struct T_Entity *source, struct T_Entity *target, uint8_t entityIdx);
-			
+			int8_t spawn_idx;
+            uint8_t spawn_priority;
+
+			uint16_tp anchor;			
 			uint16_tp pos;
-			int16_tp vel;
+			int8_tp vel;
+			uint8_t push_frames;
+			enum { E_REST, E_LEFT, E_RIGHT,  E_UP, E_DOWN } orientation;
 			int8_tp push;
-			uint16_tp anchor;
-			uint8_t animationCounter;
+			
+			uint8_t life;
+			uint8_t maximum_life;
+			uint8_t invulnerable_frames;
+			uint8_t animation_counter;
+			
+			uint8_t damage;
+
+			uint8_t segment;
+			void (*on_spawn)(struct T_Entity *);
+			void (*on_despawn)(struct T_Entity *);
+			uint8_t (*on_update)(struct T_Entity *);
+			uint8_t (*on_hit)(struct T_Entity *, struct T_Entity *weapon);
+			
+			union {
+				struct {
+					uint8_t weapon_type;
+				};
+				struct {
+					uint8_t skip_23_frame;
+				};
+				struct {
+					uint8_t skeleti_delay;
+					uint8_t skeleti_action;
+				};
+			};
+			
 		};
 	};
 };
@@ -157,43 +154,51 @@ struct T_Entity {
 enum    { K_RIGHT=0x80,K_DOWN=0x40,K_UP=0x20,K_LEFT=0x10,K_DEL=0x08,K_INS=0x04,K_HOME=0x02,K_SPACE=0x01 };
 enum    { K_R=0x80,K_Q=0x40,K_P=0x20,K_O=0x10,K_N=0x08,K_M=0x04,K_L=0x02,K_K=0x01 };
 
-enum    { E_REST, E_LEFT, E_RIGHT,  E_UP, E_DOWN };
+extern uint8_t keyboard[16];
+extern uint8_t keyboard_prev[16];
+extern uint8_t keyboard_click[16];
 
 struct T_State {
 
-    uint8_t keyboard[16];
-    uint8_t keyboard_prev[16];
-    uint8_t keyboard_click[16];
+    uint8_tp target_map_pos;
+
+    volatile uint8_t game_cycles;
+    volatile uint8_t isr_count;
+	volatile uint8_t isr_count_delta;
+    volatile uint8_t isr_state_machine;
+    
+    uint8_t current_em2_buffer;
+    
+    bool request_scroll_update;
+    bool request_pattern_name_transfer;
+    
     // 4; R, Q, P, O, N, M, L, K
     // 8; RIGHT, DOWN, UP, LEFT, DEL, INS, HOME, SPACE
 	
-	bool hasLamp;
-	bool hasBoots;
-	bool hasCoat;
-	bool hasPear;
-	bool hasWeapon[8];
+	bool has_lamp;
+	bool has_boots;
+	bool has_coat;
+	bool has_pear;
+	bool has_weapon[8];
 	
-	uint8_t fallen_in_the_well;
+	uint8_t times_fallen_in_the_well;
 	
 	uint16_t rupees;
 	enum {E_PAW, E_CLAW, E_SWORD, E_AXE, E_BOMB, E_FIRE, E_BOW, E_BUTTER_KNIFE} weapon;
 	
-	uint8_tp nextFlower;
+	uint8_tp next_flower;
 
-    uint8_t nActiveEntities;
-    int8_t activeEntities[8];
+    uint8_t num_spawns;
+    int8_t spawns[12];
+    Entity entities[64]; // Entity 0 is the main player 
 
 	enum {E_ENGLISH, E_SPANISH} language;
-
-    uint8_t nEntities;
-    Entity entities[64]; // Entity 0 is the main player
-
 };
 
 extern struct T_State state;
 
 //////////////////////////// T_Map
-
+enum    { MAP_OBSTACLE = 0x01, MAP_TRIGGER = 0x02, MAP_DAMAGE = 0x04 };
 
 typedef struct {
     

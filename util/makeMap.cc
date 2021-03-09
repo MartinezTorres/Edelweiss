@@ -702,6 +702,12 @@ int main(int argc, const char *argv[]) {
         src << "USING_MODULE("  << (MAP_NAME + "_tiles16") << ", PAGE_C);" << std::endl;
         src << "extern const uint8_t " << (MAP_NAME + "_tiles16") << "[256][2][2];" << std::endl;
 
+		for (int i=0; i<16; i++) {
+			src << "#define MAP_TILES16_FLAGS_" << i << " " << MAP_NAME << "_tiles16_flags_" << i << std::endl;
+			src << "USING_MODULE("  << MAP_NAME << "_tiles16_flags_" << i << ", PAGE_C);" << std::endl;
+			src << "extern const uint8_t " << MAP_NAME << "_tiles16_flags_" << i << "[16][256];" << std::endl;			
+		}
+
         src << "#define MAP_TILES16_TRAV " << (MAP_NAME + "_tiles16_flag_traversability") << std::endl;
         src << "USING_MODULE("  << (MAP_NAME + "_tiles16_flag_traversability") << ", PAGE_C);" << std::endl;
         src << "extern const uint8_t " << (MAP_NAME + "_tiles16_flag_traversability") << "[256][2][2][8];" << std::endl;
@@ -723,7 +729,7 @@ int main(int argc, const char *argv[]) {
         src << "extern const uint8_t " << (MAP_NAME + "_tiles8R") << "[256][2][16];" << std::endl;
 
 
-        src << "#include <map_implementation.h>" << std::endl;
+        src << "#include <map_implementation.t>" << std::endl;
     }
     
     // Spawn Animated Tiles
@@ -802,6 +808,38 @@ int main(int argc, const char *argv[]) {
 
     // Spawn tile16_flags
     {
+
+		for (int f=0; f<16; f++) {
+			
+			std::ostringstream name_stream;
+			name_stream << MAP_NAME << "_tiles16_flags_" << f;
+			std::string name = name_stream.str();
+			 
+			std::ofstream ofs(name + ".c");
+			ofs << "#include <stdint.h>" << std::endl;
+			ofs << "const uint8_t " << name << "[16][256];" << std::endl;
+			ofs << "const uint8_t " << name << "[16][256] = {" << std::endl;
+			
+			for (size_t i=0; i<16; i++) {
+
+				ofs << "{ ";
+				for (size_t t=0; t<tiles16.size(); t++) {
+					
+					uint8_t flags = 0;
+					if (tiles16[t].flags(f,i)[1]<128) flags += 1;
+					if (tiles16[t].flags(f,i)[0]>128) flags += 2;
+					if (tiles16[t].flags(f,i)[2]>128) flags += 4;
+					sprintf(msg,"0x%02X, ", flags);
+					ofs << msg;
+				}
+				ofs << "}, " << std::endl;
+			}
+			ofs << "};" << std::endl;
+			
+			ofs << "static const uint8_t filler[4*1024] = { 0 };" << std::endl;
+		}
+
+
 		{
 			std::ofstream ofs(MAP_NAME + "_tiles16_flag_traversability" + ".c");
 			ofs << "#include <stdint.h>" << std::endl;

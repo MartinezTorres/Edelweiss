@@ -37,7 +37,7 @@ void wolfi_in_town_hall() {
 		largePopupWriteText("NO");
 
 
-		if (state.hasPear) {
+		if (state.has_pear) {
 
 			largePopupTextProperties.x = 40;
 			largePopupWriteText("YES");
@@ -54,7 +54,7 @@ void wolfi_in_town_hall() {
 		
 		// UPDATE JOYSTICK
 		update_keyboard_and_joystick();
-		if (state.keyboard_click[8] & K_LEFT) {
+		if (keyboard_click[8] & K_LEFT) {
 			
 			if (option>0) {
 
@@ -73,9 +73,9 @@ void wolfi_in_town_hall() {
 			
 			
 		} 
-		if (state.keyboard_click[8] & K_RIGHT) {
+		if (keyboard_click[8] & K_RIGHT) {
 			
-			if (option<1 && state.hasPear) {
+			if (option<1 && state.has_pear) {
 
 				largePopupTextProperties.y = 2+7*3;
 				largePopupTextProperties.x = 5;
@@ -91,21 +91,21 @@ void wolfi_in_town_hall() {
 			}
 		}
 		
-		if (state.keyboard_click[8] & K_SPACE) {
+		if (keyboard_click[8] & K_SPACE) {
 
 			if (option==0) break;
 			
-			if (!state.hasBoots) {
+			if (!state.has_boots) {
 				
-				state.hasPear = false;
-				state.hasBoots = true;
+				state.has_pear = false;
+				state.has_boots = true;
 				IN_MODULE(infobar, PAGE_B, infobar_update_items());
 				exit_message("\nTHANKS A LOT\nTAKE THESE BOOTS\nIN EXCHANGE.");
 				break;
 				
 			} else {
 				
-				state.hasPear = false;
+				state.has_pear = false;
 				state.rupees += 100;
 				IN_MODULE(infobar, PAGE_B, infobar_update_items());
 				exit_message("\nTHANKS A LOT\nTAKE THESE RUPPES\nIN EXCHANGE.");

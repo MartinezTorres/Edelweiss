@@ -31,44 +31,46 @@ static const int8_t sprite_offsets[5][5][2] = {
 { {8,14}, {14,8}, {16,0}, {14,-8}, {8,-14}},
 };
 
-
-void spawn_weapon_slash(Entity *entity, uint8_t active_entity_index) {
+static void on_spawn(Entity *entity) {
 	
-    sprites[active_entity_index].enabled = true;
-    sprites[active_entity_index].patternBlackRequired = true;
-    sprites[active_entity_index].patternColorRequired = true;
-    switch (entity->type) {
+	uint8_t idx = entity->spawn_idx;
+	Entity *wolfi = &state.entities[0];
+	
+    sprites[idx].enabled = true;
+    sprites[idx].patternBlackRequired = true;
+    sprites[idx].patternColorRequired = true;
+    switch (entity->weapon_type) {
 	case E_PAW:
-		sprites[active_entity_index].overrideColors = false;
-		sprites[active_entity_index].spriteInfoSegment = 
+		sprites[idx].overrideColors = false;
+		sprites[idx].spriteInfoSegment = 
 			MODULE_SEGMENT(entity_weapon_slash_small_sprite, PAGE_D);	
 		break;
 	case E_CLAW:
-		sprites[active_entity_index].overrideColors = false;
-		sprites[active_entity_index].spriteInfoSegment = 
+		sprites[idx].overrideColors = false;
+		sprites[idx].spriteInfoSegment = 
 			MODULE_SEGMENT(entity_weapon_slash_large_sprite, PAGE_D);	
 		break;
 	case E_SWORD:
-		sprites[active_entity_index].overrideColors = true;
-		sprites[active_entity_index].pattern0Color = BGray;
-		sprites[active_entity_index].pattern1Color = BLightBlue;
-		sprites[active_entity_index].spriteInfoSegment = 
+		sprites[idx].overrideColors = true;
+		sprites[idx].pattern0Color = BGray;
+		sprites[idx].pattern1Color = BLightBlue;
+		sprites[idx].spriteInfoSegment = 
 			MODULE_SEGMENT(entity_weapon_slash_large_sprite, PAGE_D);	
 		break;
 	case E_AXE:
-		sprites[active_entity_index].overrideColors = true;
-		sprites[active_entity_index].pattern0Color = BDarkRed;
-		sprites[active_entity_index].pattern1Color = BDarkBlue;
-		sprites[active_entity_index].spriteInfoSegment = 
+		sprites[idx].overrideColors = true;
+		sprites[idx].pattern0Color = BDarkRed;
+		sprites[idx].pattern1Color = BDarkBlue;
+		sprites[idx].spriteInfoSegment = 
 			MODULE_SEGMENT(entity_weapon_slash_large_sprite, PAGE_D);	
 
 		{
-			uint16_t i = state.entities[0].pos.i + 0x100 + (sprite_offsets[state.entities[0].type][2][0]<<4);
-			uint16_t j = state.entities[0].pos.j + 0x100 + (sprite_offsets[state.entities[0].type][2][1]<<4);
+			uint16_t i = state.entities[0].pos.i + 0x100 + (sprite_offsets[state.entities[0].weapon_type][2][0]<<4);
+			uint16_t j = state.entities[0].pos.j + 0x100 + (sprite_offsets[state.entities[0].weapon_type][2][1]<<4);
 			
 			uint8_t tile16 =  overworld_get_tile16(i,j);
 			debug_printf("Tile: %d\n",tile16);
-			debug_printf("Segment: %d\n", sprites[active_entity_index].spriteInfoSegment);
+			debug_printf("Segment: %d\n", sprites[idx].spriteInfoSegment);
 			if (tile16==116 || tile16==85) {
 				overworld_set_map_index(i, j, 1);
 				
@@ -86,7 +88,7 @@ void spawn_weapon_slash(Entity *entity, uint8_t active_entity_index) {
 					}
 				}
 				overworld_free();
-				isr.requestPatternNameTransfer = 3;
+				state.request_pattern_name_transfer = 3;
 			}
 		}
 
@@ -96,45 +98,86 @@ void spawn_weapon_slash(Entity *entity, uint8_t active_entity_index) {
 		break;
 	case E_BUTTER_KNIFE:
 	default:
-		sprites[active_entity_index].overrideColors = true;
-		sprites[active_entity_index].pattern0Color = BWhite;
-		sprites[active_entity_index].pattern1Color = BLightYellow;
-		sprites[active_entity_index].spriteInfoSegment = 
+		sprites[idx].overrideColors = true;
+		sprites[idx].pattern0Color = BWhite;
+		sprites[idx].pattern1Color = BLightYellow;
+		sprites[idx].spriteInfoSegment = 
 			MODULE_SEGMENT(entity_weapon_slash_large_sprite, PAGE_D);	
 		break;
 	}
-	entity->animationCounter = 0;
+	entity->animation_counter = 0;
 }
 
-void despawn_weapon_slash(Entity *entity, uint8_t active_entity_index) {
+static void on_despawn(Entity *entity) {
+
+	uint8_t idx = entity->spawn_idx;
 	
 	entity->enabled = false;
-    sprites[active_entity_index].enabled = false;
+    sprites[idx].enabled = false;
 }
 
-uint8_t update_weapon_slash(Entity *entity, uint8_t active_entity_index) {
+static uint8_t on_update(Entity *entity) {
 
-	for (uint8_t i=0; i<isr.deltaFrames; i++) {
+	uint8_t idx = entity->spawn_idx;
+
+	for (uint8_t i=0; i<state.isr_count_delta; i++) {
 		
-		if (entity->type==E_PAW) {
-			sprites[active_entity_index].spriteInfo = 
-				sprite_table_small[state.entities[0].type][entity->animationCounter>>1];
+		if (entity->weapon_type==E_PAW) {
+			sprites[idx].spriteInfo = 
+				sprite_table_small[state.entities[0].weapon_type][entity->animation_counter>>1];
 		} else {
-			sprites[active_entity_index].spriteInfo = 
-				sprite_table[state.entities[0].type][entity->animationCounter>>1];
+			sprites[idx].spriteInfo = 
+				sprite_table[state.entities[0].weapon_type][entity->animation_counter>>1];
 		}
 			
 		entity->pos.i = state.entities[0].pos.i + 
-			(sprite_offsets[state.entities[0].type][entity->animationCounter>>1][0]<<4);
+			(sprite_offsets[state.entities[0].weapon_type][entity->animation_counter>>1][0]<<4);
 
 		entity->pos.j = state.entities[0].pos.j + 
-			(sprite_offsets[state.entities[0].type][entity->animationCounter>>1][1]<<4);
+			(sprite_offsets[state.entities[0].weapon_type][entity->animation_counter>>1][1]<<4);
 
-		entity->animationCounter++;
+		entity->animation_counter++;
 	}
 
-	sprites[active_entity_index].pos.i = entity->pos.i;
-	sprites[active_entity_index].pos.j = entity->pos.j;
+	sprites[idx].pos.i = entity->pos.i;
+	sprites[idx].pos.j = entity->pos.j;
 
-	return entity->animationCounter<10;
+	return entity->animation_counter<10;
+}
+
+static uint8_t on_hit(Entity *entity, Entity *weapon) {
+	
+	UNUSED(entity);
+	UNUSED(weapon);
+	return false;
+}
+
+
+void init_weapon_slash(uint8_t idx, uint8_t weapon_type) {
+
+	Entity *entity = &state.entities[idx];
+
+	entity->enabled = true;
+	entity->spawn_idx = -1;
+	entity->spawn_priority = 0;
+
+	entity->vel.i = 0;
+	entity->vel.j = 0;
+
+	entity->push.i = 0;
+	entity->push.j = 0;
+
+	entity->life = 6;
+	entity->maximum_life = 6;
+
+	entity->weapon_type = weapon_type;
+
+	entity->damage = 0;
+
+	entity->segment = MODULE_SEGMENT(entity_weapon_slash, PAGE_C);
+	entity->on_spawn   = on_spawn;
+	entity->on_despawn = on_despawn;
+	entity->on_update  = on_update;
+	entity->on_hit  = on_hit;
+
 }

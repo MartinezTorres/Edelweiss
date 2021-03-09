@@ -11,8 +11,8 @@ void wolfi_door_warp_enter() {
 	state.entities[0].pos.j = (state.entities[0].pos.j+0x40) & 0xFF00;
 	sprites[entityIdx].pos.j = state.entities[0].pos.j;
 
-	state.entities[0].type = E_UP;
-	sprites[entityIdx].spriteInfo = (state.entities[0].animationCounter & 0x04? &wolfi_1_0 : &wolfi_1_1) ;
+	state.entities[0].orientation = E_UP;
+	sprites[entityIdx].spriteInfo = (state.entities[0].animation_counter & 0x04? &wolfi_1_0 : &wolfi_1_1) ;
 	for (uint8_t k=0; k<6; k++) {
 		state.entities[0].pos.i -= 16;
 		sprites[entityIdx].pos.i = state.entities[0].pos.i;

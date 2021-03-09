@@ -569,14 +569,8 @@ int main(int argc, const char *argv[]) {
                 src << "const TSpriteInterlaced " << SPRITE_NAME << "_" << sr.first << "_" << sc.first << " = {" << std::endl;
                 
                 src << "{";
-                for (int i=0; i<8; i++) {
-                    src << " {";
-                    for (auto m : sc.second.blackMask) { sprintf(msg,"0x%02X,", (((int(m)<<8)>>i)>>16) & 0xFF); src << msg; } src << std::endl << "  ";
-                    for (auto m : sc.second.blackMask) { sprintf(msg,"0x%02X,", (((int(m)<<8)>>i)>>8 ) & 0xFF); src << msg; } src << std::endl << "  ";
-                    for (auto m : sc.second.blackMask) { sprintf(msg,"0x%02X,", (((int(m)<<8)>>i)    ) & 0xFF); src << msg; } src << "}, " << std::endl;
-                }
-                src << "}, "  << std::endl;
-
+                for (auto m : sc.second.blackMask) { sprintf(msg,"0x%02X,", m>>8); src << msg; } src << std::endl << " ";
+                for (auto m : sc.second.blackMask) { sprintf(msg,"0x%02X,", m&0xFF); src << msg; } src << "}, " << std::endl;
                 src << "{";
                 for (auto m : sc.second.colorSprites[0].pattern) { sprintf(msg,"0x%02X,", m>>8); src << msg; } src << std::endl << " ";
                 for (auto m : sc.second.colorSprites[0].pattern) { sprintf(msg,"0x%02X,", m&0xFF); src << msg; } src << "}, " << std::endl;

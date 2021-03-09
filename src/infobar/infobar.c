@@ -247,45 +247,45 @@ static const uint8_t pear[2][8] = {
 		SA1[i].y = 209;
 	}	
 
-	SA0[4].y = (uint8_t)(191-16);
-	SA0[4].x = 0;
-	SA0[4].pattern = 128;
-	SA0[4].color = BMediumRed;
+	SA0[0].y = (uint8_t)(191-16);
+	SA0[0].x = 0;
+	SA0[0].pattern = 0;
+	SA0[0].color = BMediumRed;
 
-	SA0[5].y = (uint8_t)(191-16);
-	SA0[5].x = 0;
-	SA0[5].pattern = 132;
-	SA0[5].color =  BWhite;
+	SA0[1].y = (uint8_t)(191-16);
+	SA0[1].x = 0;
+	SA0[1].pattern = 4;
+	SA0[1].color =  BWhite;
 
-	SA0[6].y = (uint8_t)(191-16);
-	SA0[6].x = 8*7;
-	SA0[6].pattern = 136;
-	SA0[6].color =  BWhite;
+	SA0[2].y = (uint8_t)(191-16);
+	SA0[2].x = 8*7;
+	SA0[2].pattern = 8;
+	SA0[2].color =  BWhite;
 
-	SA0[7].y = (uint8_t)(191-16);
-	SA0[7].x = 0;
-	SA0[7].pattern = 144;
-	SA0[7].color =  BWhite;
+	SA0[3].y = (uint8_t)(191-16);
+	SA0[3].x = 0;
+	SA0[3].pattern = 16;
+	SA0[3].color =  BWhite;
 
-	SA1[4].y = (uint8_t)(191-16);
-	SA1[4].x = 0;
-	SA1[4].pattern = 128;
-	SA1[4].color =  BMediumRed;
+	SA1[0].y = (uint8_t)(191-16);
+	SA1[0].x = 0;
+	SA1[0].pattern = 0;
+	SA1[0].color =  BMediumRed;
 
-	SA1[5].y = (uint8_t)(191-16);
-	SA1[5].x = 0;
-	SA1[5].pattern = 132;
-	SA1[5].color =  BWhite;
+	SA1[1].y = (uint8_t)(191-16);
+	SA1[1].x = 0;
+	SA1[1].pattern = 4;
+	SA1[1].color =  BWhite;
 
-	SA1[6].y = (uint8_t)(191-16);
-	SA1[6].x = 8*7;
-	SA1[6].pattern = 140;
-	SA1[6].color =  BWhite;
+	SA1[2].y = (uint8_t)(191-16);
+	SA1[2].x = 8*7;
+	SA1[2].pattern = 12;
+	SA1[2].color =  BWhite;
 
-	SA1[7].y = (uint8_t)(191-16);
-	SA1[7].x = 0;
-	SA1[7].pattern = 144;
-	SA1[7].color =  BWhite;
+	SA1[3].y = (uint8_t)(191-16);
+	SA1[3].x = 0;
+	SA1[3].pattern = 16;
+	SA1[3].color =  BWhite;
 
 
 	life_in_display = 0;
@@ -305,55 +305,55 @@ static const uint8_t pear[2][8] = {
 void infobar_update_weapon() {
 
 	IN_MODULE(infobar_weapons, PAGE_D, 
-		TMS99X8_setPtr(MODE2_ADDRESS_SG+(((uint16_t)136)<<3));
+		TMS99X8_setPtr(MODE2_ADDRESS_SG+(((uint16_t)8)<<3));
 		switch (state.weapon) {
 		case E_PAW:
 			TMS99X8_memcpy32(weapons_0_1.sprite0Pattern);
 			TMS99X8_memcpy32(weapons_0_1.sprite1Pattern);
-			SA0[6].color  =  weapons_0_1.sprite0Color;
-			SA1[6].color  =  weapons_0_1.sprite1Color;
+			SA0[2].color  =  weapons_0_1.sprite0Color;
+			SA1[2].color  =  weapons_0_1.sprite1Color;
 			break;
 		case E_CLAW:
 			TMS99X8_memcpy32(weapons_0_0.sprite0Pattern);
 			TMS99X8_memcpy32(weapons_0_0.sprite1Pattern);
-			SA0[6].color  =  weapons_0_0.sprite0Color;
-			SA1[6].color  =  weapons_0_0.sprite1Color;
+			SA0[2].color  =  weapons_0_0.sprite0Color;
+			SA1[2].color  =  weapons_0_0.sprite1Color;
 			break;
 		case E_SWORD:
 			TMS99X8_memcpy32(weapons_0_2.sprite0Pattern);
 			TMS99X8_memcpy32(weapons_0_2.sprite1Pattern);
-			SA0[6].color  =  weapons_0_2.sprite0Color;
-			SA1[6].color  =  weapons_0_2.sprite1Color;
+			SA0[2].color  =  weapons_0_2.sprite0Color;
+			SA1[2].color  =  weapons_0_2.sprite1Color;
 			break;
 		case E_AXE:
 			TMS99X8_memcpy32(weapons_0_4.sprite0Pattern);
 			TMS99X8_memcpy32(weapons_0_4.sprite1Pattern);
-			SA0[6].color  =  weapons_0_4.sprite0Color;
-			SA1[6].color  =  weapons_0_4.sprite1Color;
+			SA0[2].color  =  weapons_0_4.sprite0Color;
+			SA1[2].color  =  weapons_0_4.sprite1Color;
 			break;
 		case E_BOMB:
 			TMS99X8_memcpy32(weapons_0_3.sprite0Pattern);
 			TMS99X8_memcpy32(weapons_0_3.sprite1Pattern);
-			SA0[6].color  =  weapons_0_3.sprite0Color;
-			SA1[6].color  =  weapons_0_3.sprite1Color;
+			SA0[2].color  =  weapons_0_3.sprite0Color;
+			SA1[2].color  =  weapons_0_3.sprite1Color;
 			break;
 		case E_FIRE:
 			TMS99X8_memcpy32(weapons_0_6.sprite0Pattern);
 			TMS99X8_memcpy32(weapons_0_6.sprite1Pattern);
-			SA0[6].color  =  weapons_0_6.sprite0Color;
-			SA1[6].color  =  weapons_0_6.sprite1Color;
+			SA0[2].color  =  weapons_0_6.sprite0Color;
+			SA1[2].color  =  weapons_0_6.sprite1Color;
 			break;
 		case E_BOW:
 			TMS99X8_memcpy32(weapons_0_7.sprite0Pattern);
 			TMS99X8_memcpy32(weapons_0_7.sprite1Pattern);
-			SA0[6].color  =  weapons_0_7.sprite0Color;
-			SA1[6].color  =  weapons_0_7.sprite1Color;
+			SA0[2].color  =  weapons_0_7.sprite0Color;
+			SA1[2].color  =  weapons_0_7.sprite1Color;
 			break;
 		case E_BUTTER_KNIFE:
 			TMS99X8_memcpy32(weapons_0_5.sprite0Pattern);
 			TMS99X8_memcpy32(weapons_0_5.sprite1Pattern);
-			SA0[6].color  =  weapons_0_5.sprite0Color;
-			SA1[6].color  =  weapons_0_5.sprite1Color;
+			SA0[2].color  =  weapons_0_5.sprite0Color;
+			SA1[2].color  =  weapons_0_5.sprite1Color;
 			break;
 		}
 	);
@@ -392,24 +392,24 @@ void infobar_update_life() {
 
 void infobar_update_map() {
 
-	SA0[4].x = SA1[4].x = 16 + (state.entities[0].pos.x >> 11);
+	SA0[0].x = SA1[0].x = 16 + (state.entities[0].pos.x >> 11);
 	if (oldMapDotWolfi) {
 		TMS99X8_setPtr(oldMapDotWolfi);
 		TMS99X8_write(0x00);
 		oldMapDotWolfi = 0;
 	}
-	oldMapDotWolfi = MODE2_ADDRESS_SG + (((uint16_t)128)<<3) + (state.entities[0].pos.y >> 11);
+	oldMapDotWolfi = MODE2_ADDRESS_SG + (((uint16_t)0)<<3) + (state.entities[0].pos.y >> 11);
 	TMS99X8_setPtr(oldMapDotWolfi);
 	TMS99X8_write(0x80);
 
-	SA0[5].x = SA1[5].x = 16 + (state.nextFlower.x >> 3);
+	SA0[1].x = SA1[1].x = 16 + (state.next_flower.x >> 3);
 	if (oldMapDotTarget) {
 		TMS99X8_setPtr(oldMapDotTarget);
 		TMS99X8_write(0x00);
 		oldMapDotTarget = 0;
 	}
-	if (state.nextFlower.y<128) {
-		oldMapDotTarget = MODE2_ADDRESS_SG + (((uint16_t)132)<<3) + (state.nextFlower.y >> 3);
+	if (state.next_flower.y<128) {
+		oldMapDotTarget = MODE2_ADDRESS_SG + (((uint16_t)4)<<3) + (state.next_flower.y >> 3);
 		TMS99X8_setPtr(oldMapDotTarget);
 		TMS99X8_write(0x80);
 	}
@@ -641,7 +641,7 @@ void infobar_update_items() {
 
 	TMS99X8_setPtr(MODE2_ADDRESS_PN0 + 0x2C0 + 1 * 32 + 10);
 
-	if (state.hasLamp) {
+	if (state.has_lamp) {
 		TMS99X8_write(0x16); NOP(); NOP();
 		TMS99X8_write(0x17); NOP(); NOP();
 		TMS99X8_write(0x00); NOP(); NOP();
@@ -650,7 +650,7 @@ void infobar_update_items() {
 		TMS99X8_write(0x00); NOP(); NOP();
 		TMS99X8_write(0x00); NOP(); NOP();
 	}
-	if (state.hasBoots) {
+	if (state.has_boots) {
 		TMS99X8_write(0x18); NOP(); NOP();
 		TMS99X8_write(0x19); NOP(); NOP();
 		TMS99X8_write(0x1A); NOP(); NOP();
@@ -659,7 +659,7 @@ void infobar_update_items() {
 		TMS99X8_write(0x00); NOP(); NOP();
 		TMS99X8_write(0x00); NOP(); NOP();
 	}
-	if (state.hasCoat) {
+	if (state.has_coat) {
 		TMS99X8_write(0x1B); NOP(); NOP();
 		TMS99X8_write(0x1C); NOP(); NOP();
 		TMS99X8_write(0x00); NOP(); NOP();
@@ -668,7 +668,7 @@ void infobar_update_items() {
 		TMS99X8_write(0x00); NOP(); NOP();
 		TMS99X8_write(0x00); NOP(); NOP();
 	}
-	if (state.hasPear) {
+	if (state.has_pear) {
 		TMS99X8_write(0x1D); NOP(); NOP();
 		TMS99X8_write(0x1E); NOP(); NOP();
 	} else {
@@ -678,7 +678,7 @@ void infobar_update_items() {
 
 	TMS99X8_setPtr(MODE2_ADDRESS_PN1 + 0x2C0 + 1 * 32 + 10);
 
-	if (state.hasLamp) {
+	if (state.has_lamp) {
 		TMS99X8_write(0x16); NOP(); NOP();
 		TMS99X8_write(0x17); NOP(); NOP();
 		TMS99X8_write(0x00); NOP(); NOP();
@@ -687,7 +687,7 @@ void infobar_update_items() {
 		TMS99X8_write(0x00); NOP(); NOP();
 		TMS99X8_write(0x00); NOP(); NOP();
 	}
-	if (state.hasBoots) {
+	if (state.has_boots) {
 		TMS99X8_write(0x18); NOP(); NOP();
 		TMS99X8_write(0x19); NOP(); NOP();
 		TMS99X8_write(0x1A); NOP(); NOP();
@@ -696,7 +696,7 @@ void infobar_update_items() {
 		TMS99X8_write(0x00); NOP(); NOP();
 		TMS99X8_write(0x00); NOP(); NOP();
 	}
-	if (state.hasCoat) {
+	if (state.has_coat) {
 		TMS99X8_write(0x1B); NOP(); NOP();
 		TMS99X8_write(0x1C); NOP(); NOP();
 		TMS99X8_write(0x00); NOP(); NOP();
@@ -705,7 +705,7 @@ void infobar_update_items() {
 		TMS99X8_write(0x00); NOP(); NOP();
 		TMS99X8_write(0x00); NOP(); NOP();
 	}
-	if (state.hasPear) {
+	if (state.has_pear) {
 		TMS99X8_write(0x1D); NOP(); NOP();
 		TMS99X8_write(0x1E); NOP(); NOP();
 	} else {

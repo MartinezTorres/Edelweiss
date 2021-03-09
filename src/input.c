@@ -1,5 +1,9 @@
 #include <common.h>
 
+uint8_t keyboard[16];
+uint8_t keyboard_prev[16];
+uint8_t keyboard_click[16];
+
 
 #ifdef MSX
 void update_keyboard_and_joystick_placeholder() {
@@ -13,11 +17,11 @@ void update_keyboard_and_joystick_placeholder() {
 
 		ld a, #0x04
 		call #0x0141 ; SNSMAT
-		ld (_state+0x04), a ; state.keyboard[4];
+		ld (_keyboard+0x04), a ; keyboard[4];
 
 		ld a, #0x08
 		call #0x0141 ; SNSMAT
-		ld (_state+0x08), a ; state.keyboard[8];
+		ld (_keyboard+0x08), a ; keyboard[8];
 		
 
 ; Read joystick status
@@ -33,7 +37,7 @@ void update_keyboard_and_joystick_placeholder() {
 		; convert the joystick input to keyboard input
 		ld c,a
 		; arrows/space:
-		ld a, (_state+0x08) ; state.keyboard[8];
+		ld a, (_keyboard+0x08) ; keyboard[8];
     
 		di
 		
@@ -62,36 +66,36 @@ read_joystick_noRight:
 		and #0xfe
 read_joystick_noA:
 
-		ld (_state+0x08),a   ; we add the joystick input to the keyboard input
+		ld (_keyboard+0x08),a   ; we add the joystick input to the keyboard input
 
 		; m (button 2):
-		ld a, (_state+0x04) ; state.keyboard[4];
+		ld a, (_keyboard+0x04) ; keyboard[4];
 		rr c
 		jr c,read_joystick_noB
 		and #0xfb
 read_joystick_noB:
-		ld (_state+0x04),a   ; we add the joystick input to the keyboard input
+		ld (_keyboard+0x04),a   ; we add the joystick input to the keyboard input
 
 ; Calculate clicks;
 
-		ld de, #_state+0x04 ; state.keyboard[4];
+		ld de, #_keyboard+0x04 ; keyboard[4];
 		ld a, (de)          
 
-		ld hl, #_state+0x14 ; state.keyboard_prev[4];
+		ld hl, #_keyboard_prev+0x04 ; keyboard_prev[4];
 		xor (hl)            ; did it change?
 		and (hl)            ; was unpressed?
-		ld (_state+0x24), a ; state.keyboard_click[4];
+		ld (_keyboard_click+0x04), a ; keyboard_click[4];
 		
 		ld a, (de)
 		ld (hl), a
 
-		ld de, #_state+0x08 ; state.keyboard[8];
+		ld de, #_keyboard+0x08 ; keyboard[8];
 		ld a, (de)          
 
-		ld hl, #_state+0x18 ; state.keyboard_prev[8];
+		ld hl, #_keyboard_prev+0x08 ; keyboard_prev[8];
 		xor (hl)            ; did it change?
 		and (hl)            ; was unpressed?
-		ld (_state+0x28), a ; state.keyboard_click[8];
+		ld (_keyboard_click+0x08), a ; keyboard_click[8];
 		
 		ld a, (de)
 		ld (hl), a
@@ -115,31 +119,31 @@ void update_keyboard_and_joystick() {
     // 4; R, Q, P, O, N, M, L, K
     // 8; RIGHT, DOWN, UP, LEFT, DEL, INS, HOME, SPACE
 	
-	state.keyboard_prev[8] = state.keyboard[8];
-    state.keyboard[8] = 255;
-	if (keys[SDLK_RIGHT % N_KEYS]) state.keyboard[8] -= K_RIGHT;
-	if (keys[SDLK_DOWN  % N_KEYS]) state.keyboard[8] -= K_DOWN;
-	if (keys[SDLK_UP    % N_KEYS]) state.keyboard[8] -= K_UP;
-	if (keys[SDLK_LEFT  % N_KEYS]) state.keyboard[8] -= K_LEFT;
-	if (keys[SDLK_DELETE% N_KEYS]) state.keyboard[8] -= K_DEL;
-	if (keys[SDLK_INSERT% N_KEYS]) state.keyboard[8] -= K_INS;
-	if (keys[SDLK_HOME  % N_KEYS]) state.keyboard[8] -= K_HOME;
-	if (keys[SDLK_SPACE % N_KEYS]) state.keyboard[8] -= K_SPACE;
+	keyboard_prev[8] = keyboard[8];
+    keyboard[8] = 255;
+	if (keys[SDLK_RIGHT % N_KEYS]) keyboard[8] -= K_RIGHT;
+	if (keys[SDLK_DOWN  % N_KEYS]) keyboard[8] -= K_DOWN;
+	if (keys[SDLK_UP    % N_KEYS]) keyboard[8] -= K_UP;
+	if (keys[SDLK_LEFT  % N_KEYS]) keyboard[8] -= K_LEFT;
+	if (keys[SDLK_DELETE% N_KEYS]) keyboard[8] -= K_DEL;
+	if (keys[SDLK_INSERT% N_KEYS]) keyboard[8] -= K_INS;
+	if (keys[SDLK_HOME  % N_KEYS]) keyboard[8] -= K_HOME;
+	if (keys[SDLK_SPACE % N_KEYS]) keyboard[8] -= K_SPACE;
 
-	state.keyboard_click[8] = (state.keyboard[8] ^ state.keyboard_prev[8]) & state.keyboard_prev[8];  
+	keyboard_click[8] = (keyboard[8] ^ keyboard_prev[8]) & keyboard_prev[8];  
 	
-	state.keyboard_prev[4] = state.keyboard[4];
-    state.keyboard[4] = 255;
-	if (keys[SDLK_r % N_KEYS]) state.keyboard[4] -= K_R;
-	if (keys[SDLK_q % N_KEYS]) state.keyboard[4] -= K_Q;
-	if (keys[SDLK_p % N_KEYS]) state.keyboard[4] -= K_P;
-	if (keys[SDLK_o % N_KEYS]) state.keyboard[4] -= K_O;
-	if (keys[SDLK_n % N_KEYS]) state.keyboard[4] -= K_N;
-	if (keys[SDLK_m % N_KEYS]) state.keyboard[4] -= K_M;
-	if (keys[SDLK_l % N_KEYS]) state.keyboard[4] -= K_L;
-	if (keys[SDLK_k % N_KEYS]) state.keyboard[4] -= K_K;
+	keyboard_prev[4] = keyboard[4];
+    keyboard[4] = 255;
+	if (keys[SDLK_r % N_KEYS]) keyboard[4] -= K_R;
+	if (keys[SDLK_q % N_KEYS]) keyboard[4] -= K_Q;
+	if (keys[SDLK_p % N_KEYS]) keyboard[4] -= K_P;
+	if (keys[SDLK_o % N_KEYS]) keyboard[4] -= K_O;
+	if (keys[SDLK_n % N_KEYS]) keyboard[4] -= K_N;
+	if (keys[SDLK_m % N_KEYS]) keyboard[4] -= K_M;
+	if (keys[SDLK_l % N_KEYS]) keyboard[4] -= K_L;
+	if (keys[SDLK_k % N_KEYS]) keyboard[4] -= K_K;
 
-	state.keyboard_click[4] = (state.keyboard[4] ^ state.keyboard_prev[4]) & state.keyboard_prev[4];  
+	keyboard_click[4] = (keyboard[4] ^ keyboard_prev[4]) & keyboard_prev[4];  
 
 }
 

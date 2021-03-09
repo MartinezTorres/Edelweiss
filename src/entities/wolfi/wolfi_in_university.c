@@ -54,7 +54,7 @@ static void learn_self_defense() {
 		
 		// UPDATE JOYSTICK
 		update_keyboard_and_joystick();
-		if (state.keyboard_click[8] & K_LEFT) {
+		if (keyboard_click[8] & K_LEFT) {
 			
 			if (option>0) {
 
@@ -73,7 +73,7 @@ static void learn_self_defense() {
 			
 			
 		} 
-		if (state.keyboard_click[8] & K_RIGHT) {
+		if (keyboard_click[8] & K_RIGHT) {
 			
 			if (option<1 && state.rupees>=50) {
 
@@ -91,13 +91,13 @@ static void learn_self_defense() {
 			}
 		}
 		
-		if (state.keyboard_click[8] & K_SPACE) {
+		if (keyboard_click[8] & K_SPACE) {
 
 			if (option==0) break;
 			
 			
 			state.rupees-=50;
-			state.hasWeapon[E_CLAW] = true;
+			state.has_weapon[E_CLAW] = true;
 			state.weapon = E_CLAW;
 			IN_MODULE(infobar, PAGE_B, infobar_update_weapon());
 			message("\nYOU LEARNED THE\nLATENT POWER OF\n YOUR CLAWS");
@@ -142,7 +142,7 @@ static void learn_self_demolitions() {
 		
 		// UPDATE JOYSTICK
 		update_keyboard_and_joystick();
-		if (state.keyboard_click[8] & K_LEFT) {
+		if (keyboard_click[8] & K_LEFT) {
 			
 			if (option>0) {
 
@@ -161,7 +161,7 @@ static void learn_self_demolitions() {
 			
 			
 		} 
-		if (state.keyboard_click[8] & K_RIGHT) {
+		if (keyboard_click[8] & K_RIGHT) {
 			
 			if (option<1 && state.rupees>=50) {
 
@@ -179,13 +179,13 @@ static void learn_self_demolitions() {
 			}
 		}
 		
-		if (state.keyboard_click[8] & K_SPACE) {
+		if (keyboard_click[8] & K_SPACE) {
 
 			if (option==0) break;
 			
 			
 			state.rupees-=50;
-			state.hasWeapon[E_BOMB] = true;
+			state.has_weapon[E_BOMB] = true;
 			state.weapon = E_BOMB;
 			IN_MODULE(infobar, PAGE_B, infobar_update_weapon());
 			message("\nYOU LEARNED THE\nLATENT POWER OF\nTRINITROLUENE");
@@ -199,7 +199,7 @@ void wolfi_in_university() {
 	
 	
 	message("\nWELCOME TO THE \nUNIVERSITY. WHAT CAN\n WE DO FOR YOU?");
-	if (state.hasWeapon[E_CLAW]==false) learn_self_defense();
-	if (state.hasWeapon[E_BOMB]==false) learn_self_demolitions();
+	if (state.has_weapon[E_CLAW]==false) learn_self_defense();
+	if (state.has_weapon[E_BOMB]==false) learn_self_demolitions();
 }
 

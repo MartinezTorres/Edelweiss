@@ -24,12 +24,12 @@ static void encode_state(char *msg) {
 	
 	T_Serialized_State ss;
 	ss.u32 = 0;
-	ss.hasLamp = state.hasLamp;
-	ss.hasBoots = state.hasBoots;
-	ss.hasCoat = state.hasCoat;
-	ss.hasPear = state.hasPear;
+	ss.hasLamp = state.has_lamp;
+	ss.hasBoots = state.has_boots;
+	ss.hasCoat = state.has_coat;
+	ss.hasPear = state.has_pear;
 	for (uint8_t j = 0; j<8; j++) {
-		if (state.hasWeapon[j]) {
+		if (state.has_weapon[j]) {
 			ss.hasWeapon |= (1<<j);
 		}
 	}
@@ -75,12 +75,12 @@ static bool decode_state(char *msg) {
 
 	ss.u32 ^= 0x73384682;
 
-	state.hasLamp  = ss.hasLamp;
-	state.hasBoots = ss.hasBoots;
-	state.hasCoat  = ss.hasCoat;
-	state.hasPear  = ss.hasPear;
+	state.has_lamp  = ss.hasLamp;
+	state.has_boots = ss.hasBoots;
+	state.has_coat  = ss.hasCoat;
+	state.has_pear  = ss.hasPear;
 	for (uint8_t j = 0; j<8; j++) {
-		state.hasWeapon[j] = !!(ss.hasWeapon & (1<<j));
+		state.has_weapon[j] = !!(ss.hasWeapon & (1<<j));
 	}
 	state.rupees = ss.rupees<<4;
 	state.entities[0].maximum_life = ss.max_life<<1;
@@ -133,7 +133,7 @@ void wolfi_in_saloon() {
 		char c[2];
 		c[0] = '|';
 		c[1] = 0;
-		largePopupTextProperties.value = (isr.frameCount & 0x10);
+		largePopupTextProperties.value = (state.isr_count & 0x10);
 		largePopupWriteText(c);
 		largePopupTextProperties.x = x;
 		
@@ -223,6 +223,6 @@ void wolfi_in_saloon() {
 
 
 	for (uint8_t i=0; i<120; i++) wait_frame();
-	isr.requestPatternNameTransferDelayed = 10;
+	state.request_pattern_name_transfer = 3;
 	
 }

@@ -13,8 +13,8 @@ static void hole_warp_to(uint8_t i, uint8_t j) {
 	state.entities[0].pos.j = (state.entities[0].pos.j+0x40) & 0xFF00;
 	sprites[entityIdx].pos.j = state.entities[0].pos.j;
 
-	state.entities[0].type = E_UP;
-	sprites[entityIdx].spriteInfo = (state.entities[0].animationCounter & 0x04? &wolfi_1_0 : &wolfi_1_1) ;
+	state.entities[0].orientation = E_UP;
+	sprites[entityIdx].spriteInfo = (state.entities[0].animation_counter & 0x04? &wolfi_1_0 : &wolfi_1_1) ;
 	for (uint8_t k=0; k<6; k++) {
 		state.entities[0].pos.i -= 16;
 		sprites[entityIdx].pos.i = state.entities[0].pos.i;
@@ -37,20 +37,20 @@ static void hole_warp_to(uint8_t i, uint8_t j) {
 		wait_frame();
 
 		int16_t i = (state.entities[0].pos.i>>8) - map.pos.i;
-		if (i<8 && isr.targetPos.i>0) isr.targetPos.i =  map.pos.i-1;
-		if (i>13 && isr.targetPos.i<(uint8_t)(129-23)) isr.targetPos.i = map.pos.i+1;
+		if (i<8 && state.target_map_pos.i>0) state.target_map_pos.i =  map.pos.i-1;
+		if (i>13 && state.target_map_pos.i<(uint8_t)(129-23)) state.target_map_pos.i = map.pos.i+1;
 		
 		int16_t j = (state.entities[0].pos.j>>8) - map.pos.j;
-		if (j<10 && isr.targetPos.j>0) isr.targetPos.j = map.pos.j-1;
-		if (j>20 && isr.targetPos.j<(uint8_t)(255-31)) isr.targetPos.j = map.pos.j+1;
+		if (j<10 && state.target_map_pos.j>0) state.target_map_pos.j = map.pos.j-1;
+		if (j>20 && state.target_map_pos.j<(uint8_t)(255-31)) state.target_map_pos.j = map.pos.j+1;
 
-		isr.updateScroll |= (map.pos.j != isr.targetPos.j);
-		isr.updateScroll |= (map.pos.i != isr.targetPos.i);
+		state.request_scroll_update |= (map.pos.j != state.target_map_pos.j);
+		state.request_scroll_update |= (map.pos.i != state.target_map_pos.i);
 	
-	} while (isr.updateScroll);
+	} while (state.request_scroll_update);
 
-	state.entities[0].type = E_DOWN;
-	sprites[entityIdx].spriteInfo = (state.entities[0].animationCounter & 0x04? &wolfi_2_0 : &wolfi_2_1);
+	state.entities[0].orientation = E_DOWN;
+	sprites[entityIdx].spriteInfo = (state.entities[0].animation_counter & 0x04? &wolfi_2_0 : &wolfi_2_1);
 	sprites[entityIdx].enabled = true;
 
 	for (uint8_t k=0; k<6; k++) {
@@ -82,11 +82,11 @@ static void well_warp_to(uint8_t i, uint8_t j) {
 
 	TRAMPOLINE_PAGE_C(wolfi_door_warp_enter);
 
-	if (state.fallen_in_the_well==0) {
+	if (state.times_fallen_in_the_well==0) {
 		small_message("AAAAARGH!");
-	} else if (state.fallen_in_the_well==1) {
+	} else if (state.times_fallen_in_the_well==1) {
 		small_message("AGAIN?\nREALLY?\nAAAAARGH!");
-	} else if (state.fallen_in_the_well<5) {
+	} else if (state.times_fallen_in_the_well<5) {
 		small_message("HERE WE GO\nAGAIN!\nAAAAARGH!");
 	}
 
@@ -98,12 +98,12 @@ static void well_warp_to(uint8_t i, uint8_t j) {
 	TRAMPOLINE_PAGE_C(wolfi_door_warp_migrate);
 	TRAMPOLINE_PAGE_C(wolfi_door_warp_exit);
 
-	if (state.fallen_in_the_well==0) {
+	if (state.times_fallen_in_the_well==0) {
 		small_message("THERE WERE\nRATS!");
-		state.fallen_in_the_well++;
-	} else if (state.fallen_in_the_well<5) {
+		state.times_fallen_in_the_well++;
+	} else if (state.times_fallen_in_the_well<5) {
 		small_message("THIS ISN'T\nFUN!");
-		state.fallen_in_the_well++;
+		state.times_fallen_in_the_well++;
 	}
 }
 
@@ -121,7 +121,7 @@ void wolfi_triggers() {
 		tile16==167 ||
 		tile16==90) { // Dark places!
 		 
-		if (!state.hasLamp) {
+		if (!state.has_lamp) {
 			TRAMPOLINE_PAGE_C(wolfi_door_warp_enter);
 			small_message("IT'S TOO DARK!");
 			TRAMPOLINE_PAGE_C(wolfi_door_warp_exit);
@@ -178,10 +178,11 @@ void wolfi_triggers() {
 		uint8_t tile16Feet2 =  overworld_get_tile16(tpi, tpj2);
 	//	debug_printf("TileFeet: %d %d, pos (%d, %d), flags %d\n",tile16Feet1, tile16Feet2, ti, tj, flags);
 
-		if ((tile16Feet1==31 || tile16Feet1==154 || tile16Feet1==212 || tile16Feet2==31 || tile16Feet2==154 || tile16Feet2==212 ) && !state.hasBoots) {
+		if ((tile16Feet1==31 || tile16Feet1==154 || tile16Feet1==212 || tile16Feet2==31 || tile16Feet2==154 || tile16Feet2==212 ) && !state.has_boots) {
 
 			small_message("THESE ROCKS\nHURT MY FEET!");
-			state.entities[0].pos = tmp.old_pos;
+			//state.entities[0].pos = tmp.old_pos;
+			// TODO: ROCKS
 		}
 	}
 

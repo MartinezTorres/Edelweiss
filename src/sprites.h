@@ -2,7 +2,7 @@
 #include <common.h>
 typedef struct {
     
-    uint8_t blackPattern[8][48];
+    uint8_t blackPattern[32];
     uint8_t sprite0Pattern[32];    
     uint8_t sprite1Pattern[32];
     uint8_t sprite0Color;
@@ -30,7 +30,7 @@ typedef struct {
     const TSpriteInterlaced *spriteInfo;
 }  TSpriteStatus;
 
-extern TSpriteStatus sprites[8];
+extern TSpriteStatus sprites[12];
 extern T_SA SA0, SA1;
 
 
