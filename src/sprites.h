@@ -33,18 +33,5 @@ typedef struct {
 extern TSpriteStatus sprites[12];
 extern T_SA SA0, SA1;
 
-
-//void updateSpriteAttributeTableISR0();
-//void updateSpriteAttributeTableISR1();
-//INLINE void updateSpriteAttributeTableISR(EM2_Buffer buffer) { buffer==0?updateSpriteAttributeTableISR0():updateSpriteAttributeTableISR1(); }
-
-INLINE void updateSpriteAttributeTableISR(EM2_Buffer buffer) { 
-	if (buffer==0) {
-		TMS99X8_memcpy(MODE2_ADDRESS_SA0, (const uint8_t *)SA0, sizeof(SA0)); 
-	} else {
-		TMS99X8_memcpy(MODE2_ADDRESS_SA1, (const uint8_t *)SA1, sizeof(SA1)); 
-	}
-}
-
 void updateSpriteISR();
 void sprites_init();

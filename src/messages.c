@@ -7,7 +7,7 @@ void large_message(const char *msg) {
 	state.request_pattern_name_transfer = 3;
 	for (uint8_t i=0; i<12; i++) wait_frame();
 
-	IN_MODULE( popup, PAGE_B,
+	IN_MODULE( largepopup, PAGE_B,
 		if (pj>16) {
 			largePopupCenteredText(pj-12,msg);
 		} else {

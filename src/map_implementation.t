@@ -588,7 +588,15 @@ INLINE void _draw_col(uint8_t colScreen8) {
     }
 }
 
-void APPEND(MAP_NAME,_draw_col)(uint8_t colScreen8) {  _draw_col(colScreen8); }
+void APPEND(MAP_NAME,_draw_col)(uint8_t colScreen8) {  
+	
+#ifdef MSX
+	_draw_col(colScreen8); 
+#else
+	for (uint8_t i=0; i<24; i++)
+		APPEND(MAP_NAME,_draw_tile8)(i, colScreen8);
+#endif
+}
 
 
 INLINE void _draw_tile8(uint8_t rowScreen8, uint8_t colScreen8) {
@@ -602,12 +610,25 @@ INLINE void _draw_tile8(uint8_t rowScreen8, uint8_t colScreen8) {
     bank = rowScreen8>>3;
     bankPtr = &map.bank[bank];
     PN_Idx =  (rowWorld8<<5) + colWorld8;
-    
-    
+
     mapper_load_segment(map.stages[rowWorld16>>1][colWorld16>>1], PAGE_D); // stages apply in blocks of 32x32 pixels
+	
+#ifdef MSX
+	const uint8_t (*map_map16)[64][128] = &MAP_MAP16;
+#else 
+	
+	const uint8_t (*map_map16)[64][128];
+	
+	if (map.stages[rowWorld16>>1][colWorld16>>1] == 0) map_map16 = &MAP0_MAP16;
+	if (map.stages[rowWorld16>>1][colWorld16>>1] == 1) map_map16 = &MAP1_MAP16;
+	if (map.stages[rowWorld16>>1][colWorld16>>1] == 2) map_map16 = &MAP2_MAP16;
+	if (map.stages[rowWorld16>>1][colWorld16>>1] == 3) map_map16 = &MAP3_MAP16;
+#endif
+
+
     uint8_t old_c = mapper_load_module(MAP_TILES16, PAGE_C);
     {
-        uint8_t tile16Idx = MAP_MAP16[rowWorld16][colWorld16];
+        uint8_t tile16Idx = (*map_map16)[rowWorld16][colWorld16];
         const uint8_t *tile8IdxPtr = &MAP_TILES16[tile16Idx][rowWorld8&1][colWorld8&1];
         
         populateTile8(tile8IdxPtr);
@@ -654,7 +675,7 @@ __endasm;
 
 #else
 
-static void renew_row_int_block() {
+INLINE void renew_row_int_block() {
     
     const uint8_t *tile8IdxPtr = tile8IdxBase + 4 * *tile16IdxPtr;
     populateTile8L(tile8IdxPtr); PN_Idx ++;
@@ -666,6 +687,8 @@ static void renew_row_int_block() {
 
 void APPEND(MAP_NAME,_draw_row)(uint8_t rowScreen8) {
     
+
+#ifdef MSX
 	uint8_t rowWorld8 = rowScreen8 + map.pos.i;
 	uint8_t colWorld8 =  map.pos.j;
 
@@ -740,6 +763,11 @@ void APPEND(MAP_NAME,_draw_row)(uint8_t rowScreen8) {
 			}                        
 		}
     }
+
+#else
+	for (uint8_t i=0; i<32; i++)
+		APPEND(MAP_NAME,_draw_tile8)(rowScreen8, i);
+#endif
 }
 
 
@@ -1129,33 +1157,7 @@ void APPEND(MAP_NAME,_copyPN1)() { copyPN1(); }
 void APPEND(MAP_NAME,_copyPN0full)() { copyPN0full(); }
 void APPEND(MAP_NAME,_copyPN1full)() { copyPN1full(); }
 
-uint8_t APPEND(MAP_NAME,_get_flags_c)(uint16_t row_, uint16_t col_) {
-
-	static uint16_t row, col;
-	static uint8_t old_c, old_d, flags;
-
-	row = row_;
-	col = col_;
-	
-	debugBorder(4);
-
-	old_c = CURRENT_SEGMENT(PAGE_C);
-	old_d = CURRENT_SEGMENT(PAGE_D);
-
-	mapper_load_segment(map.stages[row>>10][col>>10], PAGE_D); // stages apply in blocks of 32x32 pixels
-
-	mapper_load_segment(flag_segments[(row>>5)&0xF], PAGE_C);
-	
-	flags = MAP_TILES16_FLAGS_0[(col>>5)&0xF][MAP_MAP16[row>>9][col>>9]];
-
-	mapper_load_segment(old_d, PAGE_D);
-	mapper_load_segment(old_c, PAGE_C);
-
-	debugBorder(0);
-	
-	return flags;
-}
-
+#ifdef MSX
 
 inline static void get_flags_placeholder() {
 	
@@ -1167,10 +1169,10 @@ inline static void get_flags_placeholder() {
 _overworld_get_flags::
 
 ;src/map_implementation.h:1186: debugBorder(4);
-	ld	a, #0x04
-	out	(_VDP1), a
-	ld	a, #0x87
-	out	(_VDP1), a
+;	ld	a, #0x04
+;	out	(_VDP1), a
+;	ld	a, #0x87
+;	out	(_VDP1), a
 
 	pop	iy ; return address
 ;src/map_implementation.h:1183: row = row_;
@@ -1252,58 +1254,414 @@ _overworld_get_flags::
 	ld	(#0xb000), a
 
 ;src/map_implementation.h:1200: debugBorder(0);
-	ld	a, #0x00
-	out	(_VDP1), a
-	ld	a, #0x87
-	out	(_VDP1), a
+;	ld	a, #0x00
+;	out	(_VDP1), a
+;	ld	a, #0x87
+;	out	(_VDP1), a
 
 	jp (iy)
-		
+
 	__endasm;
 }
 
-uint8_t APPEND(MAP_NAME,_get_entity_flags)(uint8_t idx) __z88dk_fastcall {
-		
-	debugBorder(4);
+#else
 
-	uint16_t row = state.entities[idx].pos.i+14*32;
-	uint16_t col = state.entities[idx].pos.j+ 4*32;
+INLINE uint8_t APPEND(MAP_NAME,_get_flags_c_optimized)(uint16_t row, uint16_t col) {
 
-	mapper_load_segment(flag_segments[(row>>5)&0xF], PAGE_C);
+	mapper_load_segment_fast(map.stages[row>>10][col>>10], PAGE_D); // stages apply in blocks of 32x32 pixels
+
+	mapper_load_segment_fast(flag_segments[(row>>5)&0xF], PAGE_C);
+	
+	uint8_t flags = MAP_TILES16_FLAGS_0[(col>>5)&0xF][MAP_MAP16[row>>9][col>>9]];
+
+	mapper_load_segment(CURRENT_SEGMENT(PAGE_D), PAGE_D);
+	mapper_load_segment(CURRENT_SEGMENT(PAGE_C), PAGE_C);
+
+	return flags;
+}
+
+uint8_t APPEND(MAP_NAME,_get_flags)(uint16_t row, uint16_t col) {
+
+	const uint8_t (*map_map16)[64][128];
+	
+	if (map.stages[row>>10][col>>10] == 0) map_map16 = &MAP0_MAP16;
+	if (map.stages[row>>10][col>>10] == 1) map_map16 = &MAP1_MAP16;
+	if (map.stages[row>>10][col>>10] == 2) map_map16 = &MAP2_MAP16;
+	if (map.stages[row>>10][col>>10] == 3) map_map16 = &MAP3_MAP16;
+	
+	
+	uint8_t flags = 0;
+	if ( ((row>>5)&0xF) ==  0 ) flags = MAP_TILES16_FLAGS_0 [(col>>5)&0xF][(*map_map16)[row>>9][col>>9]];
+	if ( ((row>>5)&0xF) ==  1 ) flags = MAP_TILES16_FLAGS_1 [(col>>5)&0xF][(*map_map16)[row>>9][col>>9]];
+	if ( ((row>>5)&0xF) ==  2 ) flags = MAP_TILES16_FLAGS_2 [(col>>5)&0xF][(*map_map16)[row>>9][col>>9]];
+	if ( ((row>>5)&0xF) ==  3 ) flags = MAP_TILES16_FLAGS_3 [(col>>5)&0xF][(*map_map16)[row>>9][col>>9]];
+	if ( ((row>>5)&0xF) ==  4 ) flags = MAP_TILES16_FLAGS_4 [(col>>5)&0xF][(*map_map16)[row>>9][col>>9]];
+	if ( ((row>>5)&0xF) ==  5 ) flags = MAP_TILES16_FLAGS_5 [(col>>5)&0xF][(*map_map16)[row>>9][col>>9]];
+	if ( ((row>>5)&0xF) ==  6 ) flags = MAP_TILES16_FLAGS_6 [(col>>5)&0xF][(*map_map16)[row>>9][col>>9]];
+	if ( ((row>>5)&0xF) ==  7 ) flags = MAP_TILES16_FLAGS_7 [(col>>5)&0xF][(*map_map16)[row>>9][col>>9]];
+	if ( ((row>>5)&0xF) ==  8 ) flags = MAP_TILES16_FLAGS_8 [(col>>5)&0xF][(*map_map16)[row>>9][col>>9]];
+	if ( ((row>>5)&0xF) ==  9 ) flags = MAP_TILES16_FLAGS_9 [(col>>5)&0xF][(*map_map16)[row>>9][col>>9]];
+	if ( ((row>>5)&0xF) == 10 ) flags = MAP_TILES16_FLAGS_10[(col>>5)&0xF][(*map_map16)[row>>9][col>>9]];
+	if ( ((row>>5)&0xF) == 11 ) flags = MAP_TILES16_FLAGS_11[(col>>5)&0xF][(*map_map16)[row>>9][col>>9]];
+	if ( ((row>>5)&0xF) == 12 ) flags = MAP_TILES16_FLAGS_12[(col>>5)&0xF][(*map_map16)[row>>9][col>>9]];
+	if ( ((row>>5)&0xF) == 13 ) flags = MAP_TILES16_FLAGS_13[(col>>5)&0xF][(*map_map16)[row>>9][col>>9]];
+	if ( ((row>>5)&0xF) == 14 ) flags = MAP_TILES16_FLAGS_14[(col>>5)&0xF][(*map_map16)[row>>9][col>>9]];
+	if ( ((row>>5)&0xF) == 15 ) flags = MAP_TILES16_FLAGS_15[(col>>5)&0xF][(*map_map16)[row>>9][col>>9]];
+	
+	return flags;
+}
+
+#endif
+
+
+#ifdef MSX
+
+inline static void get_entity_flags_placeholder() {
+	
+	__asm
+
+; ---------------------------------
+; Function overworld_get_entity_flags
+; ---------------------------------
+_overworld_get_entity_flags::
+;	ld	a, #0x04
+;	out	(_VDP1), a
+;	ld	a, #0x87
+;	out	(_VDP1), a
+
+	pop	iy ; return address
+	pop bc ; row
+	pop de ; col
+
+	push de
+	push bc
+
+;row += 14*32;
+	ld hl, #(14*32);
+	add hl, bc
+	ld	b, h
+	ld 	c, l
+
+;col += #(4*32);
+	ld hl, #(4*32);
+	add hl, de
+	ex de, hl
+
+;src/map_implementation.h:1193: mapper_load_segment(flag_segments[(row>>5)&0xF], PAGE_C);
+	ld	a, c
+	ld  l, b
+	srl	l
+	rr	a
+	rrca
+	rrca
+	rrca
+	rrca
+	and	a, #0x0f
+	push de
+	ld	e, a
+	ld	d, #0x00
+	ld	hl, #_flag_segments
+	add	hl, de
+	pop de
+	ld	a, (hl)
+	ld	(#0x9000), a
+
+
+	push bc  ; we save row
+
+;uint8_t stages[64/2][128/2]; // 2K
+;src/map_implementation.h:1191: mapper_load_segment(map.stages[row>>10][col>>10], PAGE_D); // stages apply in blocks of 32x32 pixels
+	ld	a,b
+	ld	l,d
+	srl a
+	srl a
+	srl a
+	rr l
+	srl a
+	rr l
+	add a, #((_map + 0x1800)>>8)
+	ld	h, a
+	ld	a, (hl)
+	ld	(#0xb000), a
+
+
+; extern const uint8_t MAP_MAP16[64][128];
+; extern const uint8_t MAP_TILES16_FLAGS_0[16][256];
+;src/map_implementation.h:1195: flags = MAP_TILES16_FLAGS_0[(col>>5)&0xF][MAP_MAP16[row>>9][col>>9]];
+	ld	a, d
+	rrca
+	ld	a, e
+	rr	a
+	rrca
+	rrca
+	rrca
+	rrca
+	and	a, #0x0f
+	add a, #((_overworld_tiles16_flags_0 + 0)>>8)
+	ld 	h, b
+	ld 	b, a
+	
+	ld 	l, d
+	srl	h
+	srl	h
+	rr 	l
+	ld 	a, h
+	add a, #((_overworld_map0_map16 + 0)>>8)
+	ld	h, a
+	ld	c, (hl)
+	ld	a, (bc)
+	ex 	af,af';'
+
+
+;col += #(2*32);
+	ld hl, #(2*32);
+	add hl, de
+	ex de, hl
+	
+	pop bc
+	push bc
+	
+
+;uint8_t stages[64/2][128/2]; // 2K
+;src/map_implementation.h:1191: mapper_load_segment(map.stages[row>>10][col>>10], PAGE_D); // stages apply in blocks of 32x32 pixels
+	ld	a,b
+	ld	l,d
+	srl a
+	srl a
+	srl a
+	rr l
+	srl a
+	rr l
+	add a, #((_map + 0x1800)>>8)
+	ld	h, a
+	ld	a, (hl)
+	ld	(#0xb000), a
+
+
+; extern const uint8_t MAP_MAP16[64][128];
+; extern const uint8_t MAP_TILES16_FLAGS_0[16][256];
+;src/map_implementation.h:1195: flags = MAP_TILES16_FLAGS_0[(col>>5)&0xF][MAP_MAP16[row>>9][col>>9]];
+	ld	a, d
+	rrca
+	ld	a, e
+	rr	a
+	rrca
+	rrca
+	rrca
+	rrca
+	and	a, #0x0f
+	add a, #((_overworld_tiles16_flags_0 + 0)>>8)
+	ld 	h, b
+	ld 	b, a
+	
+	ld 	l, d
+	srl	h
+	srl	h
+	rr 	l
+	ld 	a, h
+	add a, #((_overworld_map0_map16 + 0)>>8)
+	ld	h, a
+	ld	c, (hl)
+	ld	a, (bc)
+	ld  l, a
+	ex 	af,af';'
+	or	l
+	ex 	af,af';'
+	
+;col += #(3*32);
+	ld hl, #(3*32);
+	add hl, de
+	ex de, hl
+	
+	pop bc
+	push bc
+	
+
+;uint8_t stages[64/2][128/2]; // 2K
+;src/map_implementation.h:1191: mapper_load_segment(map.stages[row>>10][col>>10], PAGE_D); // stages apply in blocks of 32x32 pixels
+	ld	a,b
+	ld	l,d
+	srl a
+	srl a
+	srl a
+	rr l
+	srl a
+	rr l
+	add a, #((_map + 0x1800)>>8)
+	ld	h, a
+	ld	a, (hl)
+	ld	(#0xb000), a
+
+
+; extern const uint8_t MAP_MAP16[64][128];
+; extern const uint8_t MAP_TILES16_FLAGS_0[16][256];
+;src/map_implementation.h:1195: flags = MAP_TILES16_FLAGS_0[(col>>5)&0xF][MAP_MAP16[row>>9][col>>9]];
+	ld	a, d
+	rrca
+	ld	a, e
+	rr	a
+	rrca
+	rrca
+	rrca
+	rrca
+	and	a, #0x0f
+	add a, #((_overworld_tiles16_flags_0 + 0)>>8)
+	ld 	h, b
+	ld 	b, a
+	
+	ld 	l, d
+	srl	h
+	srl	h
+	rr 	l
+	ld 	a, h
+	add a, #((_overworld_map0_map16 + 0)>>8)
+	ld	h, a
+	ld	c, (hl)
+	ld	a, (bc)
+	ld  l, a
+	ex 	af,af';'
+	or	l
+	ex 	af,af';'
+
+
+;col += #(2*32);
+	ld hl, #(2*32);
+	add hl, de
+	ex de, hl
+	
+	pop bc
+	
+
+;uint8_t stages[64/2][128/2]; // 2K
+;src/map_implementation.h:1191: mapper_load_segment(map.stages[row>>10][col>>10], PAGE_D); // stages apply in blocks of 32x32 pixels
+	ld	a,b
+	ld	l,d
+	srl a
+	srl a
+	srl a
+	rr l
+	srl a
+	rr l
+	add a, #((_map + 0x1800)>>8)
+	ld	h, a
+	ld	a, (hl)
+	ld	(#0xb000), a
+
+
+; extern const uint8_t MAP_MAP16[64][128];
+; extern const uint8_t MAP_TILES16_FLAGS_0[16][256];
+;src/map_implementation.h:1195: flags = MAP_TILES16_FLAGS_0[(col>>5)&0xF][MAP_MAP16[row>>9][col>>9]];
+	ld	a, d
+	rrca
+	ld	a, e
+	rr	a
+	rrca
+	rrca
+	rrca
+	rrca
+	and	a, #0x0f
+	add a, #((_overworld_tiles16_flags_0 + 0)>>8)
+	ld 	h, b
+	ld 	b, a
+	
+	ld 	l, d
+	srl	h
+	srl	h
+	rr 	l
+	ld 	a, h
+	add a, #((_overworld_map0_map16 + 0)>>8)
+	ld	h, a
+	ld	c, (hl)
+	ld	a, (bc)
+	ld  l, a
+	ex 	af,af';'
+	or	l
+	ld	l, a
+
+;src/map_implementation.h:1198: mapper_load_segment(old_c, PAGE_C);
+	ld	a, (#_mapper_current_segments + 0x0002)
+	ld	(#0x9000), a
+;src/map_implementation.h:1197: mapper_load_segment(old_d, PAGE_D);
+	ld	a, (#_mapper_current_segments + 0x0003)
+	ld	(#0xb000), a
+
+;src/map_implementation.h:1200: debugBorder(0);
+;	ld	a, #0x00
+;	out	(_VDP1), a
+;	ld	a, #0x87
+;	out	(_VDP1), a
+	
+	jp (iy)
+			
+	__endasm;
+}
+
+#else 
+
+INLINE uint8_t APPEND(MAP_NAME,_get_entity_flags_optimized)(uint16_t row, uint16_t col) { 
+
+	row += 14*32;
+	col +=  4*32;
+	
+	mapper_load_segment_fast(flag_segments[(row>>5)&0xF], PAGE_C);
 	
 	uint8_t flags = 0;
 
-	mapper_load_segment(map.stages[row>>10][col>>10], PAGE_D); // stages apply in blocks of 32x32 pixels	
+	mapper_load_segment_fast(map.stages[row>>10][col>>10], PAGE_D); // stages apply in blocks of 32x32 pixels	
 	flags |= MAP_TILES16_FLAGS_0[(col>>5)&0xF][MAP_MAP16[row>>9][col>>9]];
 
 	col += 2*32;
 
-	mapper_load_segment(map.stages[row>>10][col>>10], PAGE_D); // stages apply in blocks of 32x32 pixels	
+	mapper_load_segment_fast(map.stages[row>>10][col>>10], PAGE_D); // stages apply in blocks of 32x32 pixels	
 	flags |= MAP_TILES16_FLAGS_0[(col>>5)&0xF][MAP_MAP16[row>>9][col>>9]];
 
 	col += 3*32;
 
-	mapper_load_segment(map.stages[row>>10][col>>10], PAGE_D); // stages apply in blocks of 32x32 pixels	
+	mapper_load_segment_fast(map.stages[row>>10][col>>10], PAGE_D); // stages apply in blocks of 32x32 pixels	
 	flags |= MAP_TILES16_FLAGS_0[(col>>5)&0xF][MAP_MAP16[row>>9][col>>9]];
 
 	col += 2*32;
 
-	mapper_load_segment(map.stages[row>>10][col>>10], PAGE_D); // stages apply in blocks of 32x32 pixels	
+	mapper_load_segment_fast(map.stages[row>>10][col>>10], PAGE_D); // stages apply in blocks of 32x32 pixels	
 	flags |= MAP_TILES16_FLAGS_0[(col>>5)&0xF][MAP_MAP16[row>>9][col>>9]];
 
 	mapper_load_segment(CURRENT_SEGMENT(PAGE_D), PAGE_D);
 	mapper_load_segment(CURRENT_SEGMENT(PAGE_C), PAGE_C);
 
-	debugBorder(0);
+	return flags;
+}
+
+
+uint8_t APPEND(MAP_NAME,_get_entity_flags)(uint16_t row, uint16_t col) { 
+		
+	row += 14*32;
+	col +=  4*32;
+	
+	uint8_t flags = 0;
+
+	flags |= APPEND(MAP_NAME,_get_flags)(row, col);
+
+	col += 2*32;
+
+	flags |= APPEND(MAP_NAME,_get_flags)(row, col);
+
+	col += 3*32;
+
+	flags |= APPEND(MAP_NAME,_get_flags)(row, col);
+
+	col += 2*32;
+
+	flags |= APPEND(MAP_NAME,_get_flags)(row, col);
 	
 	return flags;
 
 	
 }
+#endif
 
 uint8_t APPEND(MAP_NAME,_get_tile16)(uint16_t row, uint16_t col) {
 
-
+#ifdef MSX
 	uint8_t old_d = CURRENT_SEGMENT(PAGE_D);
 
 	mapper_load_segment(map.stages[row>>10][col>>10], PAGE_D); // stages apply in blocks of 32x32 pixels
@@ -1313,12 +1671,34 @@ uint8_t APPEND(MAP_NAME,_get_tile16)(uint16_t row, uint16_t col) {
 	mapper_load_segment(old_d, PAGE_D);
 	
 	return tile16;
+
+#else
+
+	const uint8_t (*map_map16)[64][128];
+	
+	if (map.stages[row>>10][col>>10] == 0) map_map16 = &MAP0_MAP16;
+	if (map.stages[row>>10][col>>10] == 1) map_map16 = &MAP1_MAP16;
+	if (map.stages[row>>10][col>>10] == 2) map_map16 = &MAP2_MAP16;
+	if (map.stages[row>>10][col>>10] == 3) map_map16 = &MAP3_MAP16;
+
+
+	uint8_t tile16  = (*map_map16)[row>>9][col>>9];
+
+	return tile16;
+
+#endif
 }
 
 void APPEND(MAP_NAME,_set_map_index)(uint16_t row, uint16_t col, uint8_t n) {
 
+
+#ifdef MSX
 	if (n==0) map.stages[row>>10][col>>10] = MODULE_SEGMENT(MAP0_MAP16, PAGE_D);
 	if (n==1) map.stages[row>>10][col>>10] = MODULE_SEGMENT(MAP1_MAP16, PAGE_D);
 	if (n==2) map.stages[row>>10][col>>10] = MODULE_SEGMENT(MAP2_MAP16, PAGE_D);
 	if (n==3) map.stages[row>>10][col>>10] = MODULE_SEGMENT(MAP3_MAP16, PAGE_D);	
+#else
+	map.stages[row>>10][col>>10] = n;
+#endif
+
 }

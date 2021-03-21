@@ -156,7 +156,7 @@ void wolfi_in_food_n_stuff() {
 							if (r7==2) exit_message("\nMAR I CEL?");							
 							if (r7==3) exit_message("\nZ80 FOR DUMMIES");							
 							if (r7==4) exit_message("\nNOT A ZELDA GAME");							
-							if (r7==5) exit_message("\nLIFE AND MIRACLES\ OF LINK");							
+							if (r7==5) exit_message("\nLIFE AND MIRACLES\n OF LINK");							
 							if (r7==6) exit_message("\nBEST GAMES OF\nMSX-DEV 2021");							
 							break;
 						}

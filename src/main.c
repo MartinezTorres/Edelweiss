@@ -122,7 +122,12 @@ static void main_isr(void) {
 
 //	debugBorder(0x5);
 
-    updateSpriteAttributeTableISR(state.current_em2_buffer);
+	if (state.current_em2_buffer) {
+		TMS99X8_writeSpriteAttributes(1, SA0);
+	} else {
+		TMS99X8_writeSpriteAttributes(0, SA1);
+	}
+	
 
 //	debugBorder(0x0);
 
@@ -133,35 +138,39 @@ static void main_isr(void) {
 
 static void init_overworld_entities() {
 
-	// WOLFI
-	IN_MODULE(entity_wolfi, PAGE_C, init_wolfi(ENTITY_WOLFI, 0x7E, 0x7C));
 
-	// WEAPONS
-	IN_MODULE(entity_weapon_slash, PAGE_C, init_weapon_slash(ENTITY_PAW,   E_PAW));
-	IN_MODULE(entity_weapon_slash, PAGE_C, init_weapon_slash(ENTITY_CLAW,  E_CLAW));
-	IN_MODULE(entity_weapon_slash, PAGE_C, init_weapon_slash(ENTITY_SWORD, E_SWORD));
-	IN_MODULE(entity_weapon_slash, PAGE_C, init_weapon_slash(ENTITY_AXE,   E_AXE));
-	IN_MODULE(entity_weapon_bomb,  PAGE_C, init_weapon_bomb(ENTITY_BOMB_0));
-	IN_MODULE(entity_weapon_bomb,  PAGE_C, init_weapon_bomb(ENTITY_BOMB_1));
-	IN_MODULE(entity_weapon_fire,  PAGE_C, init_weapon_fire(ENTITY_FIRE_0));
-	IN_MODULE(entity_weapon_fire,  PAGE_C, init_weapon_fire(ENTITY_FIRE_1));
-	IN_MODULE(entity_weapon_bow,   PAGE_C, init_weapon_bow(ENTITY_BOW_0));
-	IN_MODULE(entity_weapon_bow,   PAGE_C, init_weapon_bow(ENTITY_BOW_1));
-	IN_MODULE(entity_weapon_slash, PAGE_C, init_weapon_slash(ENTITY_BUTTER_KNIFE, E_BUTTER_KNIFE));
+	// WOLFI
+	IN_MODULE(entity_wolfi, PAGE_C, init_wolfi(ENTITY_WOLFI, 0x7E, 0x7E));
+
+	state.weapon = E_PAW;
+	init_weapon();
+
+	// EXPLOSIONS
+	IN_MODULE(entity_explosion, PAGE_C, init_explosion(ENTITY_EXPLOSION_0));
+	IN_MODULE(entity_explosion, PAGE_C, init_explosion(ENTITY_EXPLOSION_1));
+
+	// DROP ITEMS
+	IN_MODULE(entity_drop_item, PAGE_C, init_drop_item(ENTITY_DROP_ITEM_0));
+	IN_MODULE(entity_drop_item, PAGE_C, init_drop_item(ENTITY_DROP_ITEM_1));
 	
 	
 	// GHOSTS
-	IN_MODULE(entity_ghosti, PAGE_C, init_ghosti(0x10, 0x68, 0x18));
-	IN_MODULE(entity_ghosti, PAGE_C, init_ghosti(0x11, 0x6A, 0x28));
-	IN_MODULE(entity_ghosti, PAGE_C, init_ghosti(0x12, 0x67, 0x38));
-	IN_MODULE(entity_ghosti, PAGE_C, init_ghosti(0x13, 0x6C, 0x14));
-	IN_MODULE(entity_ghosti, PAGE_C, init_ghosti(0x14, 0x6E, 0x20));
-	IN_MODULE(entity_ghosti, PAGE_C, init_ghosti(0x15, 0x6C, 0x30));
-	IN_MODULE(entity_ghosti, PAGE_C, init_ghosti(0x16, 0x6E, 0x40));
+	IN_MODULE(entity_ghosti, PAGE_C, init_ghosti(ENTITY_GHOSTI_0, 0x68, 0x18));
+	IN_MODULE(entity_ghosti, PAGE_C, init_ghosti(ENTITY_GHOSTI_1, 0x6A, 0x28));
+	IN_MODULE(entity_ghosti, PAGE_C, init_ghosti(ENTITY_GHOSTI_2, 0x67, 0x38));
+	IN_MODULE(entity_ghosti, PAGE_C, init_ghosti(ENTITY_GHOSTI_3, 0x6C, 0x14));
+//	IN_MODULE(entity_ghosti, PAGE_C, init_ghosti(ENTITY_GHOSTI_4, 0x6E, 0x20));
+//	IN_MODULE(entity_ghosti, PAGE_C, init_ghosti(ENTITY_GHOSTI_5, 0x6C, 0x30));
+//	IN_MODULE(entity_ghosti, PAGE_C, init_ghosti(ENTITY_GHOSTI_6, 0x6E, 0x40));
 
 	// SKELETONS 1
-	IN_MODULE(entity_ghosti, PAGE_C, init_ghosti(0x17, 0x56, 0x16));
-	IN_MODULE(entity_ghosti, PAGE_C, init_ghosti(0x18, 0x58, 0x1A));
+	IN_MODULE(entity_skeleti, PAGE_C, init_skeleti(ENTITY_SKELETI_0, 0x56, 0x16));
+	IN_MODULE(entity_skeleti, PAGE_C, init_skeleti(ENTITY_SKELETI_1, 0x58, 0x1A));
+	
+	
+	debug_printf("nº entities: %d\n", LAST_ENTITY);
+	debug_printf("Entity size: %d\n", sizeof(Entity));
+
 }
 
 static void main_game_routine() {
@@ -181,6 +190,9 @@ static void main_game_routine() {
 	for (uint8_t i=0; i<12; i++)
 		state.spawns[i] = -1;
 	state.num_spawns=0;	
+
+	for (uint8_t i=0; i<96; i++)
+		state.entities[i].spawn_idx = -1;
 		
 	init_overworld_entities();
 
@@ -230,13 +242,13 @@ static void main_game_routine() {
 			update_keyboard_and_joystick();
 
 
-            state.isr_count_delta = state.isr_count - previous_isr_count;            
+            state.isr_count_delta = state.isr_count - previous_isr_count;    
+            if (state.isr_count_delta>3) state.isr_count_delta = 1;        
 			previous_isr_count = state.isr_count;
 
             state.game_cycles++;
 
-			_putchar("0123456789"[state.isr_count_delta]);			
-//			debug_printf("delta: %d\n", state.isr_count_delta);
+//			_putchar("0123456789"[state.isr_count_delta]);			
 
 			// UPDATE SPAWNED ENTITIES
 			for (int i=0; i<12; i++) {
@@ -249,37 +261,29 @@ static void main_game_routine() {
 				IN_SEGMENT(
 					entity->segment, 
 					PAGE_C,         
-					if ((*entity->on_update)(entity) == false) {
+					if ((*entity->callbacks->on_update)(entity) == false) {
 						
-						(*entity->on_despawn)(entity);
-						
-						state.spawns[i] = -1;
-						state.num_spawns--;
-						entity->spawn_idx = -1;
+						despawn_entity(idx);
 					};
 
 					// Check out of bounds
 					if ((i > 0) && // We don't want to despawn wolfi
 						(((uint8_t)((entity->pos.i >> 8) + 3 - map.pos.i) >= 24+6) ||
 						((uint8_t)((entity->pos.j >> 8) + 3 - map.pos.j) >= 32+6))) {
-
-						(*entity->on_despawn)(entity);
-
-						state.spawns[i] = -1;
-						state.num_spawns--;
-						entity->spawn_idx = -1;
+							
+						despawn_entity(idx);
 					}
 				);
 			}
 			
 			// CHECK IF WE CAN ACTIVATE OTHER ENTITIES 
 			{
-				uint8_t i = (state.game_cycles<<3)&63;
-				for (uint8_t j=0; j<8; j++) {
+				uint8_t i = (state.game_cycles<<3)&127;
+				if (i<96) for (uint8_t j=0; j<8; j++) {
 					
 					Entity *entity = &state.entities[i+j];
 					
-					if (!entity->enabled) continue;
+					if (!entity->spawn_auto) continue;
 					if (entity->spawn_idx >= 0) continue;
 
 					
@@ -304,7 +308,7 @@ static void main_game_routine() {
 static void clean_init() {
 
 #ifdef MSX   
-// CLEAR RAM, SET VDP at 60FPS, CPU as R800, and disable keyboard clicks 
+// CLEAR RAM
 
 	{
 	    static __at 48*1024U uint8_t buffer[8+1024U];
@@ -312,21 +316,26 @@ static void clean_init() {
 	}
 
 __asm
+// SET VDP at 60FPS,
 ld   hl,#0xFFE8
 ld   a,(hl)
 and   #0xFD
+;or    #0x04 ; set interlaced and oddeven bit
 ld   (hl),a
 out  (_VDP1),a
 ld   a,#0x89
 out  (_VDP1),a
 
+// Disable keyboard clicks
 xor a
 ld (#0xf3db),a ; CLIKSW
-
+ 
+// Clear border color
 ld (#0xf3ea),a ; BAKCLR
 ld (#0xf3eb),a ; BDRCLR
 call #0x0062   ; CHGCLR
 
+// Enable R800
 ld   A,(#0x0180) ; CHGCPU
 cp   #0xC3
 ld   a,#0x81              ; can be ld a,81h for R800 ROM if you wish
@@ -340,7 +349,7 @@ __endasm;
 int main(void) {
 
 	clean_init();
-
+	
     // Normal initialization routine
     msxhal_init(); // Bare minimum initialization of the msx support 
     DI(); // This game has normally disabled interrupts. 

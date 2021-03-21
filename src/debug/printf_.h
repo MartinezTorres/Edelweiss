@@ -55,7 +55,11 @@ inline void _putchar(char character) {
 }
 #else
  #include <stdio.h>
- #define _putchar putchar
+inline static void _putchar(char character) {
+	
+	putchar(character);
+	fflush(stdout);
+}
 #endif
 
 

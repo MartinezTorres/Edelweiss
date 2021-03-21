@@ -48,7 +48,7 @@ static void on_despawn(Entity *entity) {
 
 	uint8_t idx = entity->spawn_idx;
 
-	entity->enabled = false;
+	entity->spawn_auto = false;
     sprites[idx].enabled = false;
 }
 
@@ -73,38 +73,20 @@ static uint8_t on_update(Entity *entity) {
 	return true;
 }
 
-static uint8_t on_hit(Entity *entity, Entity *weapon) {
-	
-	UNUSED(entity);
-	UNUSED(weapon);
-	return false;
-}
-
+static const struct T_Entity_Callbacks callbacks = {
+	on_spawn, on_despawn, on_update, on_hit_null
+};
 
 void init_weapon_fire(uint8_t idx) {
 
 	Entity *entity = &state.entities[idx];
-	Entity *wolfi = &state.entities[0];
 
-	entity->enabled = true;
+	entity->spawn_auto = true;
 	entity->spawn_idx = -1;
 	entity->spawn_priority = 1;
-
-	entity->anchor.i = 0;
-	entity->anchor.j = 0;
-
-	entity->push.i = 0;
-	entity->push.j = 0;
-
-	entity->life = 8;
-	entity->maximum_life = 8;
-	entity->invulnerable_frames = 0;
 
 	entity->damage = 2;
 
 	entity->segment = MODULE_SEGMENT(entity_weapon_fire, PAGE_C);
-	entity->on_spawn   = on_spawn;
-	entity->on_despawn = on_despawn;
-	entity->on_update  = on_update;
-	entity->on_hit  = on_hit;
+	entity->callbacks = &callbacks;
 }

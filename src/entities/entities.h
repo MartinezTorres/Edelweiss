@@ -21,3 +21,10 @@ void init_weapon_fire(uint8_t idx);
 
 USING_MODULE(entity_weapon_bomb, PAGE_C);
 void init_weapon_bomb(uint8_t idx);
+
+USING_MODULE(entity_explosion, PAGE_C);
+void init_explosion(uint8_t idx);
+
+USING_MODULE(entity_drop_item, PAGE_C);
+void init_drop_item(uint8_t idx);
+

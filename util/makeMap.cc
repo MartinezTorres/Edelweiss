@@ -836,7 +836,7 @@ int main(int argc, const char *argv[]) {
 			}
 			ofs << "};" << std::endl;
 			
-			ofs << "static const uint8_t filler[4*1024] = { 0 };" << std::endl;
+			ofs << "const uint8_t "<< name << "_filler[4*1024] = { 0 };" << std::endl;
 		}
 
 

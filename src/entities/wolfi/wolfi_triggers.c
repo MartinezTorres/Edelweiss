@@ -7,40 +7,40 @@ USING_MODULE(entity_wolfi_sprite, PAGE_D);
 
 static void hole_warp_to(uint8_t i, uint8_t j) {
 	
-	Entity *entity = &state.entities[0]; 
-	uint8_t entityIdx = 0;
+	Entity *wolfi = &state.entities[0]; 
+	uint8_t spawn_idx = 0;
 
-	state.entities[0].pos.j = (state.entities[0].pos.j+0x40) & 0xFF00;
-	sprites[entityIdx].pos.j = state.entities[0].pos.j;
+	wolfi->pos.j = (wolfi->pos.j+0x40) & 0xFF00;
+	sprites[spawn_idx].pos.j = wolfi->pos.j;
 
-	state.entities[0].orientation = E_UP;
-	sprites[entityIdx].spriteInfo = (state.entities[0].animation_counter & 0x04? &wolfi_1_0 : &wolfi_1_1) ;
+	wolfi->orientation = E_UP;
+	sprites[spawn_idx].spriteInfo = (wolfi->animation_counter & 0x04? &wolfi_1_0 : &wolfi_1_1) ;
 	for (uint8_t k=0; k<6; k++) {
-		state.entities[0].pos.i -= 16;
-		sprites[entityIdx].pos.i = state.entities[0].pos.i;
+		wolfi->pos.i -= 16;
+		sprites[spawn_idx].pos.i = wolfi->pos.i;
 		wait_frame();
 		wait_frame();
 		wait_frame();
 		wait_frame();
 	}
 
-	sprites[entityIdx].enabled = 0;
+	sprites[spawn_idx].enabled = 0;
 
 	
-	state.entities[0].pos.i = (((uint16_t)i)<<9)-16;
-	state.entities[0].pos.j = (((uint16_t)j)<<9)+0x100;
-	sprites[entityIdx].pos.i = state.entities[0].pos.i;
-	sprites[entityIdx].pos.j = state.entities[0].pos.j;
+	wolfi->pos.i = (((uint16_t)i)<<9)-16;
+	wolfi->pos.j = (((uint16_t)j)<<9)+0x100;
+	sprites[spawn_idx].pos.i = wolfi->pos.i;
+	sprites[spawn_idx].pos.j = wolfi->pos.j;
 
 	do {
 		
 		wait_frame();
 
-		int16_t i = (state.entities[0].pos.i>>8) - map.pos.i;
+		int16_t i = (wolfi->pos.i>>8) - map.pos.i;
 		if (i<8 && state.target_map_pos.i>0) state.target_map_pos.i =  map.pos.i-1;
 		if (i>13 && state.target_map_pos.i<(uint8_t)(129-23)) state.target_map_pos.i = map.pos.i+1;
 		
-		int16_t j = (state.entities[0].pos.j>>8) - map.pos.j;
+		int16_t j = (wolfi->pos.j>>8) - map.pos.j;
 		if (j<10 && state.target_map_pos.j>0) state.target_map_pos.j = map.pos.j-1;
 		if (j>20 && state.target_map_pos.j<(uint8_t)(255-31)) state.target_map_pos.j = map.pos.j+1;
 
@@ -49,13 +49,13 @@ static void hole_warp_to(uint8_t i, uint8_t j) {
 	
 	} while (state.request_scroll_update);
 
-	state.entities[0].orientation = E_DOWN;
-	sprites[entityIdx].spriteInfo = (state.entities[0].animation_counter & 0x04? &wolfi_2_0 : &wolfi_2_1);
-	sprites[entityIdx].enabled = true;
+	wolfi->orientation = E_DOWN;
+	sprites[spawn_idx].spriteInfo = (wolfi->animation_counter & 0x04? &wolfi_2_0 : &wolfi_2_1);
+	sprites[spawn_idx].enabled = true;
 
 	for (uint8_t k=0; k<6; k++) {
-		state.entities[0].pos.i += 16;
-		sprites[entityIdx].pos.i = state.entities[0].pos.i;
+		wolfi->pos.i += 16;
+		sprites[spawn_idx].pos.i = wolfi->pos.i;
 		wait_frame();
 		wait_frame();
 		wait_frame();
@@ -66,12 +66,15 @@ static void hole_warp_to(uint8_t i, uint8_t j) {
 
 
 INLINE void door_warp_to(uint8_t i, uint8_t j) {
+
+	Entity *wolfi = &state.entities[0]; 
+
 	TRAMPOLINE_PAGE_C(wolfi_door_warp_enter);
 
-	state.entities[0].pos.i = (((uint16_t)i)<<9)-16;
-	state.entities[0].pos.j = (((uint16_t)j)<<9);
-	sprites[0].pos.i = state.entities[0].pos.i;
-	sprites[0].pos.j = state.entities[0].pos.j;
+	wolfi->pos.i = (((uint16_t)i)<<9)-16;
+	wolfi->pos.j = (((uint16_t)j)<<9);
+	sprites[0].pos.i = wolfi->pos.i;
+	sprites[0].pos.j = wolfi->pos.j;
 
 	TRAMPOLINE_PAGE_C(wolfi_door_warp_migrate);
 	TRAMPOLINE_PAGE_C(wolfi_door_warp_exit);
@@ -79,6 +82,8 @@ INLINE void door_warp_to(uint8_t i, uint8_t j) {
 
 
 static void well_warp_to(uint8_t i, uint8_t j) {
+
+	Entity *wolfi = &state.entities[0]; 
 
 	TRAMPOLINE_PAGE_C(wolfi_door_warp_enter);
 
@@ -90,10 +95,10 @@ static void well_warp_to(uint8_t i, uint8_t j) {
 		small_message("HERE WE GO\nAGAIN!\nAAAAARGH!");
 	}
 
-	state.entities[0].pos.i = (((uint16_t)i)<<9)-16;
-	state.entities[0].pos.j = ((uint16_t)j)<<9;
-	sprites[0].pos.i = state.entities[0].pos.i;
-	sprites[0].pos.j = state.entities[0].pos.j;
+	wolfi->pos.i = (((uint16_t)i)<<9)-16;
+	wolfi->pos.j = ((uint16_t)j)<<9;
+	sprites[0].pos.i = wolfi->pos.i;
+	sprites[0].pos.j = wolfi->pos.j;
 
 	TRAMPOLINE_PAGE_C(wolfi_door_warp_migrate);
 	TRAMPOLINE_PAGE_C(wolfi_door_warp_exit);
@@ -111,9 +116,11 @@ static void well_warp_to(uint8_t i, uint8_t j) {
 
 void wolfi_triggers() {
 
-	uint8_t tile16 =  overworld_get_tile16(state.entities[0].pos.i+0x100, state.entities[0].pos.j+0x100);
-	uint8_t ti = (state.entities[0].pos.i+0x100)>>9;
-	uint8_t tj = (state.entities[0].pos.j+0x100)>>9;
+	Entity *wolfi = &state.entities[0]; 
+
+	uint8_t tile16 =  overworld_get_tile16(wolfi->pos.i+0x100, wolfi->pos.j+0x100);
+	uint8_t ti = (wolfi->pos.i+0x100)>>9;
+	uint8_t tj = (wolfi->pos.j+0x100)>>9;
 	debug_printf("Tile: %d, pos (%d, %d)\n",tile16, ti, tj);
 
 	// DARK ENTRANCES
@@ -168,11 +175,9 @@ void wolfi_triggers() {
 	// ROCKS HURT
 	{
 
-		uint16_t tpi = state.entities[0].pos.i + 14*32;
-		uint16_t tpj1 = state.entities[0].pos.j + 4*32;
-		uint16_t tpjm1 = state.entities[0].pos.j + 6*32;
-		uint16_t tpjm2 = state.entities[0].pos.j + 9*32;
-		uint16_t tpj2 = state.entities[0].pos.j + 11*32;
+		uint16_t tpi = wolfi->pos.i + 14*32;
+		uint16_t tpj1 = wolfi->pos.j + 4*32;
+		uint16_t tpj2 = wolfi->pos.j + 11*32;
 
 		uint8_t tile16Feet1 =  overworld_get_tile16(tpi, tpj1);
 		uint8_t tile16Feet2 =  overworld_get_tile16(tpi, tpj2);
@@ -181,7 +186,7 @@ void wolfi_triggers() {
 		if ((tile16Feet1==31 || tile16Feet1==154 || tile16Feet1==212 || tile16Feet2==31 || tile16Feet2==154 || tile16Feet2==212 ) && !state.has_boots) {
 
 			small_message("THESE ROCKS\nHURT MY FEET!");
-			//state.entities[0].pos = tmp.old_pos;
+			//wolfi->pos = tmp.old_pos;
 			// TODO: ROCKS
 		}
 	}

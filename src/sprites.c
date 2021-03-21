@@ -33,7 +33,7 @@ static void updateSprite(uint8_t i) {
 				
 		uint8_t oldSegmentPageD = mapper_load_segment(ts->spriteInfoSegment, PAGE_D);
 		
-		TMS99X8_setPtr(MODE2_ADDRESS_SG+(((uint16_t)(i+8))<<7));
+		TMS99X8_setPtr(MODE2_ADDRESS_SG+(((uint16_t)(i+4))<<7));
 		TMS99X8_memcpy32(ts->spriteInfo->blackPattern);
 		TMS99X8_memcpy32(ts->spriteInfo->sprite0Pattern);
 		TMS99X8_memcpy32(ts->spriteInfo->sprite1Pattern);
@@ -53,13 +53,13 @@ static void updateSprite(uint8_t i) {
         if (tilepos.j <3) {
             saTemp.y = ((uint8_t)(ts->pos.i>>5)) - ((uint8_t)(map.pos.i<<3)) - 1;
             saTemp.x = ((uint8_t)(ts->pos.j>>5)) - ((uint8_t)(map.pos.j<<3)) + 32;
-            saTemp.pattern = ((i+8)<<4) + 0;
+            saTemp.pattern = ((i+4)<<4) + 0;
             saTemp.color = (uint8_t)0x80 + (uint8_t)BBlack; //ec
 
         } else {
             saTemp.y = ((uint8_t)(ts->pos.i>>5)) - ((uint8_t)(map.pos.i<<3)) - 1;
             saTemp.x = ((uint8_t)(ts->pos.j>>5)) - ((uint8_t)(map.pos.j<<3));
-            saTemp.pattern = ((i+8)<<4) + 0;
+            saTemp.pattern = ((i+4)<<4) + 0;
             saTemp.color = 0 + BBlack;
         }
         

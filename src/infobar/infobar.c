@@ -288,6 +288,19 @@ static const uint8_t pear[2][8] = {
 	SA1[3].color =  BWhite;
 
 
+	for (uint8_t i=4; i<8; i++) {
+
+		SA0[i].y = (uint8_t)(191-16);
+		SA0[i].x = 255;
+		SA0[i].pattern = 0;
+		SA0[i].color =  BTransparent;
+
+		SA1[i].y = (uint8_t)(191-16);
+		SA1[i].x = 255;
+		SA1[i].pattern = 0;
+		SA1[i].color =  BTransparent;
+	}
+
 	life_in_display = 0;
 	rupees_in_display = 5;
 	oldMapDotWolfi = 0;

@@ -53,6 +53,7 @@ static uint8_t on_update(Entity *entity) {
 		do {
 			state.weapon = (state.weapon + 1) & 7;
 		} while (!state.has_weapon[state.weapon]);
+		init_weapon();
 		IN_MODULE(infobar, PAGE_B, infobar_update_weapon());
 	}
 
@@ -62,50 +63,28 @@ static uint8_t on_update(Entity *entity) {
 
 		switch (state.weapon) {
 		case E_PAW:
-			if (state.entities[ENTITY_PAW].spawn_idx < 0) {
-				spawn_entity(ENTITY_PAW);
-			}
-			break;
 		case E_CLAW:
-			if (state.entities[ENTITY_CLAW].spawn_idx < 0) {
-				spawn_entity(ENTITY_CLAW);
-			}
-			break;
 		case E_SWORD:
-			if (state.entities[ENTITY_SWORD].spawn_idx < 0) {
-				spawn_entity(ENTITY_SWORD);
-			}
-			break;
 		case E_AXE:
-			if (state.entities[ENTITY_AXE].spawn_idx < 0) {
-				spawn_entity(ENTITY_AXE);
+		case E_BUTTER_KNIFE:
+			if (state.entities[ENTITY_SLASH].spawn_idx < 0) {
+				spawn_entity(ENTITY_SLASH);
 			}
 			break;
 		case E_BOMB:
 			if (state.entities[ENTITY_BOMB_0].spawn_idx < 0) {
 				spawn_entity(ENTITY_BOMB_0);
-			} else if (state.entities[ENTITY_BOMB_0].spawn_idx < 0) {
-				spawn_entity(ENTITY_BOMB_0);
+			} else if (state.entities[ENTITY_BOMB_1].spawn_idx < 0) {
+				spawn_entity(ENTITY_BOMB_1);
 			}
  
 			break;
 		case E_FIRE:
-			if (state.entities[ENTITY_FIRE_0].spawn_idx < 0) {
-				spawn_entity(ENTITY_FIRE_0);
-			} else if (state.entities[ENTITY_FIRE_1].spawn_idx < 0) {
-				spawn_entity(ENTITY_FIRE_1);
-			}
-			break;
 		case E_BOW:
-			if (state.entities[ENTITY_BOW_0].spawn_idx < 0) {
-				spawn_entity(ENTITY_BOW_0);
-			} else if (state.entities[ENTITY_BOW_0].spawn_idx < 0) {
-				spawn_entity(ENTITY_BOW_0);
-			}
-			break;
-		case E_BUTTER_KNIFE:
-			if (state.entities[ENTITY_BUTTER_KNIFE].spawn_idx < 0) {
-				spawn_entity(ENTITY_BUTTER_KNIFE);
+			if (state.entities[ENTITY_PROJECTILE_0].spawn_idx < 0) {
+				spawn_entity(ENTITY_PROJECTILE_0);
+			} else if (state.entities[ENTITY_PROJECTILE_1].spawn_idx < 0) {
+				spawn_entity(ENTITY_PROJECTILE_1);
 			}
 			break;
 		}
@@ -125,7 +104,7 @@ static uint8_t on_update(Entity *entity) {
 		}
 	}
 
-	if (keyboard[8]==255) { // STOP MOVING IF NO MOVEMENT IS DETECTED.
+	if (keyboard[8]==255 && entity->push_frames==0) { // STOP MOVING IF NO MOVEMENT IS DETECTED.
 
 		// SPRITE POS
 		sprites[idx].pos.i = entity->pos.i;
@@ -156,30 +135,18 @@ static uint8_t on_update(Entity *entity) {
 				if (~keyboard[8] & K_LEFT)  tentative_pos.j -= 32;
 				if (~keyboard[8] & K_RIGHT) tentative_pos.j += 32;
 
-				flags = 0;
-				flags |= overworld_get_flags(tentative_pos.i + 14*32, tentative_pos.j +  4*32);
-				flags |= overworld_get_flags(tentative_pos.i + 14*32, tentative_pos.j +  6*32);
-				flags |= overworld_get_flags(tentative_pos.i + 14*32, tentative_pos.j +  9*32);
-				flags |= overworld_get_flags(tentative_pos.i + 14*32, tentative_pos.j + 11*32);
+				flags = overworld_get_entity_flags(tentative_pos.i, tentative_pos.j);
 
 				if ( (flags & MAP_OBSTACLE) == 0) {
 					entity->pos = tentative_pos;
 				} else if (tentative_pos.i != entity->pos.i && tentative_pos.j != entity->pos.j) {
 
-					flags = 0;
-					flags |= overworld_get_flags(entity->pos.i + 14*32, tentative_pos.j +  4*32);
-					flags |= overworld_get_flags(entity->pos.i + 14*32, tentative_pos.j +  6*32);
-					flags |= overworld_get_flags(entity->pos.i + 14*32, tentative_pos.j +  9*32);
-					flags |= overworld_get_flags(entity->pos.i + 14*32, tentative_pos.j + 11*32);
+					flags = overworld_get_entity_flags(entity->pos.i, tentative_pos.j);
 					if ( (flags & MAP_OBSTACLE) == 0) {
 						entity->pos.j = tentative_pos.j;
 					} else {
-						
-						flags = 0;
-						flags |= overworld_get_flags(tentative_pos.i + 14*32, entity->pos.j +  4*32);
-						flags |= overworld_get_flags(tentative_pos.i + 14*32, entity->pos.j +  6*32);
-						flags |= overworld_get_flags(tentative_pos.i + 14*32, entity->pos.j +  9*32);
-						flags |= overworld_get_flags(tentative_pos.i + 14*32, entity->pos.j + 11*32);
+
+						flags = overworld_get_entity_flags(tentative_pos.i, entity->pos.j);
 						
 						if ( (flags & MAP_OBSTACLE) == 0) {
 							entity->pos.i = tentative_pos.i;
@@ -195,14 +162,10 @@ static uint8_t on_update(Entity *entity) {
 				
 					tentative_pos = entity->pos;
 					
-					tentative_pos.i += entity->push.i;
-					tentative_pos.j += entity->push.j;
+					tentative_pos.i += entity->push_vector.i;
+					tentative_pos.j += entity->push_vector.j;
 
-					flags = 0;
-					flags |= overworld_get_flags(tentative_pos.i + 14*32, tentative_pos.j +  4*32);
-					flags |= overworld_get_flags(tentative_pos.i + 14*32, tentative_pos.j +  6*32);
-					flags |= overworld_get_flags(tentative_pos.i + 14*32, tentative_pos.j +  9*32);
-					flags |= overworld_get_flags(tentative_pos.i + 14*32, tentative_pos.j + 11*32);
+					flags = overworld_get_entity_flags(tentative_pos.i, tentative_pos.j);
 
 					if ( (flags & MAP_OBSTACLE) == 0) entity->pos = tentative_pos;
 				}
@@ -215,6 +178,11 @@ static uint8_t on_update(Entity *entity) {
 			entity->orientation = E_UP;
 			sprites[idx].spriteInfo = (entity->animation_counter & 0x04? &wolfi_1_0 : &wolfi_1_1) ;
 		}
+		if (~keyboard[8] & K_DOWN) {
+
+			entity->orientation = E_DOWN;
+			sprites[idx].spriteInfo = (entity->animation_counter & 0x04? &wolfi_2_0 : &wolfi_2_1);
+		}
 		if (~keyboard[8] & K_RIGHT) {
 
 			entity->orientation = E_RIGHT;
@@ -224,11 +192,6 @@ static uint8_t on_update(Entity *entity) {
 
 			entity->orientation = E_LEFT;
 			sprites[idx].spriteInfo = (entity->animation_counter & 0x04? &wolfi_4_0 : &wolfi_4_1);
-		}
-		if (~keyboard[8] & K_DOWN) {
-
-			entity->orientation = E_DOWN;
-			sprites[idx].spriteInfo = (entity->animation_counter & 0x04? &wolfi_2_0 : &wolfi_2_1);
 		}
 
 		// TRIGGERS
@@ -259,37 +222,24 @@ static uint8_t on_update(Entity *entity) {
 	return true;
 }
 
-static uint8_t on_hit(Entity *wolfi, Entity *weapon) {
+static void on_hit(Entity *entity, Entity *aggressor) {
 	
-	if (wolfi->invulnerable_frames) {
-		
-		return true;
-	}
-	
-	if (wolfi->life > weapon->damage) {
-		
-		wolfi->life -= weapon->damage;
-		return true;
-		// TODO: add push
-	} 
+	on_hit_default(entity, aggressor);
 	
 	
-	wolfi->life = 0;
-	return false;
-	// TODO: death animation
 }
 
+static const struct T_Entity_Callbacks callbacks = {
+	on_spawn, on_despawn, on_update, on_hit
+};
 
 void init_wolfi(uint8_t idx, uint8_t i, uint8_t j) {
 
 	Entity *entity = &state.entities[idx];
 
-	entity->enabled = true;
+	entity->spawn_auto = true;
 	entity->spawn_idx = -1;
 	entity->spawn_priority = 0;
-
-	entity->anchor.i = ((uint16_t)i)<<8;
-	entity->anchor.j = ((uint16_t)j)<<8;
 
 	entity->pos.i = ((uint16_t)i)<<8;
 	entity->pos.j = ((uint16_t)j)<<8;
@@ -297,8 +247,8 @@ void init_wolfi(uint8_t idx, uint8_t i, uint8_t j) {
 	entity->vel.i = 0;
 	entity->vel.j = 0;
 
-	entity->push.i = 0;
-	entity->push.j = 0;
+	entity->push_vector.i = 0;
+	entity->push_vector.j = 0;
 
 	entity->life = 6;
 	entity->maximum_life = 6;
@@ -307,9 +257,6 @@ void init_wolfi(uint8_t idx, uint8_t i, uint8_t j) {
 	entity->damage = 0;
 
 	entity->segment = MODULE_SEGMENT(entity_wolfi, PAGE_C);
-	entity->on_spawn   = on_spawn;
-	entity->on_despawn = on_despawn;
-	entity->on_update  = on_update;
-	entity->on_hit  = on_hit;
+	entity->callbacks = &callbacks;
 
 }

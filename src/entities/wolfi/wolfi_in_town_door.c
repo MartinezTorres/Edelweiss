@@ -15,7 +15,6 @@ void wolfi_in_town_door() {
 	uint8_t ti = (state.entities[0].pos.i+0x100)>>9;
 	uint8_t tj = (state.entities[0].pos.j+0x100)>>9;
 
-	uint8_t pj = ((state.entities[0].pos.j+0x80)>>8) - map.pos.j;
 	int8_t pi = ((state.entities[0].pos.i+0x80)>>8) - map.pos.i - 8;
 	if (pi<0) pi = 0;
 	if (pi>4) pi = 4;

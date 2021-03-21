@@ -12,7 +12,6 @@ typedef struct {
 			uint32_t hasWeapon : 8;
 			uint32_t rupees : 6;
 			uint32_t max_life : 5;		
-			
 		};
 					
 		uint32_t u32;
@@ -92,7 +91,8 @@ static bool decode_state(char *msg) {
 	
 	return true;
 }
-int8_t my_strnlen(const char *s1, const char *s2, uint8_t n) {
+
+static int8_t my_strnlen(const char *s1, const char *s2, uint8_t n) {
 	
 	for (uint8_t i=0; i<n; i++) {
 		if (s1[i] < s2[i]) return -1;
@@ -171,7 +171,18 @@ void wolfi_in_saloon() {
 			largePopupWriteText("YOU FEEL DIZZY!");
 		);
 	} else if (passwd_len==5 && my_strnlen(passwd, "NISHI",5)==0) {
-		decode_state("NIJLGAHGIA");
+		
+		state.has_lamp  = 1;
+		state.has_boots = 1;
+		state.has_coat  = 1;
+		state.has_pear  = 1;
+		for (uint8_t j = 0; j<8; j++) {
+			state.has_weapon[j] = 1;
+		}
+		state.rupees = 999;
+		state.entities[0].maximum_life = 40;
+		state.entities[0].life = 40;
+		
 
 		IN_MODULE( popup, PAGE_B,
 			if (pj>16) {
