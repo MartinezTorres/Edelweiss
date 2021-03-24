@@ -12,25 +12,23 @@ void weapon_collision_detection_d(uint8_t weapon_spawn_idx, uint8_t bounding_box
 	half_bounding_box_pixels.j = (bounding_box_cols_pixels+16)/2;
 	
 	weapon_pos = weapon->pos;
-	
+
 	for (uint8_t e=1; e!=12; e++) {
 		if (e==weapon_spawn_idx) continue;
 		if (state.spawns[e] < 0) continue;
 		
 		Entity *target = &state.entities[state.spawns[e]];
-		
+
 		hit_diff.i = (target->pos.i - weapon_pos.i)>>5;
 		if ((uint8_t)(hit_diff.i + half_bounding_box_pixels.i) > (uint8_t)(2*half_bounding_box_pixels.i)) continue;
 		hit_diff.j = (target->pos.j - weapon_pos.j)>>5;
 		if ((uint8_t)(hit_diff.j + half_bounding_box_pixels.j) > (uint8_t)(2*half_bounding_box_pixels.j)) continue;
 		
-//		debug_printf("Hit! %d %d\n", hit_diff.i, hit_diff.j);
-
 		IN_SEGMENT(
 			target->segment, 
 			PAGE_C,         
 			(*target->callbacks->on_hit)(target, weapon);
-		);		
+		);
 	}
 }
 

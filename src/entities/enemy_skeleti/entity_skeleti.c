@@ -1,5 +1,5 @@
 #include <common.h>
-#include <entities/entity_skeleti_sprite.h>
+#include "entity_skeleti_sprite.h"
 
 USING_MODULE(entity_skeleti_sprite, PAGE_D);
 
@@ -33,75 +33,10 @@ static uint8_t on_update(Entity *entity) {
 
 	Entity *wolfi = &state.entities[0];
 
-
-	////////////////////////////////////////////////////////////////////////////////////////////
-	// INVULNERABLE FRAMES
-	if (entity->invulnerable_frames) {
-		for (uint8_t i=0; i<state.isr_count_delta; i++) {
-			if (entity->invulnerable_frames) {
-				entity->invulnerable_frames--;
-			}
-		}
-		if ((entity->invulnerable_frames>>2) & 1) {
-			sprites[spawn_idx].enabled = false;
-		} else {
-			sprites[spawn_idx].enabled = true;
-		}
-	}
-
-	// PUSHING	
-	if (entity->push_frames) {
-
-		for (uint8_t i=0; i<state.isr_count_delta; i++) {
-
-			uint16_tp tentative_pos;
-			entity->push_frames--;
-			for (uint8_t k=0; k<8; k++) {
-			
-				tentative_pos = entity->pos;
-				
-				tentative_pos.i += entity->push_vector.i;
-				tentative_pos.j += entity->push_vector.j;
-
-				uint8_t flags = overworld_get_entity_flags(tentative_pos.i, tentative_pos.j);
-
-				if ( (flags & MAP_OBSTACLE) == 0) entity->pos = tentative_pos;
-			}
-		}
-	}
-
+	if (!generic_entity_invulnerable_frames_and_pushing(spawn_idx)) return false;
+	
 	if (((state.game_cycles+spawn_idx)&3) != 0) return true;
 
-//    debug_printf("%d ", entity->life);
-	
-	if (entity->life == 0) {
-
-		entity->life = entity->maximum_life;
-
-//		debug_printf("killed ghosti %d %d\n", spawn_idx, state.spawns[spawn_idx]);
-		
-		if (state.entities[ENTITY_EXPLOSION_0].spawn_idx < 0) {
-			state.entities[ENTITY_EXPLOSION_0].pos = entity->pos;
-			spawn_entity(ENTITY_EXPLOSION_0);
-		} else if (state.entities[ENTITY_BOMB_1].spawn_idx < 0) {
-			state.entities[ENTITY_EXPLOSION_1].pos = entity->pos;
-			spawn_entity(ENTITY_EXPLOSION_1);
-		}
-
-		if (state.entities[ENTITY_DROP_ITEM_0].spawn_idx < 0) {
-			state.entities[ENTITY_DROP_ITEM_0].pos = entity->pos;
-			state.entities[ENTITY_DROP_ITEM_0].drop_probability = E_DROP_PROBABILITY_HIGH;
-			spawn_entity(ENTITY_DROP_ITEM_0);
-		} else if (state.entities[ENTITY_DROP_ITEM_1].spawn_idx < 0) {
-			state.entities[ENTITY_DROP_ITEM_1].pos = entity->pos;
-			state.entities[ENTITY_DROP_ITEM_1].drop_probability = E_DROP_PROBABILITY_HIGH;
-			spawn_entity(ENTITY_DROP_ITEM_1);
-		}
-		
-		return false;
-	}
-	
-	
 	// MOVEMENT
 	{
 		uint16_tp anchor16;

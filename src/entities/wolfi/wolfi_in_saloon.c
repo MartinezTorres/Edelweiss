@@ -106,7 +106,7 @@ void wolfi_in_saloon() {
 	char passwd[11];
 
 	uint8_t pj = ((state.entities[0].pos.j+0x80)>>8) - map.pos.j;
-	IN_MODULE( popup, PAGE_B,
+	IN_MODULE( largepopup, PAGE_B,
 		if (pj>16) {
 			largePopupInitCanvas(pj-12);
 		} else {
@@ -123,41 +123,39 @@ void wolfi_in_saloon() {
 		largePopupTextProperties.x = 10;
 		largePopupWriteText("YOU ANSWER: \n  ");
 
-	);
-	
-	uint8_t x = largePopupTextProperties.x;
-
-	enable_keyboard_routine = true;
-	uint8_t passwd_len = 0;
-	while (passwd_len<10) {
-		char c[2];
-		c[0] = '|';
-		c[1] = 0;
-		largePopupTextProperties.value = (state.isr_count & 0x10);
-		largePopupWriteText(c);
-		largePopupTextProperties.x = x;
 		
-		char m = msxhal_getch();
-		if (m==13) break;
-		if (m>32 && m<127) {
-			if (m>='a' && m<='z') m = m - 'a' + 'A';
-			largePopupTextProperties.value = 0;
+		uint8_t x = largePopupTextProperties.x;
+
+		enable_keyboard_routine = true;
+		uint8_t passwd_len = 0;
+		while (passwd_len<10) {
+			char c[2];
+			c[0] = '|';
+			c[1] = 0;
+			largePopupTextProperties.value = (state.isr_count & 0x10);
 			largePopupWriteText(c);
 			largePopupTextProperties.x = x;
-			c[0] = m;
+			
+			char m = msxhal_getch();
+			if (m==13) break;
+			if (m>32 && m<127) {
+				if (m>='a' && m<='z') m = m - 'a' + 'A';
+				largePopupTextProperties.value = 0;
+				largePopupWriteText(c);
+				largePopupTextProperties.x = x;
+				c[0] = m;
 
-			passwd[passwd_len++] = m;
-			largePopupTextProperties.value = 1;
-			largePopupWriteText(c);
-			x = largePopupTextProperties.x;
+				passwd[passwd_len++] = m;
+				largePopupTextProperties.value = 1;
+				largePopupWriteText(c);
+				x = largePopupTextProperties.x;
+			}
+			wait_frame();
 		}
-		wait_frame();
-	}
-	enable_keyboard_routine = false;
-	
-	if (passwd_len==10 && decode_state(passwd)) {
+		enable_keyboard_routine = false;
+		
+		if (passwd_len==10 && decode_state(passwd)) {
 
-		IN_MODULE( popup, PAGE_B,
 			if (pj>16) {
 				largePopupInitCanvas(pj-12);
 			} else {
@@ -169,22 +167,21 @@ void wolfi_in_saloon() {
 			largePopupWriteText("\nTHE DRUNKEN WIZARD\n");
 			largePopupWriteText("STARTS TO CHANT!");
 			largePopupWriteText("YOU FEEL DIZZY!");
-		);
-	} else if (passwd_len==5 && my_strnlen(passwd, "NISHI",5)==0) {
-		
-		state.has_lamp  = 1;
-		state.has_boots = 1;
-		state.has_coat  = 1;
-		state.has_pear  = 1;
-		for (uint8_t j = 0; j<8; j++) {
-			state.has_weapon[j] = 1;
-		}
-		state.rupees = 999;
-		state.entities[0].maximum_life = 40;
-		state.entities[0].life = 40;
-		
 
-		IN_MODULE( popup, PAGE_B,
+		} else if (passwd_len==5 && my_strnlen(passwd, "NISHI",5)==0) {
+			
+			state.has_lamp  = 1;
+			state.has_boots = 1;
+			state.has_coat  = 1;
+			state.has_pear  = 1;
+			for (uint8_t j = 0; j<8; j++) {
+				state.has_weapon[j] = 1;
+			}
+			state.rupees = 999;
+			state.entities[0].maximum_life = 40;
+			state.entities[0].life = 40;
+			
+
 			if (pj>16) {
 				largePopupInitCanvas(pj-12);
 			} else {
@@ -196,12 +193,11 @@ void wolfi_in_saloon() {
 			largePopupWriteText("THE DRUNKEN WIZARD\n");
 			largePopupWriteText("JUMPS AND SINGS WITH\nGREAT JOY!\n");
 			largePopupWriteText("YOU FEEL EMPOWERED!");
-		);
 
-	} else if (passwd_len==4 && my_strnlen(passwd, "MSX2",4)==0) {
+		} else if (passwd_len==4 && my_strnlen(passwd, "MSX2",4)==0) {
 
-		state.rupees = 999;
-		IN_MODULE( popup, PAGE_B,
+			state.rupees = 999;
+
 			if (pj>16) {
 				largePopupInitCanvas(pj-12);
 			} else {
@@ -214,11 +210,8 @@ void wolfi_in_saloon() {
 			largePopupWriteText("ASSERTS AND STARTS\nTO CHANT!\n");
 			largePopupWriteText("YOU FEEL EMPOWERED!");
 
-		);
+		} else {
 
-	} else {
-
-		IN_MODULE( popup, PAGE_B,
 			if (pj>16) {
 				largePopupInitCanvas(pj-12);
 			} else {
@@ -229,8 +222,8 @@ void wolfi_in_saloon() {
 			largePopupTextProperties.x = 10;
 			largePopupWriteText("\nTHE DRUNKEN WIZARD\n");
 			largePopupWriteText("   SEEMS CONFUSED\n");
-		);
-	}
+		}
+	);
 
 
 	for (uint8_t i=0; i<120; i++) wait_frame();

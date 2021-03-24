@@ -1,6 +1,6 @@
 #include <common.h>
 
-#include <entities/entity_wolfi_sprite.h>
+#include <entities/wolfi/entity_wolfi_sprite.h>
 
 USING_MODULE(entity_wolfi_sprite, PAGE_D);
 
@@ -123,10 +123,11 @@ void wolfi_triggers() {
 	uint8_t tj = (wolfi->pos.j+0x100)>>9;
 	debug_printf("Tile: %d, pos (%d, %d)\n",tile16, ti, tj);
 
-	// DARK ENTRANCES
-	if (tile16==23 ||
-		tile16==167 ||
-		tile16==90) { // Dark places!
+	// MOUNTAIN ENTRANCES
+	if (wolfi->orientation == E_UP && (
+		tile16==TILE_DOOR_MOUNTAIN)) { // Dark places!
+		
+		
 		 
 		if (!state.has_lamp) {
 			TRAMPOLINE_PAGE_C(wolfi_door_warp_enter);
@@ -150,15 +151,29 @@ void wolfi_triggers() {
 			door_warp_to(6,88);
 		} else if (ti==6 && tj==88) { // Mountain door under tower east
 			door_warp_to(2,88);
+		}
+	}
 		
-		} else if (ti==56 && tj==4) { // Well by the ghosts west
+	if (wolfi->orientation == E_UP && (
+		tile16==TILE_WELL)) { // Dark places!
+		if (ti==56 && tj==4) { // Well by the ghosts west
 			well_warp_to(55,8);
 		} else if (ti==55 && tj==8) { // Well by the ghosts east
-			well_warp_to(56,4);
-			
-		} else if (ti==32 && (tj==78 || tj==79)) { // Secret hole
+			well_warp_to(56,4);		
+		}
+	}
+	
+	if (wolfi->orientation == E_UP && (
+		tile16==TILE_HOLE_STAIRS_SAND_LEFT || tile16==TILE_HOLE_STAIRS_SAND_RIGHT)) {
+		if (ti==32 && (tj==78 || tj==79)) { // Secret hole
 			hole_warp_to(39,114);
-		} else if (ti==39 && (tj==114 || tj==115)) { // Hole by the island
+		}
+	}
+	
+	if (wolfi->orientation == E_UP && (
+		tile16==TILE_HOLE_STAIRS_GRASS_LEFT || tile16==TILE_HOLE_STAIRS_GRASS_RIGHT)) {
+
+		if (ti==39 && (tj==114 || tj==115)) { // Hole by the island
 			hole_warp_to(32,78);
 			
 		} else if (ti==28 && (tj==2 || tj==3)) { // Hole by the islands southwest
@@ -183,23 +198,31 @@ void wolfi_triggers() {
 		uint8_t tile16Feet2 =  overworld_get_tile16(tpi, tpj2);
 	//	debug_printf("TileFeet: %d %d, pos (%d, %d), flags %d\n",tile16Feet1, tile16Feet2, ti, tj, flags);
 
-		if ((tile16Feet1==31 || tile16Feet1==154 || tile16Feet1==212 || tile16Feet2==31 || tile16Feet2==154 || tile16Feet2==212 ) && !state.has_boots) {
-
-			small_message("THESE ROCKS\nHURT MY FEET!");
-			//wolfi->pos = tmp.old_pos;
-			// TODO: ROCKS
+		if (tile16Feet1==TILE_ROCKS_SAND || tile16Feet1==TILE_ROCKS_GRAVE || tile16Feet1==TILE_ROCKS_GRASS ||
+			tile16Feet2==TILE_ROCKS_SAND || tile16Feet2==TILE_ROCKS_GRAVE || tile16Feet2==TILE_ROCKS_GRASS ) {
+			
+			if (!state.has_boots) {
+				small_message("THESE ROCKS\nHURT MY FEET!");
+				//wolfi->pos = tmp.old_pos;
+				// TODO: ROCKS
+			}
 		}
 	}
 
 
 	// TOWN ENTRANCES
-	if (tile16==10 || tile16==186 || tile16==177) {
+	if (wolfi->orientation == E_UP && (
+		tile16==TILE_DOOR_TOWN_BROWN || tile16==TILE_DOOR_TOWN_GRAY)) {
+	
 		TRAMPOLINE_PAGE_C(wolfi_in_town_door);
 	}
 	
 
 	// INFO BOARDS
-	if (tile16==120) {
+	if (wolfi->orientation == E_UP && (
+		tile16==TILE_INFO_BOARD_GRASS ||
+		tile16==TILE_INFO_BOARD_SAND)) {
+	
 		TRAMPOLINE_PAGE_C(wolfi_reads_info_boards);
 	}
 	

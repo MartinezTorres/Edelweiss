@@ -1,5 +1,5 @@
 #include <common.h>
-#include <entities/entity_weapon_bomb_sprite.h>
+#include <entities/weapons/entity_weapon_bomb_sprite.h>
 
 USING_MODULE(entity_weapon_bomb_sprite, PAGE_D);
 
@@ -50,7 +50,10 @@ static uint8_t on_update(Entity *entity) {
 			sprites[idx].spriteInfo = &weapon_bomb_2_0;
 			uint8_t tile16 =  overworld_get_tile16(entity->pos.i+0x100, entity->pos.j+0x100);
 			//debug_printf("Tile: %d\n",tile16);
-			if (tile16==30 || tile16==95 || tile16==162) {
+			if (tile16==TILE_LARGE_ROCK_SAND || 
+				tile16==TILE_LARGE_ROCK_GRAVE || 
+				tile16==TILE_LARGE_ROCK_MIXED || 
+				tile16==TILE_DOOR_MOUNTAIN_COVERED) {
 				overworld_set_map_index(entity->pos.i+0x100, entity->pos.j+0x100, 1);
 				
 				uint8_t rowScreen8 =  (((entity->pos.i+0x100)>>10)<<2) - map.pos.i;

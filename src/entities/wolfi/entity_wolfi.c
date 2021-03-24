@@ -1,5 +1,5 @@
 #include <common.h>
-#include <entities/entity_wolfi_sprite.h>
+#include <entities/wolfi/entity_wolfi_sprite.h>
 
 USING_MODULE(entity_wolfi_sprite, PAGE_D);
 
@@ -115,6 +115,7 @@ static uint8_t on_update(Entity *entity) {
 	} else {
 		
 		static uint8_t flags;
+		
 		for (uint8_t i=0; i<state.isr_count_delta; i++) {
 			
 			// WE SKIP MOVING THE PLAYER 1 OUT OF 3 FRAMES TO SYNC WITH SCROLL
@@ -160,10 +161,15 @@ static uint8_t on_update(Entity *entity) {
 				entity->push_frames--;
 				for (uint8_t k=0; k<8; k++) {
 				
-					tentative_pos = entity->pos;
+					//tentative_pos = entity->pos;
 					
-					tentative_pos.i += entity->push_vector.i;
-					tentative_pos.j += entity->push_vector.j;
+					//_putchar('.');
+					//debug_printf(".");
+					
+					//debug_printf("%d, %d\n", entity->push_vector.i, entity->push_vector.j);
+					
+					tentative_pos.i = entity->pos.i + entity->push_vector.i;
+					tentative_pos.j = entity->pos.j + entity->push_vector.j;
 
 					flags = overworld_get_entity_flags(tentative_pos.i, tentative_pos.j);
 

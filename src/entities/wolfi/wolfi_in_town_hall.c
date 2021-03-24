@@ -3,7 +3,7 @@
 
 static void exit_message(const char *msg) {
 	uint8_t pj = ((state.entities[0].pos.j+0x80)>>8) - map.pos.j;
-	IN_MODULE( popup, PAGE_B,
+	IN_MODULE( largepopup, PAGE_B,
 		if (pj>16) {
 			largePopupInitCanvas(pj-12);
 		} else {
@@ -21,8 +21,22 @@ static void exit_message(const char *msg) {
 
 void wolfi_in_town_hall() {
 
+	if (state.spawns[state.follower_entity_spawn_idx]==ENTITY_LUMBERJACK) {
+		
+
+		large_message("THANKS A LOT! I CAN NOT\nWORK WITH THESE\nMONSTERS. TAKE MY\nAXE, IT MIGHT BE HANDY."); 
+		despawn_entity(state.spawns[state.follower_entity_spawn_idx]);
+
+		state.has_weapon[E_AXE] = true;
+		state.weapon = E_AXE;
+		init_weapon();
+		IN_MODULE(infobar, PAGE_B, infobar_update_weapon());
+		
+		return;
+	}
+
 	uint8_t pj = ((state.entities[0].pos.j+0x80)>>8) - map.pos.j;
-	IN_MODULE( popup, PAGE_B,
+	IN_MODULE( largepopup, PAGE_B,
 		if (pj>16) {
 			largePopupInitCanvas(pj-12);
 		} else {

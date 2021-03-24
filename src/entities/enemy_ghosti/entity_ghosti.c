@@ -1,5 +1,5 @@
 #include <common.h>
-#include <entities/entity_ghosti_sprite.h>
+#include "entity_ghosti_sprite.h"
 
 USING_MODULE(entity_ghosti_sprite, PAGE_D);
 
@@ -44,54 +44,12 @@ static void on_despawn(Entity *entity) {
 static uint8_t on_update(Entity *entity) {
 
 	
+	Entity *wolfi = &state.entities[0];
 	uint8_t spawn_idx = entity->spawn_idx;
 	
-	////////////////////////////////////////////////////////////////////////////////////////////
-	// INVULNERABLE FRAMES
-	if (entity->invulnerable_frames) {
-		for (uint8_t i=0; i<state.isr_count_delta; i++) {
-			if (entity->invulnerable_frames) {
-				entity->invulnerable_frames--;
-			}
-		}
-		if ((entity->invulnerable_frames>>2) & 1) {
-			sprites[spawn_idx].enabled = false;
-		} else {
-			sprites[spawn_idx].enabled = true;
-		}
-	}
-
+	if (!generic_entity_invulnerable_frames_and_pushing(spawn_idx)) return false;
+	
 	if (((state.game_cycles+spawn_idx)&3) != 0) return true;
-
-//    debug_printf("%d ", entity->life);
-	
-	if (entity->life == 0) {
-
-		entity->life = entity->maximum_life;
-
-//		debug_printf("killed ghosti %d %d\n", spawn_idx, state.spawns[spawn_idx]);
-		
-		if (state.entities[ENTITY_EXPLOSION_0].spawn_idx < 0) {
-			state.entities[ENTITY_EXPLOSION_0].pos = entity->pos;
-			spawn_entity(ENTITY_EXPLOSION_0);
-		} else if (state.entities[ENTITY_BOMB_1].spawn_idx < 0) {
-			state.entities[ENTITY_EXPLOSION_1].pos = entity->pos;
-			spawn_entity(ENTITY_EXPLOSION_1);
-		}
-
-		if (state.entities[ENTITY_DROP_ITEM_0].spawn_idx < 0) {
-			state.entities[ENTITY_DROP_ITEM_0].pos = entity->pos;
-			state.entities[ENTITY_DROP_ITEM_0].drop_probability = E_DROP_PROBABILITY_HIGH;
-			spawn_entity(ENTITY_DROP_ITEM_0);
-		} else if (state.entities[ENTITY_DROP_ITEM_1].spawn_idx < 0) {
-			state.entities[ENTITY_DROP_ITEM_1].pos = entity->pos;
-			state.entities[ENTITY_DROP_ITEM_1].drop_probability = E_DROP_PROBABILITY_HIGH;
-			spawn_entity(ENTITY_DROP_ITEM_1);
-		}
-		
-		return false;
-	}
-	
 	
 	// Ghosts can only be killed with the butter knife
 	entity->life = entity->maximum_life; 
@@ -103,19 +61,22 @@ static uint8_t on_update(Entity *entity) {
 
 	entity->vel.i += ((int16_t)(anchor16.i - entity->pos.i))/512;
 	entity->vel.j += ((int16_t)(anchor16.j - entity->pos.j))/512;
-
-	entity->pos.i += ((int16_t)entity->vel.i)<<3;
-	entity->pos.j += ((int16_t)entity->vel.j)<<3;
-
-
-	// PUSHED
-	if (entity->push_frames) {
-		entity->push_frames=0;
-
-		entity->vel.i = entity->push_vector.i;
-		entity->vel.j = entity->push_vector.j;
-
+	
+	if (wolfi->pos.i < entity->pos.i) {
+		entity->vel.i -= 1;
+	} else {
+		entity->vel.i += 1;
 	}
+
+	if (wolfi->pos.j < entity->pos.j) {
+		entity->vel.j -= 1;
+	} else {
+		entity->vel.j += 1;
+	}
+	
+	
+	entity->pos.i += ((int16_t)entity->vel.i)<<1;
+	entity->pos.j += ((int16_t)entity->vel.j)<<1;
 
 	// SPRITE ANGLE
 	sprites[spawn_idx].pos.i = entity->pos.i;

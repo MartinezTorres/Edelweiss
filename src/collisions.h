@@ -24,7 +24,12 @@ INLINE bool collision_wolfi(uint8_t enemy_spawn_idx) {
 }
 
 
-INLINE void hit_wolfi(uint8_t enemy_spawn_idx) { hit_wolfi_d(enemy_spawn_idx); }
+INLINE void hit_wolfi(uint8_t enemy_spawn_idx) { 
+
+	uint8_t oldSegmentPageD = mapper_load_module(collisions_d, PAGE_D);
+	hit_wolfi_d(enemy_spawn_idx); 
+    mapper_load_segment(oldSegmentPageD, PAGE_D);
+}
 
 void on_hit_default(Entity *entity, Entity *aggressor);
 void on_hit_null(Entity *entity, Entity *weapon);

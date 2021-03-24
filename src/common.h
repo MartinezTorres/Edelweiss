@@ -46,6 +46,48 @@ USING_MODULE(printf_, PAGE_D);
 #include <maps/overworld/overworld.h>
 USING_MODULE(overworld, PAGE_B);
 
+#define TILE_DOOR_MOUNTAIN overworld_TILEMAP(2,0)
+#define TILE_DOOR_TOWER overworld_TILEMAP(7,1)
+#define TILE_DOOR_TOWN_BROWN overworld_TILEMAP(3,12)
+#define TILE_DOOR_TOWN_GRAY overworld_TILEMAP(6,12)
+
+
+#define TILE_DOOR_MOUNTAIN_COVERED overworld_TILEMAP(4,4)
+
+#define TILE_WELL overworld_TILEMAP(4,9)
+
+#define TILE_HOLE_STAIRS_GRASS_LEFT overworld_TILEMAP(10,4)
+#define TILE_HOLE_STAIRS_GRASS_RIGHT overworld_TILEMAP(11,4)
+
+#define TILE_HOLE_STAIRS_SAND_LEFT overworld_TILEMAP(6,9)
+#define TILE_HOLE_STAIRS_SAND_RIGHT overworld_TILEMAP(7,9)
+
+#define TILE_CHEST overworld_TILEMAP(8,2)
+
+#define TILE_ONE_EYED_STATUE overworld_TILEMAP(15,0)
+#define TILE_TWO_EYED_STATUE overworld_TILEMAP(15,1)
+
+#define TILE_INFO_BOARD_GRASS overworld_TILEMAP(14,1)
+#define TILE_INFO_BOARD_SAND overworld_TILEMAP(9,4)
+
+#define TILE_WOOD_FENCE overworld_TILEMAP(14,2)
+#define TILE_BUSH overworld_TILEMAP(14,4)
+
+#define TILE_LARGE_ROCK_GRAVE overworld_TILEMAP(2,6)
+#define TILE_LARGE_ROCK_MIXED overworld_TILEMAP(3,6)
+#define TILE_LARGE_ROCK_SAND overworld_TILEMAP(4,6)
+
+#define TILE_ROCKS_SAND overworld_TILEMAP(28,0)
+#define TILE_ROCKS_GRAVE overworld_TILEMAP(29,0)
+#define TILE_ROCKS_GRASS overworld_TILEMAP(30,0)
+
+#define TILE_HOT_SAND_LEFT overworld_TILEMAP(22,1)
+#define TILE_HOT_SAND_RIGHT overworld_TILEMAP(22,0)
+
+#define TILE_SMALL_CACTUS overworld_TILEMAP(9,5)
+#define TILE_BIG_CACTUS_TOP overworld_TILEMAP(5,5)
+#define TILE_BIG_CACTUS_BOTTOM overworld_TILEMAP(5,6)
+
 ////////////////////////////////////////////////////////////////////////
 // SPRITES
 #include <sprites.h>
@@ -84,6 +126,8 @@ bool spawn_entity(uint8_t entity_idx);
 void despawn_entity(uint8_t entity_idx);
 
 void init_weapon();
+bool generic_entity_invulnerable_frames_and_pushing(uint8_t spawn_idx);
+
 
 ////////////////////////////////////////////////////////////////////////
 // WEAPON_HIT
@@ -205,6 +249,11 @@ enum {
 	ENTITY_GHOSTI_1,
 	ENTITY_GHOSTI_2,
 	ENTITY_GHOSTI_3,
+
+	ENTITY_LUMBERJACK_BALL_0,
+	ENTITY_LUMBERJACK_BALL_1,
+	ENTITY_LUMBERJACK_BALL_2,
+	ENTITY_LUMBERJACK_BALL_3,
 
 	// BOSS is a JUMPING SKULL
 
@@ -331,6 +380,10 @@ struct T_Entity {
 			enum {E_DROP_PROBABILITY_SKIP, E_DROP_PROBABILITY_LOW, E_DROP_PROBABILITY_MEDIUM, E_DROP_PROBABILITY_HIGH } drop_probability;
 			enum {E_DROP_NOTHING, E_DROP_HEART, E_DROP_1_RUPEE, E_DROP_5_RUPEES, E_DROP_20_RUPEES} drop_item;
 		};
+		struct { 
+			uint8_t is_following;
+			uint8_t selected_orientation;
+		};
 	};			
 };
 
@@ -377,6 +430,13 @@ struct T_State {
     uint8_t num_spawns;
     int8_t spawns[12];
     Entity entities[96]; // Entity 0 is the main player 
+
+	uint16_tp history_wolfi_pos[8];
+	uint8_t history_wolfi_visibility[8];
+	uint8_t history_wolfi_orientation[8];
+	uint8_t history_wolfi_pos_count;
+	uint8_t follower_entity_spawn_idx;
+
 
 	enum {E_ENGLISH, E_SPANISH} language;
 };

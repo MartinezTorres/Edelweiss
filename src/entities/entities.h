@@ -10,6 +10,9 @@ void init_skeleti(uint8_t idx, uint8_t i, uint8_t j);
 USING_MODULE(entity_ghosti, PAGE_C);
 void init_ghosti(uint8_t idx, uint8_t i, uint8_t j);
 
+USING_MODULE(entity_lumberjack, PAGE_C);
+void init_lumberjack(uint8_t idx, uint8_t i, uint8_t j);
+
 USING_MODULE(entity_weapon_slash, PAGE_C);
 void init_weapon_slash(uint8_t idx, uint8_t weapon_type);
 

@@ -1,5 +1,5 @@
 #include <common.h>
-#include <entities/entity_weapon_bomb_sprite.h>
+#include <entities/weapons/entity_weapon_bomb_sprite.h>
 
 USING_MODULE(entity_weapon_bomb_sprite, PAGE_D);
 
@@ -13,8 +13,7 @@ static void on_spawn(Entity *entity) {
 	sprites[idx].overrideColors = false;
 	sprites[idx].spriteInfoSegment = MODULE_SEGMENT(entity_weapon_bomb_sprite, PAGE_D);	
 
-	sprites[idx].pos.i = entity->pos.i;
-	sprites[idx].pos.j = entity->pos.j;
+	sprites[idx].pos = entity->pos;
 
 	entity->animation_counter = 0;
 }

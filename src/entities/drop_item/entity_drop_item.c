@@ -1,5 +1,5 @@
 #include <common.h>
-#include <entities/entity_drop_item_sprite.h>
+#include <entities/drop_item/entity_drop_item_sprite.h>
 
 USING_MODULE(entity_drop_item_sprite, PAGE_D);
 
@@ -13,8 +13,7 @@ static void on_spawn(Entity *entity) {
 	sprites[spawn_idx].overrideColors = false;
 	sprites[spawn_idx].spriteInfoSegment = MODULE_SEGMENT(entity_drop_item_sprite, PAGE_D);	
 
-	sprites[spawn_idx].pos.i = entity->pos.i;
-	sprites[spawn_idx].pos.j = entity->pos.j;
+	sprites[spawn_idx].pos = entity->pos;
 
 	if (entity->drop_probability == E_DROP_PROBABILITY_SKIP) {
 		
@@ -114,6 +113,6 @@ void init_drop_item(uint8_t spawn_idx) {
 	entity->spawn_idx = -1;
 	entity->spawn_priority = 4;
 
-	entity->segment = MODULE_SEGMENT(entity_explosion, PAGE_C);
+	entity->segment = MODULE_SEGMENT(entity_drop_item, PAGE_C);
 	entity->callbacks = &callbacks;
 }

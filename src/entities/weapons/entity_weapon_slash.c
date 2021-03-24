@@ -1,6 +1,6 @@
 #include <common.h>
-#include <entities/entity_weapon_slash_large_sprite.h>
-#include <entities/entity_weapon_slash_small_sprite.h>
+#include <entities/weapons/entity_weapon_slash_large_sprite.h>
+#include <entities/weapons/entity_weapon_slash_small_sprite.h>
 
 USING_MODULE(entity_weapon_slash_small_sprite, PAGE_D);
 USING_MODULE(entity_weapon_slash_large_sprite, PAGE_D);
@@ -23,12 +23,17 @@ static const TSpriteInterlaced * const sprite_table_small[5][5] = {
 { &weapon_slash_small_1_3, &weapon_slash_small_2_3, &weapon_slash_small_3_3, &weapon_slash_small_3_2, &weapon_slash_small_3_1},
 };
 
-static const int8_t sprite_offsets[5][5][2] = {
-{ {8,14}, {14,8}, {16,0}, {14,-8}, {8,-14}},
-{ {14,-8}, {8,-14}, {0,-16}, {-8,-14}, {-14,-8}},
-{ {-14,8}, {-8,14}, {0,16}, {8,14}, {14,8}},
-{ {-8,-14}, {-14,-8}, {-16,0}, {-14,8}, {-8,14}},
-{ {8,14}, {14,8}, {16,0}, {14,-8}, {8,-14}},
+static const int16_t sprite_offsets[5][5][2] = {
+//{ {8,14}, {14,8}, {16,0}, {14,-8}, {8,-14}},
+{ {192, 333}, {333, 192}, {384, -0}, {333, -192}, {192, -333}, },
+//{ {14,-8}, {8,-14}, {0,-16}, {-8,-14}, {-14,-8}},
+{ {333, -192}, {192, -333}, {-0, -384}, {-192, -333}, {-333, -192}, }, 
+//{ {-14,8}, {-8,14}, {0,16}, {8,14}, {14,8}},
+{ {-333, 192}, {-192, 333}, {0, 384}, {192, 333}, {333, 192}, },
+//{ {-8,-14}, {-14,-8}, {-16,0}, {-14,8}, {-8,14}},
+{ {-192, -333}, {-333, -192}, {-384, 0}, {-333, 192}, {-192, 333}, },
+//{ {8,14}, {14,8}, {16,0}, {14,-8}, {8,-14}},
+{ {192, 333}, {333, 192}, {384, -0}, {333, -192}, {192, -333}, },
 };
 
 static void on_spawn(Entity *entity) {
@@ -71,13 +76,14 @@ static void on_spawn(Entity *entity) {
 		{
 			
 			uint16_tp p;
-			p.i = wolfi->pos.i + (sprite_offsets[entity->orientation][2][0]<<4) + 0x100;
-			p.j = wolfi->pos.j + (sprite_offsets[entity->orientation][2][1]<<4) + 0x100;
+			p.i = wolfi->pos.i + (sprite_offsets[entity->orientation][2][0]) + 0x100;
+			p.j = wolfi->pos.j + (sprite_offsets[entity->orientation][2][1]) + 0x100;
 			
 			uint8_t tile16 =  overworld_get_tile16(p.i, p.j);
 			//debug_printf("Tile: %d\n",tile16);
 			//debug_printf("Segment: %d\n", sprites[spawn_idx].spriteInfoSegment);
-			if (tile16==116 || tile16==85) {
+			if (tile16==TILE_WOOD_FENCE ||
+				tile16==TILE_BUSH) {
 				overworld_set_map_index(p.i, p.j, 1);
 				
 				uint8_t rowScreen8 =  ((p.i>>10)<<2) - map.pos.i;
@@ -190,18 +196,18 @@ static uint8_t on_update(Entity *entity) {
 		
 		if (entity->weapon_type==E_PAW) {
 			sprites[spawn_idx].spriteInfo = 
-				sprite_table_small[entity->orientation][entity->animation_counter>>1];
+				sprite_table_small[entity->orientation][entity->animation_counter>>2];
 		} else {
 			sprites[spawn_idx].spriteInfo = 
-				sprite_table[entity->orientation][entity->animation_counter>>1];
+				sprite_table[entity->orientation][entity->animation_counter>>2];
 		}
 			
-		entity->pos.i = wolfi->pos.i + (sprite_offsets[entity->orientation][entity->animation_counter>>1][0]<<4);
+		entity->pos.i = wolfi->pos.i + (sprite_offsets[entity->orientation][entity->animation_counter>>2][0]);
 
-		entity->pos.j = wolfi->pos.j + (sprite_offsets[entity->orientation][entity->animation_counter>>1][1]<<4);
+		entity->pos.j = wolfi->pos.j + (sprite_offsets[entity->orientation][entity->animation_counter>>2][1]);
 
 		entity->animation_counter++;
-		if (entity->animation_counter ==10) return false; // despawn
+		if (entity->animation_counter ==20) return false; // despawn
 	}
 
 	sprites[spawn_idx].pos.i = entity->pos.i;

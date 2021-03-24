@@ -120,6 +120,42 @@ static void main_isr(void) {
         break;
     }
 
+	if (state.follower_entity_spawn_idx != 0) {
+		if ((state.isr_state_machine&1) == 0) {
+			
+			uint16_tp old_pos, current_pos;
+			old_pos = state.history_wolfi_pos[state.history_wolfi_pos_count & 0x07];
+			current_pos = state.entities[0].pos;
+			
+			uint8_t old_visibility = state.history_wolfi_visibility[state.history_wolfi_pos_count & 0x07];
+			uint8_t current_visibility = sprites[0].enabled;
+			
+			uint8_t spawn_idx = state.follower_entity_spawn_idx;
+			Entity *entity = &state.entities[state.spawns[spawn_idx]];
+			
+			if (old_pos.i != current_pos.i ||
+				old_pos.j != current_pos.j ||
+				old_visibility != current_visibility ||
+				!current_visibility
+				) {
+
+				state.history_wolfi_pos_count++;
+				
+				uint8_t idx = state.history_wolfi_pos_count & 0x07;
+
+				entity->pos = state.history_wolfi_pos[idx];
+				entity->orientation = state.history_wolfi_orientation[idx];
+				sprites[spawn_idx].pos = entity->pos;
+				sprites[spawn_idx].enabled = state.history_wolfi_visibility[idx];
+					
+				state.history_wolfi_pos[idx] = current_pos;
+				state.history_wolfi_visibility[idx] = current_visibility;
+				state.history_wolfi_orientation[idx] = state.entities[0].orientation;	
+			}
+		}
+	}
+
+
 //	debugBorder(0x5);
 
 	if (state.current_em2_buffer) {
@@ -166,6 +202,10 @@ static void init_overworld_entities() {
 	// SKELETONS 1
 	IN_MODULE(entity_skeleti, PAGE_C, init_skeleti(ENTITY_SKELETI_0, 0x56, 0x16));
 	IN_MODULE(entity_skeleti, PAGE_C, init_skeleti(ENTITY_SKELETI_1, 0x58, 0x1A));
+
+	// NPCS
+	IN_MODULE(entity_lumberjack, PAGE_C, init_lumberjack(ENTITY_LUMBERJACK, 59*2, 44*2));
+	
 	
 	
 	debug_printf("nº entities: %d\n", LAST_ENTITY);

@@ -17,6 +17,8 @@
 #include <chrono>
 #include <functional>
 
+#include "uSnippets/sXML.hpp"
+
 using namespace std::chrono_literals;
 
 struct Colorspace {
@@ -478,23 +480,60 @@ int main(int argc, const char *argv[]) {
     std::vector<Map> maps;
     
     struct Tile16 {
+		cv::Point source;
         cv::Mat3b img;
         cv::Mat3b flags;
         cv::Matx< int, 2, 2 > idx;
         size_t count;
     };
     std::vector<Tile16> tiles16;
+
+	cv::Mat1b tileMap_idx;
     
     {
 		cv::Mat3b tileMap = cv::imread(argv[3]);
 		cv::Mat3b tileFlags = cv::imread(argv[4]);
+		
+		tileMap_idx = cv::Mat1b(tileMap.rows/16, tileMap.cols/16, uint8_t(0));
 		
         for (int i=5; i<argc; i++) {
             
             maps.push_back(Map());
             Map &map = maps.back();
             
-            map.img = cv::imread(argv[i]);
+            {
+				uSnippets::sXML map_xml;
+				std::ifstream iff(argv[i]);
+				
+				std::string s;
+				
+				iff >> s >> s >> s >> map_xml;
+				
+				size_t width = map_xml("layer")["width"];
+				size_t height = map_xml("layer")["height"];
+				
+				map.img = cv::Mat3b(height*16, width*16);
+				
+				std::string data = map_xml("layer")("data")()[0].tag; 
+				for (auto &c : data) if (c==',') c=' ';
+				std::istringstream iss(data);
+				
+				for (int ii = 0; ii<height; ii++) {
+					for (int jj = 0; jj<width; jj++) {
+						int idx;
+						iss >> idx;
+						idx--;
+						int h = idx / (tileMap.cols/16);
+						int w = idx % (tileMap.cols/16);
+						
+						tileMap(cv::Rect(w*16,h*16,16,16)).copyTo(map.img(cv::Rect(jj*16, ii*16, 16, 16)));
+						
+					}
+				}
+				//cv::imshow("map", map.img);
+				//cv::waitKey(0);
+			}
+            
             
             if (maps.size() and map.img.size() != maps.front().img.size()) { std::cerr << "inconsistnt map size" << std::endl; exit(-1); }
             if (map.img.rows % 16) { std::cerr << "map size not multiple of 16" << std::endl; exit(-1); }
@@ -532,6 +571,7 @@ int main(int argc, const char *argv[]) {
 								cv::Mat3b f = tileFlags(cv::Rect(jj,ii,16,16));
 								double n = cv::norm(tile-t) + cv::norm(t-tile);
 								if (n<1) {
+									tile16.source = { ii, jj };
 									tile16.flags = cv::max(tile16.flags, f.clone());
 								}
 							}
@@ -556,6 +596,32 @@ int main(int argc, const char *argv[]) {
         }
         std::cout << "Found " << tiles16.size() << " unique 16x16 tiles." << std::endl;
         if (tiles16.size()>256) { std::cerr << "Too many unique 16x16 tiles." << std::endl; exit(-1); }
+
+		for (int i=0; i+15<tileMap.rows; i+=16) {
+			for (int j=0; j+15<tileMap.cols; j+=16) {
+				cv::Mat3b tile = tileMap(cv::Rect(j,i,16,16));
+				
+				bool found = false;
+				for (uint k=0; not found and k<tiles16.size(); k++) {
+					auto &t = tiles16[k].img;
+					double n = cv::norm(tile-t) + cv::norm(t-tile);
+					if (n<1) {
+						tileMap_idx(i/16,j/16) = k;
+						found = true;
+					}
+				}
+				
+				//cv::Mat3b tileBig; cv::resize(tile, tileBig, cv::Size(), 8, 8, cv::INTER_NEAREST);
+				//cv::imshow("img", tileBig);
+				//std::cerr << int(tileMap_idx(i/16,j/16)) << "\t" << tiles16[tileMap_idx(i/16,j/16)].count << std::endl;
+				//cv::waitKey(0);
+				
+			}
+		}
+
+
+
+
     }
 
     // Find all unique 8x8 tiles.
@@ -673,6 +739,14 @@ int main(int argc, const char *argv[]) {
         header << "#define MAP_NAME " << MAP_NAME << std::endl;
         header << "#include <map_interface.h>" << std::endl;
         header << "#undef MAP_NAME" << std::endl;
+        
+        header << "#define " << MAP_NAME << "_TILEMAP(x,y) (";
+        for (int i=0; i<tileMap_idx.rows; i++) {
+			for (int j=0; j<tileMap_idx.cols; j++) {
+				header << "x=="<<j<<"&&"<<"y=="<<i<<"?"<<int(tileMap_idx(i,j))<<":";
+			}
+		}
+        header << "0)";
     }
 
     // Spawn Implementation
@@ -697,6 +771,10 @@ int main(int argc, const char *argv[]) {
             src << "USING_MODULE("  << (MAP_NAME + "_map" + char('0'+m) + "_map16") << ", PAGE_D);" << std::endl;
             src << "extern const uint8_t " << (MAP_NAME + "_map" + char('0'+m) + "_map16") << "[" << MAP16_Y << "]["<< MAP16_X << "];" << std::endl;
         }
+        for (size_t m=maps.size(); m<10; m++) {
+            src << "#define MAP" <<  char('0'+m) << "_MAP16 " << (MAP_NAME + "_map" + char('0') + "_map16") << std::endl;
+		}
+
 
         src << "#define MAP_TILES16 " << (MAP_NAME + "_tiles16") << std::endl;
         src << "USING_MODULE("  << (MAP_NAME + "_tiles16") << ", PAGE_C);" << std::endl;

@@ -1,5 +1,5 @@
 #include <common.h>
-#include <entities/entity_weapon_arrow_sprite.h>
+#include <entities/weapons/entity_weapon_arrow_sprite.h>
 
 USING_MODULE(entity_weapon_arrow_sprite, PAGE_D);
 

@@ -3,7 +3,7 @@ NAME := weiss
 include sdcc_msx/Makefile.in
 
 CCFLAGS_MSX   += -DKONAMI5
-CCFLAGS_MSX   += --all-callee-saves --opt-code-speed --std-sdcc11
+#CCFLAGS_MSX   += --all-callee-saves --opt-code-speed --std-sdcc11
 #CCFLAGS_MSX   += --reserve-regs-iy --callee-saves-bc
 
 OPENMSX_BIN = /opt/openMSX/bin/openmsx
@@ -12,9 +12,9 @@ OPENMSX_BIN = /opt/openMSX/bin/openmsx
 ADDR_DATA = 0xC000
 
 #CCZ80 = sdcc_msx/bin/sdcc-3.9.0/bin/sdcc
-CCZ80 = sdcc_msx/bin/sdcc-4.0.0/bin/sdcc
+CCZ80 = sdcc_msx/bin/sdcc-4.1.0/bin/sdcc
 ASM = sdcc_msx/bin/sdcc-4.0.0/bin/sdasz80
-MAX_ALLOCS = 4000
+MAX_ALLOCS = 40000
 
 
 tmp/%.rel: %.c tmp/inc/resources.h $(HEADERS)

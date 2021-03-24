@@ -1,6 +1,6 @@
 #include <common.h>
 
-#include <entities/entity_wolfi_sprite.h>
+#include <entities/wolfi/entity_wolfi_sprite.h>
 USING_MODULE(entity_wolfi_sprite, PAGE_D);
 
 void wolfi_door_warp_enter() {
@@ -8,7 +8,7 @@ void wolfi_door_warp_enter() {
 	Entity *wolfi = &state.entities[0]; 
 	uint8_t spawn_idx = 0;
 
-	wolfi->pos.j = (wolfi->pos.j+0x40) & 0xFF00;
+	wolfi->pos.j = (wolfi->pos.j+0x100) & 0xFE00;
 	sprites[spawn_idx].pos.j = wolfi->pos.j;
 
 	wolfi->orientation = E_UP;
