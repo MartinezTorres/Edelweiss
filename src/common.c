@@ -13,6 +13,13 @@ void trampoline_page_c( uint8_t segment, void (*f)() ) {
     mapper_load_segment(oldSegmentPageC, PAGE_C);
 }
 
+void trampoline_page_c_uint8_t( uint8_t segment, void (*f)(uint8_t), uint8_t arg ) {
+	
+    uint8_t oldSegmentPageC = mapper_load_segment(segment, PAGE_C);
+    (*f)(arg);
+    mapper_load_segment(oldSegmentPageC, PAGE_C);
+}
+
 bool spawn_entity(uint8_t entity_idx) {
 
 	Entity *entity = &state.entities[entity_idx];

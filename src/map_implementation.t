@@ -412,6 +412,8 @@ INLINE void _draw_col(uint8_t colScreen8) {
     uint8_t rowWorld16 = rowWorld8 >> 1;
     uint8_t colWorld16 = colWorld8 >> 1;
 
+    uint8_t oldSegmentPageC = CURRENT_SEGMENT(PAGE_C);
+
     tile16IdxPtr = &MAP_MAP16[rowWorld16][colWorld16];
     tile8IdxBase = &MAP_TILES16[0][0][colWorld8&1];
         
@@ -586,6 +588,8 @@ INLINE void _draw_col(uint8_t colScreen8) {
             }            
         }
     }
+
+    mapper_load_segment(oldSegmentPageC, PAGE_C);
 }
 
 void APPEND(MAP_NAME,_draw_col)(uint8_t colScreen8) {  
@@ -694,6 +698,9 @@ void APPEND(MAP_NAME,_draw_row)(uint8_t rowScreen8) {
 
 	uint8_t rowWorld16 = rowWorld8 >> 1;
 	uint8_t colWorld16 = colWorld8 >> 1;
+	
+    uint8_t oldSegmentPageC = CURRENT_SEGMENT(PAGE_C);
+
 
 	tile16IdxPtr = &MAP_MAP16[rowWorld16][colWorld16];
 	tile8IdxBase = &MAP_TILES16[0][rowWorld8&1][0];
@@ -763,6 +770,8 @@ void APPEND(MAP_NAME,_draw_row)(uint8_t rowScreen8) {
 			}                        
 		}
     }
+
+    mapper_load_segment(oldSegmentPageC, PAGE_C);
 
 #else
 	for (uint8_t i=0; i<32; i++)
@@ -1143,11 +1152,31 @@ INLINE void PN_Copy(EM2_Buffer buffer) {
     }
 }
 
+INLINE void PN_Copy_full(EM2_Buffer buffer) {
+
+    TMS99X8_setPtr(buffer==0?MODE2_ADDRESS_PN0:MODE2_ADDRESS_PN1);
+
+//	if (buffer) debug_printf("\n");
+	
+    for (uint8_t bank=0; bank<3; bank++) {
+        register uint8_t PN_Start = (map.pos.i<<5) + map.pos.j;
+        register uint8_t *p = &map.bank[bank].PN[0];
+        register uint8_t iterations = 128;
+		while (iterations--) {
+//			if (buffer) debug_printf("%02X ", *(p + PN_Start) + buffer);
+			TMS99X8_write(*(p + PN_Start++) + buffer);
+//			if (buffer) debug_printf("%02X ", *(p + PN_Start) + buffer);
+			TMS99X8_write(*(p + PN_Start++) + buffer);
+//			if (buffer) if (iterations%16==0) debug_printf("\n");
+		}
+    }
+}
+
 INLINE void copyPN0() { PN_Copy(0); }
 INLINE void copyPN1() { PN_Copy(1); }
 
-INLINE void copyPN0full() { PN_Copy(0); }
-INLINE void copyPN1full() { PN_Copy(1); }
+INLINE void copyPN0full() { PN_Copy_full(0); }
+INLINE void copyPN1full() { PN_Copy_full(1); }
 
 #endif
 
@@ -1159,14 +1188,17 @@ void APPEND(MAP_NAME,_copyPN1full)() { copyPN1full(); }
 
 #ifdef MSX
 
-inline static void get_flags_placeholder() {
+uint8_t APPEND(MAP_NAME,_get_flags)(uint16_t row, uint16_t col) __naked {
+	
+	UNUSED(row);
+	UNUSED(col);
 	
 	__asm
 	
 ; ---------------------------------
 ; Function overworld_get_flags
 ; ---------------------------------
-_overworld_get_flags::
+;_overworld_get_flags::
 
 ;src/map_implementation.h:1186: debugBorder(4);
 ;	ld	a, #0x04
@@ -1316,14 +1348,18 @@ uint8_t APPEND(MAP_NAME,_get_flags)(uint16_t row, uint16_t col) {
 
 #ifdef MSX
 
-inline static void get_entity_flags_placeholder() {
-	
+uint8_t APPEND(MAP_NAME,_get_entity_flags)(uint16_t row, uint16_t col) __naked {	
+
+	UNUSED(row);
+	UNUSED(col);
+
 	__asm
 
 ; ---------------------------------
 ; Function overworld_get_entity_flags
 ; ---------------------------------
-_overworld_get_entity_flags::
+
+;_overworld_get_entity_flags::
 ;	ld	a, #0x04
 ;	out	(_VDP1), a
 ;	ld	a, #0x87

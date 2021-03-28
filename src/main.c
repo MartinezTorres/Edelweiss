@@ -15,7 +15,9 @@ static void main_isr(void) {
     static uint8_t update_scroll_step2;
     static uint8_t request_pattern_name_transfer_internal;
     static uint8_t animated_tiles_state;
-
+    
+    debug_printf(".\n");
+    
 //	if (state.request_scroll_update) debug_printf("%d scroll_update\n", state.isr_state_machine);
 //	if (state.request_pattern_name_transfer) debug_printf("%d\n", state.isr_state_machine);
 
@@ -176,7 +178,7 @@ static void init_overworld_entities() {
 
 
 	// WOLFI
-	IN_MODULE(entity_wolfi, PAGE_C, init_wolfi(ENTITY_WOLFI, 0x7E, 0x7E));
+	IN_MODULE(entity_wolfi, PAGE_C, init_wolfi(ENTITY_WOLFI, 60*2, 63*2));
 
 	state.weapon = E_PAW;
 	init_weapon();
@@ -195,17 +197,26 @@ static void init_overworld_entities() {
 	IN_MODULE(entity_ghosti, PAGE_C, init_ghosti(ENTITY_GHOSTI_1, 0x6A, 0x28));
 	IN_MODULE(entity_ghosti, PAGE_C, init_ghosti(ENTITY_GHOSTI_2, 0x67, 0x38));
 	IN_MODULE(entity_ghosti, PAGE_C, init_ghosti(ENTITY_GHOSTI_3, 0x6C, 0x14));
-//	IN_MODULE(entity_ghosti, PAGE_C, init_ghosti(ENTITY_GHOSTI_4, 0x6E, 0x20));
-//	IN_MODULE(entity_ghosti, PAGE_C, init_ghosti(ENTITY_GHOSTI_5, 0x6C, 0x30));
-//	IN_MODULE(entity_ghosti, PAGE_C, init_ghosti(ENTITY_GHOSTI_6, 0x6E, 0x40));
 
 	// SKELETONS 1
 	IN_MODULE(entity_skeleti, PAGE_C, init_skeleti(ENTITY_SKELETI_0, 0x56, 0x16));
 	IN_MODULE(entity_skeleti, PAGE_C, init_skeleti(ENTITY_SKELETI_1, 0x58, 0x1A));
 
+
+	// BALLS NEAR LUMBERJACK
+	IN_MODULE(enemy_ball, PAGE_C, init_enemy_ball(ENTITY_LUMBERJACK_BALL_0, 60*2, 4*2));
+	IN_MODULE(enemy_ball, PAGE_C, init_enemy_ball(ENTITY_LUMBERJACK_BALL_1, 62*2, 15*2));
+	IN_MODULE(enemy_ball, PAGE_C, init_enemy_ball(ENTITY_LUMBERJACK_BALL_2, 61*2, 23*2));
+	IN_MODULE(enemy_ball, PAGE_C, init_enemy_ball(ENTITY_LUMBERJACK_BALL_3, 60*2, 32*2));
+
+
 	// NPCS
 	IN_MODULE(entity_lumberjack, PAGE_C, init_lumberjack(ENTITY_LUMBERJACK, 59*2, 44*2));
 	
+
+	// FAIRY
+	//IN_MODULE(entity_fairy, PAGE_C, init_fairy(ENTITY_BOSS_TOP_LEFT, ENTITY_BOSS_BOTTOM_LEFT, 49*2-1, 68*2));
+
 	
 	
 	debug_printf("nº entities: %d\n", LAST_ENTITY);
@@ -238,15 +249,23 @@ static void main_game_routine() {
 
 	state.rupees = 0;
 	state.has_weapon[0]=true;
+
+	state.next_flower.i = 49*2+1;
+	state.next_flower.j = 68*2+1;
 	
 	// SPAWN wolfi
 	spawn_entity(ENTITY_WOLFI);
 
 	map.pos.j = ( (state.entities[0].pos.j + 0x80) >> 8)-16;
 	map.pos.i = ( (state.entities[0].pos.i + 0x80) >> 8)-11;
-	map.pos.i = 128-22;
+	if (map.pos.i > 128-22) map.pos.i = 128-22;
 	state.target_map_pos.i = map.pos.i;
 	state.target_map_pos.j = map.pos.j;
+	
+	overworld_set_map_index(49*2*256, 68*2*256, 1);
+	overworld_set_map_index(50*2*256, 68*2*256, 1);
+
+	sprites[0].enabled = false;
 
     {
 
@@ -268,6 +287,8 @@ static void main_game_routine() {
 			wait_frame();
         }
     }
+
+	sprites[0].enabled = true;
     
     IN_MODULE(infobar, PAGE_B, infobar_init());
     
@@ -292,6 +313,8 @@ static void main_game_routine() {
 
 			// UPDATE SPAWNED ENTITIES
 			for (int i=0; i<12; i++) {
+				
+				yield();
 
 				int8_t idx = state.spawns[i];
 
@@ -320,6 +343,8 @@ static void main_game_routine() {
 			{
 				uint8_t i = (state.game_cycles<<3)&127;
 				if (i<96) for (uint8_t j=0; j<8; j++) {
+
+					yield();
 					
 					Entity *entity = &state.entities[i+j];
 					
@@ -343,6 +368,194 @@ static void main_game_routine() {
     }
 }
 
+static void title_isr(void) {
+	
+    uint8_t oldSegmentPageB = mapper_load_module(overworld, PAGE_B);
+    uint8_t oldSegmentPageC = CURRENT_SEGMENT(PAGE_C);
+    uint8_t oldSegmentPageD = CURRENT_SEGMENT(PAGE_D);
+     
+    //debugBorder(5);
+
+    state.isr_count++;
+    state.current_em2_buffer = state.isr_count & 0x01;
+    
+    TMS99X8_activateBuffer(!state.current_em2_buffer);
+
+    static uint8_t request_pattern_name_transfer_internal;
+    static uint8_t animated_tiles_state;
+
+	switch (state.isr_state_machine++) {
+    case 0:
+		
+		request_pattern_name_transfer_internal = state.request_pattern_name_transfer;
+		state.request_pattern_name_transfer = false;
+
+        if (request_pattern_name_transfer_internal) {
+			
+			titlemap_copyPN1full();
+			titlemap_free0();
+        } else {
+			CALL_PAGE(sprites, PAGE_B, updateSpriteISR());        
+		}
+        break;
+        
+    case 1:
+
+        if (request_pattern_name_transfer_internal) {
+			
+            titlemap_copyPN0full();
+			titlemap_free1();
+        } else {
+           CALL_PAGE(sprites, PAGE_B, updateSpriteISR());
+        }
+        
+
+        break;
+        
+    case 2:
+        CALL_PAGE(sprites, PAGE_B, updateSpriteISR());
+        break;
+                
+    case 3:
+        if (request_pattern_name_transfer_internal) {
+			titlemap_free2();
+		}
+
+        state.isr_state_machine = 0;
+        break;
+    }
+
+	if (state.current_em2_buffer) {
+		TMS99X8_writeSpriteAttributes(1, SA0);
+	} else {
+		TMS99X8_writeSpriteAttributes(0, SA1);
+	}
+
+    //debugBorder(0);
+
+
+    mapper_load_segment(oldSegmentPageB, PAGE_B);
+    mapper_load_segment(oldSegmentPageC, PAGE_C);
+    mapper_load_segment(oldSegmentPageD, PAGE_D);
+}
+
+static void title_routine() {
+	
+    
+    mapper_load_module(titlemap, PAGE_B);
+    titlemap_init();
+    CALL_PAGE(sprites, PAGE_B, sprites_init());
+
+    TMS99X8.sprites16 = true;
+    TMS99X8_syncFlags();
+    
+
+    msxhal_install_isr(title_isr);
+
+    memset(&state,0,sizeof(state));    
+	for (uint8_t i=0; i<12; i++)
+		state.spawns[i] = -1;
+	state.num_spawns=0;	
+
+	for (uint8_t i=0; i<96; i++)
+		state.entities[i].spawn_idx = -1;
+		
+	//init_overworld_entities();
+
+	map.pos.j = 0;
+	map.pos.i = 24;
+	
+	TMS99X8.blankScreen = false;
+	TMS99X8_syncAllRegisters();
+	
+    {
+
+        for (uint8_t i=0; i<12; i++) {
+
+			titlemap_draw_row(i);
+			titlemap_draw_row(23-i);
+			wait_frame();
+			titlemap_draw_col(31-i);
+			titlemap_draw_col(i);
+			wait_frame();
+		titlemap_copyPN1full();
+		titlemap_copyPN0full();
+		titlemap_free();
+			wait_frame();
+        }
+    }
+    
+	TMS99X8.blankScreen = true;
+	TMS99X8_syncAllRegisters();
+    //debugBorder(5);
+    
+    for (uint8_t i=0; i<32; i+=1) {
+		
+		map.pos.j = (i&7)*32;
+		map.pos.i = 24+(i/8)*24;
+		wait_frame();
+		titlemap_free2();
+		titlemap_draw_col(1);
+		titlemap_draw_col(2);
+		titlemap_draw_col(3);
+		wait_frame();
+		titlemap_draw_col(4);
+		titlemap_draw_col(5);
+		titlemap_draw_col(6);
+		wait_frame();
+		titlemap_draw_row(22);
+		titlemap_draw_row(23);
+		titlemap_free0();
+		wait_frame();
+		titlemap_copyPN1full();
+		titlemap_copyPN0full();
+		titlemap_free1();
+		
+		if (i==30) TMS99X8_setBorderColor(BGray);
+	}
+	wait_frame(); update_keyboard_and_joystick(); if (keyboard[8] != 255) return;
+	titlemap_free();
+	TMS99X8_setBorderColor(BWhite);
+    //debugBorder(0);
+    {
+		map.pos.j = 32;
+		map.pos.i = 0;
+        while (true) {
+
+			if (map.pos.j==0) {
+				map.pos.j = 32;
+			} else {
+				map.pos.j = 0;
+			}
+			for (uint8_t j=1; j<31; j+=2) {
+				wait_frame(); update_keyboard_and_joystick(); if (keyboard[8] != 255) return;
+				titlemap_draw_col(j);
+				titlemap_draw_col(j+1);
+
+				//debug_printf("C %d %d %d %d\n", j, map.bank[0].numUsedPatterns, map.bank[1].numUsedPatterns, map.bank[2].numUsedPatterns);
+				//debug_printf("D %d %d %d %d\n", j, map.bank[0].numTilesToReleaseL, map.bank[1].numTilesToReleaseL, map.bank[2].numTilesToReleaseL);
+
+			}
+			wait_frame(); update_keyboard_and_joystick(); if (keyboard[8] != 255) return;
+			titlemap_draw_tile8(22,31);
+			titlemap_draw_tile8(16,31);
+			titlemap_draw_tile8(23,31);
+			wait_frame(); update_keyboard_and_joystick(); if (keyboard[8] != 255) return;
+			titlemap_copyPN1full();
+			titlemap_copyPN0full();
+			TMS99X8_setBorderColor(BBlack);
+			wait_frame(); update_keyboard_and_joystick(); if (keyboard[8] != 255) return;
+			titlemap_free0();
+			wait_frame(); update_keyboard_and_joystick(); if (keyboard[8] != 255) return;
+			titlemap_free1();
+			wait_frame(); update_keyboard_and_joystick(); if (keyboard[8] != 255) return;
+			titlemap_free2();
+			for (uint8_t j=1; j<31; j+=2) {
+				wait_frame(); update_keyboard_and_joystick(); if (keyboard[8] != 255) return;
+			}			
+        }
+    }
+}
 
 
 static void clean_init() {
@@ -398,9 +611,8 @@ int main(void) {
 
     TMS99X8_activateMode2(MODE2_ALL_ROWS); 
     
-    while (true) {
-		main_game_routine();
-	}
+    title_routine();
+	main_game_routine();
     
     return 0;
 }

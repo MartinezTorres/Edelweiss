@@ -1,7 +1,7 @@
 #include <common.h>
-#include <entities/weapons/entity_weapon_bomb_sprite.h>
+#include <entities/explosion/entity_explosion_sprite.h>
 
-USING_MODULE(entity_weapon_bomb_sprite, PAGE_D);
+USING_MODULE(entity_explosion_sprite, PAGE_D);
 
 static void on_spawn(Entity *entity) {
 	
@@ -11,7 +11,8 @@ static void on_spawn(Entity *entity) {
     sprites[idx].patternBlackRequired = true;
     sprites[idx].patternColorRequired = true;
 	sprites[idx].overrideColors = false;
-	sprites[idx].spriteInfoSegment = MODULE_SEGMENT(entity_weapon_bomb_sprite, PAGE_D);	
+	sprites[idx].spriteInfoSegment = MODULE_SEGMENT(entity_explosion_sprite, PAGE_D);	
+	sprites[idx].spriteInfo = &explosion_0_0;
 
 	sprites[idx].pos = entity->pos;
 
@@ -30,15 +31,10 @@ static uint8_t on_update(Entity *entity) {
 
 	for (uint8_t i=0; i<state.isr_count_delta; i++) {
 		
-		if (entity->animation_counter<6) {
-			sprites[idx].spriteInfo = &weapon_bomb_1_0;
-		} else if (entity->animation_counter<10) {
-			sprites[idx].spriteInfo = &weapon_bomb_2_0;
-		} else if (entity->animation_counter<14) {
-			sprites[idx].spriteInfo = &weapon_bomb_3_0;
-		} else {
-			return false;
-		}
+		if (entity->animation_counter==6) sprites[idx].spriteInfo = &explosion_1_0;
+		if (entity->animation_counter==12) sprites[idx].spriteInfo = &explosion_2_0;
+		if (entity->animation_counter==18) sprites[idx].spriteInfo = &explosion_3_0;
+		if (entity->animation_counter==24) return false;
 		entity->animation_counter++;
 	}
 

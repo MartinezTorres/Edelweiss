@@ -518,20 +518,25 @@ int main(int argc, const char *argv[]) {
 				for (auto &c : data) if (c==',') c=' ';
 				std::istringstream iss(data);
 				
+				std::cerr << tileMap.rows << " " << tileMap.cols << std::endl;
+				
 				for (int ii = 0; ii<height; ii++) {
 					for (int jj = 0; jj<width; jj++) {
 						int idx;
 						iss >> idx;
 						idx--;
+						//if (idx<0) idx = 0;
 						int h = idx / (tileMap.cols/16);
 						int w = idx % (tileMap.cols/16);
+					
+						std::cerr << h*16 << " " << w*16 << std::endl;
 						
 						tileMap(cv::Rect(w*16,h*16,16,16)).copyTo(map.img(cv::Rect(jj*16, ii*16, 16, 16)));
 						
 					}
 				}
-				//cv::imshow("map", map.img);
-				//cv::waitKey(0);
+				cv::imshow("map", map.img);
+				cv::waitKey(0);
 			}
             
             
@@ -857,7 +862,7 @@ int main(int argc, const char *argv[]) {
                     ofs << "{";
                     for (int j=0; j<map16.cols; j++) {
 
-                        if (j and (j%16==0)) ofs << std::endl << " "; 
+                        //if (j and (j%16==0)) ofs << std::endl << " "; 
                         sprintf(msg,"0x%02X,", map16(i,j)); ofs << msg;
                     }
                     ofs << "}," << std::endl; 

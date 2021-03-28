@@ -88,6 +88,11 @@ USING_MODULE(overworld, PAGE_B);
 #define TILE_BIG_CACTUS_TOP overworld_TILEMAP(5,5)
 #define TILE_BIG_CACTUS_BOTTOM overworld_TILEMAP(5,6)
 
+#undef MAP_INTERFACE
+#include <maps/titlemap/titlemap.h>
+USING_MODULE(titlemap, PAGE_B);
+
+
 ////////////////////////////////////////////////////////////////////////
 // SPRITES
 #include <sprites.h>
@@ -185,6 +190,9 @@ enum {
 
 	// BOSS (shared, only one boss is active)
 	ENTITY_ARMEDEYES_0, // BIG EYE WITH TWO ARMS THAT SHOOTS AT THE FLOWER 
+
+	ENTITY_FAIRY_TOP,
+	ENTITY_FAIRY_BOTTOM,
 
 	ENTITY_BOSS_TOP_LEFT,
 	ENTITY_BOSS_TOP_RIGHT,
@@ -371,6 +379,7 @@ struct T_Entity {
 		};
 		struct {
 			uint8_t skip_23_frame;
+			uint8_t movie_state;
 		};
 		struct {
 			uint8_t skeleti_delay;
