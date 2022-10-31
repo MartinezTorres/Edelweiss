@@ -118,7 +118,7 @@ static uint8_t on_update(Entity *entity) {
 	idx = 0;
 
 
-	if (entity->life<6) wolfi_is_killed();
+	if (entity->life<1) wolfi_is_killed();
 
 	////////////////////////////////////////////////////////////////////////////////////////////
 	// INVULNERABLE FRAMES
@@ -588,7 +588,7 @@ static uint8_t on_update_intro(Entity *entity) {
 
 			large_message("HELLO VISITOR. I AM THE\nSPIRIT OF EDELWEISS.\nTHIS TOWN HAS A UNIQUE\nLINK TO THE MAGIC WORLD");
 
-			large_message("WE, FAIRIES, KEEP ALIVE\nTHIS LINK. VISITOR, I\nSENSE YOUR PURE HEART.\nWE NEED YOUR HELP!");
+			large_message("WE, FAIRIES, KEEP ALIVE\nTHIS LINK. VISITOR, I CAN\nSENSE YOUR PURE HEART.\nWE NEED YOUR HELP!");
 			
 			large_message("MY SEVEN DAUGHTERS ARE\nABOUT TO BE BORN. BUT\nEVIL POWERS WANT TO\nPREVENT THEIR BIRTH.");
 

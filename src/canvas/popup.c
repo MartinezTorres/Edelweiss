@@ -74,17 +74,25 @@ void popupInitCanvas(uint8_t x, uint8_t y) {
     popupTextProperties.sz = 1;
     popupTextProperties.space_between_lines = 7;
     
+    yield();
     memset(screen_copy,0x0,sizeof(screen_copy));
+    yield();
 	TMS99X8_memcpy(MODE2_ADDRESS_PG + 0x800 + 0x0A * 8, screen_copy, sizeof(screen_copy));
+    yield();
 	TMS99X8_memset(MODE2_ADDRESS_CT + 0x800 + 0x0A * 8, FBlack + BWhite, sizeof(screen_copy));
+    yield();
     
     popupTextProperties.x = 5;
     popupTextProperties.y = 2;
     
     for (uint8_t i=0; i<7*8; i++) popupSetPoint( i, 0,1,FBlack + BWhite);
+    yield();
     for (uint8_t i=0; i<7*8; i++) popupSetPoint( i,23,1,FBlack + BWhite);
+    yield();
     for (uint8_t i=0; i<3*8; i++) popupSetPoint( 0, i,1,FBlack + BWhite);
+    yield();
     for (uint8_t i=0; i<3*8; i++) popupSetPoint(55, i,1,FBlack + BWhite);
+    yield();
 
     popupSetPoint( 1, 1, 1, FBlack + BWhite);
     popupSetPoint( 1,22, 1, FBlack + BWhite);
@@ -102,12 +110,18 @@ void popupInitCanvas(uint8_t x, uint8_t y) {
 
 			 
 		TMS99X8_memcpy(MODE2_ADDRESS_PN0 + 0x100 + x + 0x20*(y+0), (const uint8_t *)&scratchpad[ 0], 7);
+		yield();
 		TMS99X8_memcpy(MODE2_ADDRESS_PN0 + 0x100 + x + 0x20*(y+1), (const uint8_t *)&scratchpad[ 7], 7);
+		yield();
 		TMS99X8_memcpy(MODE2_ADDRESS_PN0 + 0x100 + x + 0x20*(y+2), (const uint8_t *)&scratchpad[14], 7);
+		yield();
 
 		TMS99X8_memcpy(MODE2_ADDRESS_PN1 + 0x100 + x + 0x20*(y+0), (const uint8_t *)&scratchpad[ 0], 7);
+		yield();
 		TMS99X8_memcpy(MODE2_ADDRESS_PN1 + 0x100 + x + 0x20*(y+1), (const uint8_t *)&scratchpad[ 7], 7);
+		yield();
 		TMS99X8_memcpy(MODE2_ADDRESS_PN1 + 0x100 + x + 0x20*(y+2), (const uint8_t *)&scratchpad[14], 7);
+		yield();
     }
 }
 

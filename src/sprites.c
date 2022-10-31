@@ -120,6 +120,14 @@ void updateSpriteISR() {
     UNROLL(12, if (sprites[n].enabled) { ts = &sprites[n]; updateSprite(n); } );
 }
 
-void sprites_init() { memset(sprites, 0, sizeof(sprites)); }
+void sprites_init() { 
+	memset(sprites, 0, sizeof(sprites)); 
+	for (uint8_t i=0; i<32; i++) {
+		SA0[i].y = 209;		
+		SA1[i].y = 209;		
+	}
+	TMS99X8_writeSpriteAttributes(1, SA0);
+	TMS99X8_writeSpriteAttributes(0, SA1);    
+}
 
 

@@ -1,6 +1,7 @@
 #include <common.h>
 
 struct T_State state;
+struct T_Configuration configuration;
 
 #ifndef MSX
     T_Map map;

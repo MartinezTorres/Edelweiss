@@ -18,8 +18,8 @@ void large_message(const char *msg) {
 	
 	update_keyboard_and_joystick();
 	do {
-		wait_frame();
 		update_keyboard_and_joystick();
+		wait_frame();
 	} while (keyboard[8] == 255);
 
 	state.request_pattern_name_transfer = 3;
@@ -43,8 +43,8 @@ void small_message(const char *msg) {
 	
 	update_keyboard_and_joystick();
 	do {
-		wait_frame();
 		update_keyboard_and_joystick();
+		wait_frame();
 	} while (keyboard[8] == 255);
 
 	state.request_pattern_name_transfer = 3;

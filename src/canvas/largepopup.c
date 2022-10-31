@@ -180,16 +180,25 @@ void largePopupCenteredText(uint8_t x, const char *str) {
     largePopupTextProperties.space_between_lines = 7;
     
     memset(screen_copy,0x0,sizeof(screen_copy));
+    yield();
 	TMS99X8_memcpy(MODE2_ADDRESS_PG + 0x000 + 0x0A * 8, screen_copy, sizeof(screen_copy)/2);
+    yield();
 	TMS99X8_memcpy(MODE2_ADDRESS_PG + 0x800 + 0x0A * 8, &screen_copy[sizeof(screen_copy)/2], sizeof(screen_copy)/2);
+    yield();
 	TMS99X8_memset(MODE2_ADDRESS_CT + 0x000 + 0x0A * 8, FBlack + BWhite, sizeof(screen_copy)/2);
+    yield();
 	TMS99X8_memset(MODE2_ADDRESS_CT + 0x800 + 0x0A * 8, FBlack + BWhite, sizeof(screen_copy)/2);
+    yield();
  
    
     for (uint8_t i=0; i<11*8; i++) largePopupSetPoint( i, 0,1,FBlack + BWhite);
+    yield();
     for (uint8_t i=0; i<11*8; i++) largePopupSetPoint( i,31,1,FBlack + BWhite);
+    yield();
     for (uint8_t i=0; i< 4*8; i++) largePopupSetPoint( 0, i,1,FBlack + BWhite);
+    yield();
     for (uint8_t i=0; i< 4*8; i++) largePopupSetPoint(87, i,1,FBlack + BWhite);
+    yield();
 
     largePopupSetPoint( 1, 1, 1, FBlack + BWhite);
     largePopupSetPoint( 1,30, 1, FBlack + BWhite);
@@ -206,14 +215,22 @@ void largePopupCenteredText(uint8_t x, const char *str) {
 
 			 
 		TMS99X8_memcpy(MODE2_ADDRESS_PN0 + 0x000 + x + 0x20*6, (const uint8_t *)&scratchpad[ 0], 11);
+    yield();
 		TMS99X8_memcpy(MODE2_ADDRESS_PN0 + 0x000 + x + 0x20*7, (const uint8_t *)&scratchpad[11], 11);
+    yield();
 		TMS99X8_memcpy(MODE2_ADDRESS_PN0 + 0x100 + x + 0x20*0, (const uint8_t *)&scratchpad[ 0], 11);
+    yield();
 		TMS99X8_memcpy(MODE2_ADDRESS_PN0 + 0x100 + x + 0x20*1, (const uint8_t *)&scratchpad[11], 11);
+    yield();
 
 		TMS99X8_memcpy(MODE2_ADDRESS_PN1 + 0x000 + x + 0x20*6, (const uint8_t *)&scratchpad[ 0], 11);
+    yield();
 		TMS99X8_memcpy(MODE2_ADDRESS_PN1 + 0x000 + x + 0x20*7, (const uint8_t *)&scratchpad[11], 11);
+    yield();
 		TMS99X8_memcpy(MODE2_ADDRESS_PN1 + 0x100 + x + 0x20*0, (const uint8_t *)&scratchpad[ 0], 11);
+    yield();
 		TMS99X8_memcpy(MODE2_ADDRESS_PN1 + 0x100 + x + 0x20*1, (const uint8_t *)&scratchpad[11], 11);
+    yield();
     }
 
     getTextSize(str);

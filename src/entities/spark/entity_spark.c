@@ -12,7 +12,7 @@ static void on_spawn(Entity *entity) {
     sprites[idx].patternColorRequired = true;
 	sprites[idx].overrideColors = false;
 	sprites[idx].spriteInfoSegment = MODULE_SEGMENT(entity_spark_sprite, PAGE_D);	
-	sprites[idx].spriteInfo = &spark_0_0;
+	sprites[idx].spriteInfo = (entity->spark_type==0?&spark_0_0:entity->spark_type==1?&spark_0_1:&spark_0_2);
 
 	sprites[idx].pos = entity->pos;
 
@@ -31,9 +31,9 @@ static uint8_t on_update(Entity *entity) {
 
 	for (uint8_t i=0; i<state.isr_count_delta; i++) {
 		
-		if (entity->animation_counter==6) sprites[idx].spriteInfo = &spark_1_0;
-		if (entity->animation_counter==12) sprites[idx].spriteInfo = &spark_2_0;
-		if (entity->animation_counter==18) sprites[idx].spriteInfo = &spark_3_0;
+		if (entity->animation_counter== 6) sprites[idx].spriteInfo = (entity->spark_type==0?&spark_1_0:entity->spark_type==1?&spark_1_1:&spark_1_2);
+		if (entity->animation_counter==12) sprites[idx].spriteInfo = (entity->spark_type==0?&spark_2_0:entity->spark_type==1?&spark_2_1:&spark_2_2);
+		if (entity->animation_counter==18) sprites[idx].spriteInfo = (entity->spark_type==0?&spark_3_0:entity->spark_type==1?&spark_3_1:&spark_3_2);
 		if (entity->animation_counter==24) return false;
 		entity->animation_counter++;
 	}
@@ -49,6 +49,7 @@ void init_spark(uint8_t idx) {
 
 	Entity *entity = &state.entities[idx];
 
+	entity->spark_type = 0;
 	entity->spawn_auto = false;
 	entity->spawn_idx = -1;
 	entity->spawn_priority = 4;

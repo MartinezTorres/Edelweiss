@@ -375,6 +375,9 @@ struct T_Entity {
 
 	union {
 		struct {
+			uint8_t spark_type;
+		};
+		struct {
 			uint8_t weapon_type;
 		};
 		struct {
@@ -405,6 +408,13 @@ enum    { K_R=0x80,K_Q=0x40,K_P=0x20,K_O=0x10,K_N=0x08,K_M=0x04,K_L=0x02,K_K=0x0
 extern uint8_t keyboard[16];
 extern uint8_t keyboard_prev[16];
 extern uint8_t keyboard_click[16];
+
+
+struct T_Configuration {
+	
+	uint8_t attract_mode;
+	enum {E_ENGLISH, E_SPANISH} language;	
+};
 
 struct T_State {
 
@@ -445,12 +455,12 @@ struct T_State {
 	uint8_t history_wolfi_orientation[8];
 	uint8_t history_wolfi_pos_count;
 	uint8_t follower_entity_spawn_idx;
-
-
-	enum {E_ENGLISH, E_SPANISH} language;
+	
+	bool return_to_menu;
 };
 
 extern struct T_State state;
+extern struct T_Configuration configuration;
 
 //////////////////////////// T_Map
 enum    { MAP_OBSTACLE = 0x01, MAP_TRIGGER = 0x02, MAP_DAMAGE = 0x04 };

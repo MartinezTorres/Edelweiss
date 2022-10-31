@@ -166,6 +166,21 @@ static void main_isr(void) {
 		TMS99X8_writeSpriteAttributes(0, SA1);
 	}
 	
+	if (configuration.attract_mode && state.isr_count==0) {
+
+		configuration.attract_mode--;
+
+		update_keyboard_and_joystick();
+		if (keyboard[8]!=255) configuration.attract_mode=0;
+
+		keyboard[8] = 255-K_SPACE;
+		
+		if (configuration.attract_mode==0) {
+			
+			state.return_to_menu = true;
+		}
+	}
+
 
 //	debugBorder(0x0);
 
@@ -226,6 +241,8 @@ static void init_overworld_entities() {
 
 static void main_game_routine() {
 	
+    msxhal_install_isr(nullptr);
+    wait_frame();
     
     mapper_load_module(overworld, PAGE_B);
     overworld_init();
@@ -271,7 +288,6 @@ static void main_game_routine() {
 
         overworld_draw_row(0);
         overworld_draw_row(1);
-        while (state.isr_state_machine!=5) wait_frame();
         for (uint8_t i=0; i<11; i++) {
 
 			overworld_draw_row(2+i);
@@ -279,11 +295,15 @@ static void main_game_routine() {
 			wait_frame();
 			overworld_draw_col(31-i);
 			overworld_draw_col(i);
-			state.request_pattern_name_transfer = true;
+//			state.request_pattern_name_transfer = true;
+//			wait_frame();
+//			wait_frame();
+//			wait_frame();
+//			wait_frame();
 			wait_frame();
-			wait_frame();
-			wait_frame();
-			wait_frame();
+			titlemap_copyPN1();
+			titlemap_copyPN0();
+			titlemap_free();
 			wait_frame();
         }
     }
@@ -295,7 +315,7 @@ static void main_game_routine() {
     {
 		static uint8_t previous_isr_count;
 		state.game_cycles = 0;
-        while (true) {
+        while (!state.return_to_menu) {
 
 			// WAIT FOR FRAME
 			wait_frame();
@@ -312,7 +332,7 @@ static void main_game_routine() {
 //			_putchar("0123456789"[state.isr_count_delta]);			
 
 			// UPDATE SPAWNED ENTITIES
-			for (int i=0; i<12; i++) {
+			for (uint8_t i=0; i<12; i++) {
 				
 				yield();
 
@@ -370,77 +390,69 @@ static void main_game_routine() {
 
 static void title_isr(void) {
 	
-    uint8_t oldSegmentPageB = mapper_load_module(overworld, PAGE_B);
-    uint8_t oldSegmentPageC = CURRENT_SEGMENT(PAGE_C);
-    uint8_t oldSegmentPageD = CURRENT_SEGMENT(PAGE_D);
-     
-    //debugBorder(5);
-
-    state.isr_count++;
+	state.isr_count++;
     state.current_em2_buffer = state.isr_count & 0x01;
     
     TMS99X8_activateBuffer(!state.current_em2_buffer);
-
-    static uint8_t request_pattern_name_transfer_internal;
-    static uint8_t animated_tiles_state;
-
-	switch (state.isr_state_machine++) {
-    case 0:
-		
-		request_pattern_name_transfer_internal = state.request_pattern_name_transfer;
-		state.request_pattern_name_transfer = false;
-
-        if (request_pattern_name_transfer_internal) {
-			
-			titlemap_copyPN1full();
-			titlemap_free0();
-        } else {
-			CALL_PAGE(sprites, PAGE_B, updateSpriteISR());        
-		}
-        break;
-        
-    case 1:
-
-        if (request_pattern_name_transfer_internal) {
-			
-            titlemap_copyPN0full();
-			titlemap_free1();
-        } else {
-           CALL_PAGE(sprites, PAGE_B, updateSpriteISR());
-        }
-        
-
-        break;
-        
-    case 2:
-        CALL_PAGE(sprites, PAGE_B, updateSpriteISR());
-        break;
-                
-    case 3:
-        if (request_pattern_name_transfer_internal) {
-			titlemap_free2();
-		}
-
-        state.isr_state_machine = 0;
-        break;
-    }
 
 	if (state.current_em2_buffer) {
 		TMS99X8_writeSpriteAttributes(1, SA0);
 	} else {
 		TMS99X8_writeSpriteAttributes(0, SA1);
 	}
+}
 
-    //debugBorder(0);
+static bool title_wait_frame() {
+	
+	wait_frame(); 
 
+	state.isr_count_delta = 1;
 
-    mapper_load_segment(oldSegmentPageB, PAGE_B);
-    mapper_load_segment(oldSegmentPageC, PAGE_C);
-    mapper_load_segment(oldSegmentPageD, PAGE_D);
+	// UPDATE SPAWNED ENTITIES
+	for (uint8_t i=0; i<12; i++) {
+		
+		int8_t idx = state.spawns[i];
+		
+		if (idx<0) continue;
+		Entity *entity = &state.entities[idx];
+
+		IN_SEGMENT(
+			entity->segment, 
+			PAGE_C,         
+			if ((*entity->callbacks->on_update)(entity) == false) {
+				
+				despawn_entity(idx);
+			};
+		);
+	}
+	
+	// UPDATE SPRITES
+	{
+		uint8_t old_map_j = map.pos.j;
+		map.pos.j = 0;
+
+		CALL_PAGE(sprites, PAGE_B, updateSpriteISR());
+		map.pos.j = old_map_j;
+	}
+
+	if (state.isr_count == 16*12) state.isr_count=0;
+	if ((state.isr_count&15) == 0) {
+		if (state.entities[state.isr_count>>4].spawn_auto) {
+			spawn_entity(state.isr_count>>4);
+		}
+	}
+
+	
+	update_keyboard_and_joystick(); 
+	if (keyboard[8] != 255) return true;
+	return false;
 }
 
 static void title_routine() {
 	
+
+    msxhal_install_isr(nullptr);
+    wait_frame();
     
     mapper_load_module(titlemap, PAGE_B);
     titlemap_init();
@@ -459,7 +471,29 @@ static void title_routine() {
 
 	for (uint8_t i=0; i<96; i++)
 		state.entities[i].spawn_idx = -1;
+
+	for (uint8_t i=0; i<12; i++) {
+		trampoline_page_c_uint8_t(MODULE_SEGMENT(entity_spark, PAGE_C), init_spark, i);
+		state.entities[i].spark_type = 1+(i%2);
+		state.entities[i].spawn_auto = false;
+		state.entities[i].spawn_priority = 0;
+		do {
+			state.entities[i].pos.j = rand16()&255;
+		} while (state.entities[i].pos.j>224);
+		state.entities[i].pos.j += 16;
+		state.entities[i].pos.j <<= 5;
+
+		do {
+			state.entities[i].pos.i = rand16()&255;
+		} while (state.entities[i].pos.i>80);
+		state.entities[i].pos.i += 40;
+		state.entities[i].pos.i <<= 5;
 		
+		//spawn_entity(i);
+	}
+	
+	
+
 	//init_overworld_entities();
 
 	map.pos.j = 0;
@@ -467,21 +501,22 @@ static void title_routine() {
 	
 	TMS99X8.blankScreen = false;
 	TMS99X8_syncAllRegisters();
-	
+		
+	if (title_wait_frame()) return;
     {
 
         for (uint8_t i=0; i<12; i++) {
 
 			titlemap_draw_row(i);
 			titlemap_draw_row(23-i);
-			wait_frame();
+			if (title_wait_frame()) return;
 			titlemap_draw_col(31-i);
 			titlemap_draw_col(i);
-			wait_frame();
-		titlemap_copyPN1full();
-		titlemap_copyPN0full();
-		titlemap_free();
-			wait_frame();
+			if (title_wait_frame()) return;
+			titlemap_copyPN1full();
+			titlemap_copyPN0full();
+			titlemap_free();
+			if (title_wait_frame()) return;
         }
     }
     
@@ -493,34 +528,38 @@ static void title_routine() {
 		
 		map.pos.j = (i&7)*32;
 		map.pos.i = 24+(i/8)*24;
-		wait_frame();
+		if (title_wait_frame()) return;
 		titlemap_free2();
 		titlemap_draw_col(1);
 		titlemap_draw_col(2);
+		if (title_wait_frame()) return;
 		titlemap_draw_col(3);
-		wait_frame();
 		titlemap_draw_col(4);
+		if (title_wait_frame()) return;
 		titlemap_draw_col(5);
 		titlemap_draw_col(6);
-		wait_frame();
-		titlemap_draw_row(22);
-		titlemap_draw_row(23);
 		titlemap_free0();
-		wait_frame();
+		if (title_wait_frame()) return;
 		titlemap_copyPN1full();
 		titlemap_copyPN0full();
 		titlemap_free1();
 		
 		if (i==30) TMS99X8_setBorderColor(BGray);
 	}
-	wait_frame(); update_keyboard_and_joystick(); if (keyboard[8] != 255) return;
+	if (title_wait_frame()) return;
 	titlemap_free();
 	TMS99X8_setBorderColor(BWhite);
     //debugBorder(0);
+
+	for (uint8_t i=0; i<12; i++) {
+		state.entities[i].spawn_auto = true;
+	}
+
+
     {
 		map.pos.j = 32;
 		map.pos.i = 0;
-        while (true) {
+        for (uint8_t i=0; i<48; i++) {
 
 			if (map.pos.j==0) {
 				map.pos.j = 32;
@@ -528,7 +567,7 @@ static void title_routine() {
 				map.pos.j = 0;
 			}
 			for (uint8_t j=1; j<31; j+=2) {
-				wait_frame(); update_keyboard_and_joystick(); if (keyboard[8] != 255) return;
+				if (title_wait_frame()) return;
 				titlemap_draw_col(j);
 				titlemap_draw_col(j+1);
 
@@ -536,24 +575,27 @@ static void title_routine() {
 				//debug_printf("D %d %d %d %d\n", j, map.bank[0].numTilesToReleaseL, map.bank[1].numTilesToReleaseL, map.bank[2].numTilesToReleaseL);
 
 			}
-			wait_frame(); update_keyboard_and_joystick(); if (keyboard[8] != 255) return;
+			if (title_wait_frame()) return;
 			titlemap_draw_tile8(22,31);
 			titlemap_draw_tile8(16,31);
 			titlemap_draw_tile8(23,31);
-			wait_frame(); update_keyboard_and_joystick(); if (keyboard[8] != 255) return;
+			if (title_wait_frame()) return;
 			titlemap_copyPN1full();
 			titlemap_copyPN0full();
 			TMS99X8_setBorderColor(BBlack);
-			wait_frame(); update_keyboard_and_joystick(); if (keyboard[8] != 255) return;
+			if (title_wait_frame()) return;
 			titlemap_free0();
-			wait_frame(); update_keyboard_and_joystick(); if (keyboard[8] != 255) return;
+			if (title_wait_frame()) return;
 			titlemap_free1();
-			wait_frame(); update_keyboard_and_joystick(); if (keyboard[8] != 255) return;
+			if (title_wait_frame()) return;
 			titlemap_free2();
-			for (uint8_t j=1; j<31; j+=2) {
-				wait_frame(); update_keyboard_and_joystick(); if (keyboard[8] != 255) return;
+			for (uint8_t j=1; j<33; j+=2) {
+				if (title_wait_frame()) return;
 			}			
         }
+        
+        configuration.attract_mode = 9;
+        return;
     }
 }
 
@@ -611,8 +653,13 @@ int main(void) {
 
     TMS99X8_activateMode2(MODE2_ALL_ROWS); 
     
-    title_routine();
-	main_game_routine();
+    configuration.attract_mode = 0;
+    configuration.language = E_ENGLISH;  
+    
+    while (true) {
+		title_routine();
+		main_game_routine();
+	}
     
     return 0;
 }
