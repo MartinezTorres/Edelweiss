@@ -1,5 +1,9 @@
 #include <common.h>
 #include <entities/npcs/entity_npcs_sprites.h>
+#include <gameplay/quest.h>
+#if EDW_VEXEL
+USING_MODULE(quest, PAGE_C);
+#endif
 
 USING_MODULE(entity_npcs_sprites, PAGE_D);
 
@@ -59,6 +63,9 @@ static uint8_t on_update(Entity *entity) {
 	} else {
 
 		if (collision_wolfi(spawn_idx)) {
+			#if EDW_VEXEL
+			trampoline_page_c_uint8_t(MODULE_SEGMENT(quest, PAGE_C), quest_interact, QUEST_CONTACT);
+			#else
 			
 			
 			large_message("I WAS CUTTING\nWOOD WHEN THE\nMONSTERS APPEARED.");
@@ -76,6 +83,7 @@ static uint8_t on_update(Entity *entity) {
 
 			}
 			state.follower_entity_spawn_idx = entity->spawn_idx;
+			#endif
 		}
 	}
 

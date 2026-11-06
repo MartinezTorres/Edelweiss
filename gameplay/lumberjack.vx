@@ -1,0 +1,21 @@
+// The quest knows IDs and values, never mapped addresses or engine structs.
+// This ABI is shared with src/gameplay/quest.h; tests exercise both together.
+waiting=0; introduction=1; request=2; following=3; thanks=4; completed=5;
+contact=1; town_hall=2; dialogue_closed=3; cancelled=4;
+none=0; show_text=1; start_following=2; give_axe=3;
+no_text=0; text_introduction=1; text_request=2; text_thanks=3;
+
+#Step(phase:#u8, command:#u8, text:#u8);
+
+// One live result, consumed completely before the next event. The three-byte
+// output budget is part of the puzzle; no heap or whole-world snapshot exists.
+[[require(payload_bytes, 3)]]
+&^lumberjack(phase:#u8, event:#u8) {
+    event==cancelled && phase!=completed ? #Step(waiting,none,no_text) : (
+    phase==waiting && event==contact ? #Step(introduction,show_text,text_introduction) : (
+    phase==introduction && event==dialogue_closed ? #Step(request,show_text,text_request) : (
+    phase==request && event==dialogue_closed ? #Step(following,start_following,no_text) : (
+    phase==following && event==town_hall ? #Step(thanks,show_text,text_thanks) : (
+    phase==thanks && event==dialogue_closed ? #Step(completed,give_axe,no_text) :
+    #Step(phase,none,no_text))))))
+}

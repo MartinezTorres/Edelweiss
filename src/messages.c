@@ -16,11 +16,16 @@ void large_message(const char *msg) {
 	);	
 	for (uint8_t i=0; i<12; i++) wait_frame();
 	
+	#ifdef EDW_SMOKE
+	/* Full-engine smoke profile acknowledges after the usual display delay. */
+	{ extern volatile uint8_t edw_smoke_messages; ++edw_smoke_messages; }
+	#else
 	update_keyboard_and_joystick();
 	do {
 		update_keyboard_and_joystick();
 		wait_frame();
 	} while (keyboard[8] == 255);
+	#endif
 
 	state.request_pattern_name_transfer = 3;
 

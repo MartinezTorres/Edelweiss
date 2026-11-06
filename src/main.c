@@ -1,4 +1,8 @@
 #include <common.h>
+#ifdef EDW_SMOKE
+USING_MODULE(quest_smoke, PAGE_C);
+void quest_smoke(void);
+#endif
 
 
 static void main_isr(void) {
@@ -235,7 +239,7 @@ static void init_overworld_entities() {
 	
 	
 	debug_printf("nº entities: %d\n", LAST_ENTITY);
-	debug_printf("Entity size: %d\n", sizeof(Entity));
+	debug_printf("Entity size: %d\n", (int)sizeof(Entity));
 
 }
 
@@ -243,12 +247,15 @@ static void main_game_routine() {
 	
     msxhal_install_isr(nullptr);
     wait_frame();
+    // The title can be skipped during its white/grey flash or blanked phase.
+    TMS99X8_setBorderColor(BBlack);
     
     mapper_load_module(overworld, PAGE_B);
     overworld_init();
     CALL_PAGE(sprites, PAGE_B, sprites_init());
 
     TMS99X8.sprites16 = true;
+    TMS99X8.blankScreen = true; // Hardware display-enable bit, despite the name.
     TMS99X8_syncFlags();
     
 
@@ -311,6 +318,10 @@ static void main_game_routine() {
 	sprites[0].enabled = true;
     
     IN_MODULE(infobar, PAGE_B, infobar_init());
+
+#ifdef EDW_SMOKE
+    TRAMPOLINE_PAGE_C(quest_smoke);
+#endif
     
     {
 		static uint8_t previous_isr_count;
@@ -606,7 +617,11 @@ static void clean_init() {
 // CLEAR RAM
 
 	{
-	    static __at 48*1024U uint8_t buffer[8+1024U];
+	    // The cartridge CRT does not initialize BSS. Clear the complete global
+	    // arena, ending exactly where the fixed map starts at 0xD000. In
+	    // particular, Wolfi's spawn callback reads the minimap cache before
+	    // infobar_init; an uninitialized 0xFFFF address becomes a VDP command.
+	    static __at 48*1024U uint8_t buffer[4*1024U];
 	    memset(buffer,0,sizeof(buffer));
 	}
 
@@ -657,7 +672,9 @@ int main(void) {
     configuration.language = E_ENGLISH;  
     
     while (true) {
+#ifndef EDW_SMOKE
 		title_routine();
+#endif
 		main_game_routine();
 	}
     

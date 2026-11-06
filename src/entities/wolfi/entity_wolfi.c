@@ -31,7 +31,7 @@ static void wolfi_is_killed() {
 	Entity *fairy_bottom = &state.entities[ENTITY_FAIRY_BOTTOM];
 
 	for (uint8_t i=0; i<11; i++) {
-		tmp_sprite[i+1] = sprites[i+1].enabled;
+		tmp_sprite[i] = sprites[i+1].enabled;
 		sprites[i+1].enabled = false;
 	}
 
@@ -104,7 +104,7 @@ static void wolfi_is_killed() {
 
 
 	for (uint8_t i=0; i<11; i++) {
-		sprites[i+1].enabled = tmp_sprite[i+1];
+		sprites[i+1].enabled = tmp_sprite[i];
 	}	
 }
 

@@ -1,31 +1,94 @@
-NAME := weiss
+.DEFAULT_GOAL := all
+.DELETE_ON_ERROR:
 
-include sdcc_msx/Makefile.in
+# The legacy checkout and historical out/ and tmp/ stay untouched.
+GAMEPLAY ?= vexel
+BUILD_ROOT ?= build
+SMOKE ?= 0
+BUILD := $(BUILD_ROOT)/$(GAMEPLAY)$(if $(filter 1,$(SMOKE)),-smoke,)
+SDCC ?= sdcc
+SDASZ80 ?= sdasz80
+PYTHON ?= python3
+MAX_ALLOCS ?= 2000
+VEXEL_ROOT ?= ../..
+VEXEL ?= $(VEXEL_ROOT)/build/vexel
 
-CCFLAGS_MSX   += -DKONAMI5
-#CCFLAGS_MSX   += --all-callee-saves --opt-code-speed --std-sdcc11
-#CCFLAGS_MSX   += --reserve-regs-iy --callee-saves-bc
+ifeq ($(filter $(GAMEPLAY),reference vexel),)
+$(error GAMEPLAY must be reference or vexel)
+endif
 
-OPENMSX_BIN = /opt/openMSX/bin/openmsx
-#OPENMSX_PARAM = -command "profile::section_scope_bp frame 0xFD9F; profile_osd p;" 
+rwildcard = $(foreach d,$(wildcard $(addsuffix *,$1)),$(call rwildcard,$d/,$2) $(filter $(subst *,%,$2),$d))
+SOURCES := $(sort $(call rwildcard,src/ vendor/sdcc_msx/src/,*.c))
+ifeq ($(SMOKE),1)
+SOURCES += tests/quest_smoke.c
+CPPFLAGS += -DEDW_SMOKE=1
+endif
+ASSEMBLY := $(sort $(call rwildcard,src/ vendor/sdcc_msx/src/,*.s))
+HEADERS := $(sort $(call rwildcard,src/ vendor/sdcc_msx/inc/,*.h *.t))
+INCLUDES := -Isrc -Ivendor/sdcc_msx/inc -I$(BUILD)/inc -Isrc/gameplay -Igenerated/lumberjack
+CPPFLAGS += -DEDW_VEXEL=$(if $(filter vexel,$(GAMEPLAY)),1,0)
+CFLAGS ?= -O2 -g
+HOST_FLAGS := -std=gnu99 $(CFLAGS) -Wall -Wextra -Wno-unused-parameter
+SDCCFLAGS := -mz80 --sdcccall 0 --std-sdcc99 --disable-warning 110 --disable-warning 126 \
+ --max-allocs-per-node $(MAX_ALLOCS) --allow-unsafe-read --nostdlib --no-xinit-opt
+LINUX_OBJECTS := $(addprefix $(BUILD)/linux/,$(SOURCES:.c=.o))
+MSX_OBJECTS := $(addprefix $(BUILD)/msx/,$(SOURCES:.c=.rel) $(ASSEMBLY:.s=.rel))
+LINKER := $(BUILD_ROOT)/tools/module_linker
 
-ADDR_DATA = 0xC000
+.PHONY: all linux msx run run-msx reference generate check-generated test smoke
+all: linux msx
+linux: $(BUILD)/linux/weiss
+msx: $(BUILD)/msx/weiss.rom
+reference:
+	$(MAKE) GAMEPLAY=reference all
+generate:
+	$(PYTHON) tools/generate_quest.py --solver $(VEXEL)
+check-generated:
+	$(PYTHON) tools/generate_quest.py --check
+test: check-generated $(LINKER)
+	CC="$(CC)" $(PYTHON) tests/check_quest.py
+	$(PYTHON) tests/check_linker.py $(LINKER)
+smoke:
+	$(MAKE) GAMEPLAY=reference SMOKE=1 all
+	$(MAKE) GAMEPLAY=vexel SMOKE=1 all
+	$(PYTHON) tests/check_smoke.py --build-root "$(BUILD_ROOT)"
+run: linux
+	$(BUILD)/linux/weiss
+run-msx: msx
+	openmsx -machine C-BIOS_MSX1 -carta $(BUILD)/msx/weiss.rom -romtype KonamiSCC
 
-#CCZ80 = sdcc_msx/bin/sdcc-3.9.0/bin/sdcc
-CCZ80 = sdcc_msx/bin/sdcc-4.1.0/bin/sdcc
-ASM = sdcc_msx/bin/sdcc-4.0.0/bin/sdasz80
-MAX_ALLOCS = 40000
-
-
-tmp/%.rel: %.c tmp/inc/resources.h $(HEADERS)
-	@echo -n $(MSG)
+# All required assets are already checked in as C.
+$(BUILD)/inc/resources.h:
 	@mkdir -p $(@D)
-	@$(CCZ80) -S -D MSX $(INCLUDES) $(CCFLAGS_MSX) $< -o tmp/$*.asm
-	@#cp tmp/$*.asm tmp/$*.asm.mdl.asm
-	@#echo -n `java -jar mdl.jar tmp/$*.asm -dialect sdcc -po speed -asm-dialect tmp/$*.asm.mdl.asm | grep summary | cut -f 1 -d. | cut -f 3 -d:`
-	@echo -n `java -jar mdl.jar tmp/$*.asm -dialect sdcc -ro -po speed -ro -po speed -ro -asm-dialect tmp/$*.asm.mdl.ro.asm | grep summary | cut -f 1 -d. | cut -f 3 -d:`
-	@#$(ASM) -ogslp $@ tmp/$*.asm.mdl.asm
-	@#$(ASM) -ogslp $@ tmp/$*.asm.mdl.ro.asm
-	@$(ASM) -ogslp $@ tmp/$*.asm
-	@echo " "`grep "size" tmp/$*.sym | awk 'strtonum("0x"$$4) {print $$2": "strtonum("0x"$$4)" bytes"}'` 
+	@printf '/* Assets are checked in under src/. */\n' > $@
+
+$(BUILD)/linux/%.o: %.c $(HEADERS) $(BUILD)/inc/resources.h Makefile
+	@mkdir -p $(@D)
+	$(CC) $(HOST_FLAGS) $(CPPFLAGS) -DLINUX $(INCLUDES) $(shell pkg-config --cflags sdl2) -MMD -MP -c $< -o $@
+
+$(BUILD)/linux/weiss: $(LINUX_OBJECTS)
+	$(CC) $(CFLAGS) $^ $(shell pkg-config --libs sdl2) -o $@
+
+$(BUILD)/msx/%.rel: %.c $(HEADERS) $(BUILD)/inc/resources.h Makefile
+	@mkdir -p $(@D)
+	$(SDCC) $(SDCCFLAGS) $(CPPFLAGS) -DMSX -DKONAMI5 $(INCLUDES) -S $< -o $(@:.rel=.asm)
+	$(SDASZ80) -ogslp $@ $(@:.rel=.asm)
+
+$(BUILD)/msx/%.rel: %.s Makefile
+	@mkdir -p $(@D)
+	$(SDASZ80) -ogslp $@ $<
+
+$(LINKER): vendor/sdcc_msx/util/module_linker.cc
+	@mkdir -p $(@D)
+	$(CXX) -std=c++14 -O2 -g $< -o $@
+
+$(BUILD)/msx/weiss.rom: $(MSX_OBJECTS) $(LINKER)
+	$(LINKER) $(MSX_OBJECTS) $@
+
+ifeq ($(GAMEPLAY),vexel)
+$(LINUX_OBJECTS) $(MSX_OBJECTS): | check-generated
+$(BUILD)/linux/src/gameplay/quest.o $(BUILD)/msx/src/gameplay/quest.rel: generated/lumberjack/vx_bridges.c generated/lumberjack/vexel.h
+endif
+
+-include $(LINUX_OBJECTS:.o=.d)
 

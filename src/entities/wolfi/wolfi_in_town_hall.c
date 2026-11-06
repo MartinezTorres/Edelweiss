@@ -1,4 +1,8 @@
 #include <common.h>
+#include <gameplay/quest.h>
+#if EDW_VEXEL
+USING_MODULE(quest, PAGE_C);
+#endif
 
 
 static void exit_message(const char *msg) {
@@ -22,6 +26,9 @@ static void exit_message(const char *msg) {
 void wolfi_in_town_hall() {
 
 	if (state.spawns[state.follower_entity_spawn_idx]==ENTITY_LUMBERJACK) {
+		#if EDW_VEXEL
+		trampoline_page_c_uint8_t(MODULE_SEGMENT(quest, PAGE_C), quest_interact, QUEST_TOWN_HALL);
+		#else
 		
 
 		large_message("THANKS A LOT! I CAN NOT\nWORK WITH THESE\nMONSTERS. TAKE MY\nAXE, IT MIGHT BE HANDY."); 
@@ -31,6 +38,7 @@ void wolfi_in_town_hall() {
 		state.weapon = E_AXE;
 		init_weapon();
 		IN_MODULE(infobar, PAGE_B, infobar_update_weapon());
+		#endif
 		
 		return;
 	}
