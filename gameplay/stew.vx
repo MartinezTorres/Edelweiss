@@ -1,0 +1,8 @@
+// answer: 0=query, 1=decline, 2=accept. Text IDs are shared with quest.h.
+#Stew(choices:#u8, debit:#u16, maximum_life:#u8, text:#u8);
+&^stew(maximum_life:#u8, rupees:#u16, answer:#u8) {
+    maximum_life>38 ? #Stew(0,0,0,7) : (
+    rupees<200 ? #Stew(0,0,0,8) : (
+    answer==2 ? #Stew(0,200,maximum_life+2,10) : (
+    answer==1 ? #Stew(0,0,0,0) : #Stew(2,0,0,9))))
+}

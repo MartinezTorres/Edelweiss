@@ -57,7 +57,7 @@ for variant in ("reference", "vexel"):
     env = dict(os.environ, SDL_VIDEODRIVER="dummy", SDL_AUDIODRIVER="dummy",
                OPENMSX_USER_DATA=str(OUTPUT / ("openmsx-" + variant)))
     host = subprocess.run([str(profile / "linux/weiss")], cwd=ROOT, env=env,
-                          capture_output=True, text=True, timeout=30)
+                          capture_output=True, text=True, timeout=90)
     (OUTPUT / (variant + "-linux.log")).write_text(host.stdout + host.stderr)
     assert host.returncode == 0 and "EDW_SMOKE_OK" in host.stdout, host.stdout + host.stderr
     rom = profile / "msx/weiss.rom"
@@ -74,6 +74,9 @@ for variant in ("reference", "vexel"):
     for i in range(1, 10):
         (OUTPUT / f"{variant}-pear-{i}.png").write_bytes(b"")
         (OUTPUT / f"{variant}-pear-{i}.bin").write_bytes(b"")
+    for i in range(20, 49):
+        (OUTPUT / f"{variant}-service-{i}.png").write_bytes(b"")
+        (OUTPUT / f"{variant}-service-{i}.bin").write_bytes(b"")
     script = OUTPUT / (variant + "-quest.tcl")
     script.write_text(f"""set throttle on
 set speed 100
@@ -137,11 +140,11 @@ debug set_watchpoint write_mem {capture} {{}} {{
         set actual [debug read_block VRAM 0x18c0 128][debug read_block VRAM 0x1cc0 128]
         if {{$map_tiles eq {{}} || $actual ne $map_tiles}} {{set restored 0}}
         screenshot -raw "{OUTPUT}/{variant}-closed-$closed.png"
-    }} elseif {{$checkpoint > 0 && $checkpoint <= 9}} {{
-        set pear $checkpoint
+    }} elseif {{($checkpoint > 0 && $checkpoint <= 9) || ($checkpoint >= 20 && $checkpoint <= 48)}} {{
+        if {{$checkpoint <= 9}} {{set pear $checkpoint; set kind pear}} else {{set kind service}}
         check_background
-        screenshot -raw "{OUTPUT}/{variant}-pear-$pear.png"
-        set f [open "{OUTPUT}/{variant}-pear-$pear.bin" wb]
+        screenshot -raw "{OUTPUT}/{variant}-$kind-$checkpoint.png"
+        set f [open "{OUTPUT}/{variant}-$kind-$checkpoint.bin" wb]
         foreach address {{0x0050 0x0850 0x2050 0x2850}} {{
             puts -nonewline $f [debug read_block VRAM $address 176]
         }}
@@ -151,7 +154,7 @@ debug set_watchpoint write_mem {capture} {{}} {{
         close $f
     }}
 }}
-after time 40 {{
+after time 90 {{
     set f [open {{{report}}} w]
     puts $f "timeout: [cpuregs]"
     close $f
@@ -160,14 +163,14 @@ after time 40 {{
 """)
     result = subprocess.run(["openmsx", "-machine", "C-BIOS_MSX1", "-carta", str(rom),
                              "-romtype", "KonamiSCC", "-script", str(script)],
-                            cwd=ROOT, env=env, capture_output=True, text=True, timeout=45)
+                            cwd=ROOT, env=env, capture_output=True, text=True, timeout=100)
     (OUTPUT / (variant + "-msx.log")).write_text(result.stdout + result.stderr)
     data = report.read_text()
     assert result.returncode == 0 and "status=3\n" in data, data + result.stderr
     values = dict(line.split("=", 1) for line in data.splitlines())
     assert values["dialogues"] == "3", values
     assert values["pear_captures"] == "9", values
-    assert values["menus_closed"] == "5" and values["map_restored"] == "1", \
+    assert values["menus_closed"] == "19" and values["map_restored"] == "1", \
         "Door exit must restore both map buffers without scrolling: " + str(values)
     assert values["background_ok"] == "1", "Game background must remain black: " + str(values)
     results[variant] = values
@@ -185,6 +188,10 @@ for i in range(1, 10):
     assert reference.stat().st_size > 1000, "Missing/blank pear screenshot"
     assert popup_image(reference.with_suffix(".bin")) == popup_image(vexel.with_suffix(".bin")), \
         f"Pear capture {i} rendering/placement differs"
+for i in range(20, 49):
+    reference = OUTPUT / f"reference-service-{i}.bin"
+    vexel = OUTPUT / f"vexel-service-{i}.bin"
+    assert popup_image(reference) == popup_image(vexel), f"Service capture {i} rendering/placement differs"
 (OUTPUT / "results.json").write_text(json.dumps(results, indent=2) + "\n")
 print("Three lumberjack images and nine pear popup renderings/placements match the reference")
-print("All five town-hall exits restore both map buffers without scrolling")
+print("29 service popup renderings/placements match; all 19 building exits restore both map buffers")

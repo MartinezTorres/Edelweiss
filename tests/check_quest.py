@@ -26,9 +26,17 @@ step = build_run("quest-step", ["tests/quest_step.c", "src/gameplay/quest_text.c
                                "generated/quests/vx_bridges.c"])
 sources = ["tests/quest_integration.c", "src/common.c", "src/entities/npcs/entity_lumberjack.c",
            "src/entities/npcs/entity_npcs_sprites.c", "src/entities/wolfi/wolfi_in_town_hall.c",
-           "src/gameplay/quest.c", "src/gameplay/quest_text.c"]
+           "src/gameplay/quest.c", "src/gameplay/quest_services.c", "src/gameplay/quest_text.c"]
 reference = build_run("quest-reference", sources, ["-DEDW_VEXEL=0"])
 vexel = build_run("quest-vexel", sources, ["-DEDW_VEXEL=1"])
 assert reference == vexel, "Original C and Vexel gameplay traces differ"
 print(step, end="")
 print("Original C and Vexel: identical lumberjack and pear choice/inventory/dialogue traces (UBSan)")
+
+services = ["tests/services_integration.c", "src/gameplay/quest.c", "src/gameplay/quest_services.c", "src/gameplay/quest_text.c",
+            *["src/entities/wolfi/wolfi_in_" + name + ".c" for name in
+              ("fish_n_ships", "university", "food_n_stuff")]]
+reference = build_run("services-reference", services, ["-DEDW_VEXEL=0"])
+vexel = build_run("services-vexel", services, ["-DEDW_VEXEL=1"])
+assert reference == vexel, "Original C and Vexel town-service traces differ"
+print("Town services: identical menus, payments, health, equipment and explicit random draws (UBSan)")

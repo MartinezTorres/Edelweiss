@@ -5,7 +5,10 @@
 #include "quest_smoke_input.h"
 
 volatile uint8_t edw_smoke_capture;
-uint8_t edw_smoke_keys[2], edw_smoke_key_count, edw_smoke_key_index, edw_smoke_menu;
+uint8_t edw_smoke_keys[4], edw_smoke_key_count, edw_smoke_key_index, edw_smoke_menu;
+uint8_t edw_smoke_random_calls;
+
+uint8_t quest_smoke_random(void) { ++edw_smoke_random_calls; return 3; }
 
 void quest_smoke_checkpoint(uint8_t id) {
     wait_frame();

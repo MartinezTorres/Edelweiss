@@ -54,8 +54,14 @@ int main(void) {
         assert(vx_pear_read(4) == (exchange ? (boots ? QUEST_TEXT_PEAR_RUPEES :
                                             QUEST_TEXT_PEAR_BOOTS) : QUEST_TEXT_PEAR_OFFER));
     }
-    assert(sizeof(vx_payload) == 5);
-    for (phase = 1; phase <= QUEST_TEXT_PEAR_RUPEES; ++phase) {
+    vx_stew(255, 65535, 2);
+    assert(vx_stew_read(1) == 0 && vx_stew_read(3) == QUEST_TEXT_STEW_SOLD_OUT);
+    vx_university(1, 49, 0, 0, 2);
+    assert(vx_university_read(2) == 0 && vx_university_read(3) == 0);
+    vx_shop_trade(255, 65535, 1, 1, 1, 1, 1, 0);
+    assert(vx_shop_trade_read(0) == 0 && vx_shop_trade_read(1) == 0);
+    assert(sizeof(vx_payload) == 14);
+    for (phase = 1; phase <= QUEST_TEXT_BOOK_6; ++phase) {
         assert(quest_text_copy(phase, text, sizeof(text)));
         assert(strlen(text) < sizeof(text));
         assert(!quest_text_copy(phase, text, 1) && text[0] == 0);

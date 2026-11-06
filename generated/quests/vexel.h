@@ -13,9 +13,17 @@
 #define VX_SNAPSHOT16(x) (x)
 #define VX_SNAPSHOT32(x) (x)
 #endif
-extern uint8_t vx_payload[5];
+extern uint8_t vx_payload[14];
 void vx_lumberjack(uint8_t vxp_a0,uint8_t vxp_a1) VX_ABI VX_RESIDENT;
 uint32_t vx_lumberjack_read(uint16_t index) VX_ABI VX_RESIDENT;
 void vx_pear(uint8_t vxp_a0,uint8_t vxp_a1,uint8_t vxp_a2) VX_ABI VX_RESIDENT;
 uint32_t vx_pear_read(uint16_t index) VX_ABI VX_RESIDENT;
+void vx_stew(uint8_t vxp_a0,uint16_t vxp_a1,uint8_t vxp_a2) VX_ABI VX_RESIDENT;
+uint32_t vx_stew_read(uint16_t index) VX_ABI VX_RESIDENT;
+void vx_university(uint8_t vxp_a0,uint16_t vxp_a1,uint8_t vxp_a2,uint8_t vxp_a3,uint8_t vxp_a4) VX_ABI VX_RESIDENT;
+uint32_t vx_university_read(uint16_t index) VX_ABI VX_RESIDENT;
+void vx_shop_stock(uint8_t vxp_a0,uint16_t vxp_a1,uint8_t vxp_a2,uint8_t vxp_a3,uint8_t vxp_a4,uint8_t vxp_a5) VX_ABI VX_RESIDENT;
+uint32_t vx_shop_stock_read(uint16_t index) VX_ABI VX_RESIDENT;
+void vx_shop_trade(uint8_t vxp_a0,uint16_t vxp_a1,uint8_t vxp_a2,uint8_t vxp_a3,uint8_t vxp_a4,uint8_t vxp_a5,uint8_t vxp_a6,uint8_t vxp_a7) VX_ABI VX_RESIDENT;
+uint32_t vx_shop_trade_read(uint16_t index) VX_ABI VX_RESIDENT;
 #endif

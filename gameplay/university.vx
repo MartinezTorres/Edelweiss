@@ -1,0 +1,16 @@
+// phase: welcome, claws, demolitions; 255 ends the visit.
+// answer: 0=query, 1=decline, 2=accept. Progression and eligibility live here.
+#Course(next:#u8, choices:#u8, debit:#u8, weapon:#u8, text:#u8);
+&^university(phase:#u8, rupees:#u16, has_claw:#u8, has_bomb:#u8, answer:#u8) {
+    phase==0 ? #Course(1,0,0,0,11) : (
+    phase==1 ? (
+        has_claw!=0 || answer==1 ? #Course(2,0,0,0,0) : (
+        answer==2 && rupees>=50 ? #Course(2,0,50,1,13) :
+        #Course(1,rupees>=50 ? 2 : 1,0,0,12))
+    ) : (
+    phase==2 ? (
+        has_bomb!=0 || answer==1 ? #Course(255,0,0,0,0) : (
+        answer==2 && rupees>=50 ? #Course(255,0,50,4,15) :
+        #Course(2,rupees>=50 ? 2 : 1,0,0,14))
+    ) : #Course(255,0,0,0,0)))
+}

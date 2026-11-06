@@ -1,8 +1,9 @@
 # Edelweiss
 
 An MSX1 game with a Linux/SDL development build. The lumberjack rescue, axe
-reward and town-hall pear exchange now run from Vexel; the renderer, audio,
-collision system, entity storage and optimized assembly remain in the engine.
+reward, town-hall pear exchange, Fish'n'Ships, university and Food'n'Stuff now
+run from Vexel. The renderer, audio, collision system, entity storage and
+optimized assembly remain in the engine.
 
 The original C quests are available with `GAMEPLAY=reference`. Both variants use
 the same modernized build and engine, so they can be compared directly.
@@ -43,15 +44,20 @@ the surrounding Vexel repository.
 
 ## Edit the gameplay
 
-The entry file [gameplay/quests.vx](gameplay/quests.vx) imports two pure rules:
+The entry file [gameplay/quests.vx](gameplay/quests.vx) imports the gameplay rules:
 
 - [lumberjack.vx](gameplay/lumberjack.vx) receives a phase and an event, and
   returns the next phase, command and text ID.
 - [pear.vx](gameplay/pear.vx) receives pear ownership, boots ownership and the
   player's answer. It returns the available choice count, pear consumption,
   boots reward, rupee credit and text ID.
+- [stew.vx](gameplay/stew.vx) controls eligibility, payment and health upgrades.
+- [university.vx](gameplay/university.vx) controls course progression, offers,
+  payment and learned abilities.
+- [shop.vx](gameplay/shop.vx) selects stock, affordability and purchase
+  effects. Ordinary books request an explicit random draw before committing.
 
-The rules share a five-byte result arena and receive only relevant state.
+The rules share a 14-byte result arena and receive only relevant state.
 The C adapter handles input and rendering, copies results before applying
 effects, and reuses one 96-byte text buffer. No entity or banked text pointer
 crosses into Vexel.
@@ -85,13 +91,13 @@ make -j4 smoke   # Both complete engines on SDL and openMSX, no display required
 `smoke` builds separate `*-smoke` profiles, skips the title and brings the NPC
 to the player. It uses real entity callbacks, drawing, mapper changes and the
 game ISR; dialogue is acknowledged automatically after its usual display delay.
-It checks following, delivery, the axe, pear choices, boots and rupee rewards,
-repeated visits, dialogue removal on exit and mapper restoration. This does
+It checks the quests, town-service menus, payments, healing, acquired weapons,
+random book selection, dialogue removal on exit and mapper restoration. This does
 not automate walking the complete route or replace a full playthrough.
 
 Screenshots and observed stack/timing reports are in `build/smoke`. Three
-lumberjack images and nine pear popups are compared between variants. For the
-popups, the check compares their VRAM patterns, colors and placement while
+lumberjack images, nine pear popups and 29 service popups are compared between
+variants. For the popups, the check compares their VRAM patterns, colors and placement while
 allowing the surrounding world to keep animating.
 The ordinary build contains neither the scenario driver nor scripted input.
 
@@ -101,7 +107,8 @@ under its `msx/` directory, and the cartridge has `.areas.map`, `.symbols.map`,
 8 KiB bank, resident ROM overflowing page A, and globals reaching the map's
 fixed address at `0xD000`.
 
-The two quests use 102 more bytes of global RAM than the C reference, just two
-more than the lumberjack milestone. The cartridge is now 424 KiB. Stack and
-timing measurements cover the exercised paths, not a whole-game stack proof.
-See the integration notes for the complete comparison.
+ROM growth is acceptable up to roughly 16 MB with a future mapper. RAM, stack
+usage, bank safety and execution speed take priority. The current Konami-5
+embedding places the service rules in a separate 8 KiB bank and shares the
+existing text buffer. See the integration notes for measured costs; observed
+stack depths cover the exercised paths, not the entire game.

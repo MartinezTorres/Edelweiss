@@ -90,7 +90,8 @@ $(BUILD)/msx/weiss.rom: $(MSX_OBJECTS) $(LINKER)
 
 ifeq ($(GAMEPLAY),vexel)
 $(LINUX_OBJECTS) $(MSX_OBJECTS): | check-generated
-$(BUILD)/linux/src/gameplay/quest.o $(BUILD)/msx/src/gameplay/quest.rel: generated/quests/vx_bridges.c generated/quests/vexel.h
+$(BUILD)/linux/src/gameplay/quest.o $(BUILD)/msx/src/gameplay/quest.rel: generated/quests/vx_quests.inc generated/quests/vexel.h
+$(BUILD)/linux/src/gameplay/quest_services.o $(BUILD)/msx/src/gameplay/quest_services.rel: generated/quests/vx_services.inc generated/quests/vexel.h
 endif
 
 -include $(LINUX_OBJECTS:.o=.d)

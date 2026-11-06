@@ -2,8 +2,8 @@
   "format": "vexel-relational-source-1",
   "status": "resolved",
   "stats": {
-    "work": 34396,
-    "decisions": 6,
+    "work": 140279,
+    "decisions": 0,
     "models": 1,
     "unfinished": 0
   },
@@ -13,7 +13,7 @@
   "source_inputs": [
     {
       "path": "/opt/repos/manel/vexel_lang/ext/edelweiss/gameplay/quests.vx",
-      "fnv1a": "e669b16de60ed1ec"
+      "fnv1a": "083c3f023f1cc6be"
     },
     {
       "path": "/opt/repos/manel/vexel_lang/ext/edelweiss/gameplay/lumberjack.vx",
@@ -22,6 +22,18 @@
     {
       "path": "/opt/repos/manel/vexel_lang/ext/edelweiss/gameplay/pear.vx",
       "fnv1a": "d8449d17a8d6c5f6"
+    },
+    {
+      "path": "/opt/repos/manel/vexel_lang/ext/edelweiss/gameplay/stew.vx",
+      "fnv1a": "e3440e23ca5ae4da"
+    },
+    {
+      "path": "/opt/repos/manel/vexel_lang/ext/edelweiss/gameplay/university.vx",
+      "fnv1a": "ffeaba8a8edf5f38"
+    },
+    {
+      "path": "/opt/repos/manel/vexel_lang/ext/edelweiss/gameplay/shop.vx",
+      "fnv1a": "544a63664ba0787c"
     }
   ],
   "resource_inputs": [],
@@ -30,7 +42,10 @@
   "input_dependencies": [
     "/opt/repos/manel/vexel_lang/ext/edelweiss/gameplay/lumberjack.vx",
     "/opt/repos/manel/vexel_lang/ext/edelweiss/gameplay/pear.vx",
-    "/opt/repos/manel/vexel_lang/ext/edelweiss/gameplay/quests.vx"
+    "/opt/repos/manel/vexel_lang/ext/edelweiss/gameplay/quests.vx",
+    "/opt/repos/manel/vexel_lang/ext/edelweiss/gameplay/shop.vx",
+    "/opt/repos/manel/vexel_lang/ext/edelweiss/gameplay/stew.vx",
+    "/opt/repos/manel/vexel_lang/ext/edelweiss/gameplay/university.vx"
   ],
   "input_selections": [
     {
@@ -39,6 +54,18 @@
     },
     {
       "key": "path-exists:/opt/repos/manel/vexel_lang/ext/edelweiss/gameplay/pear.vx",
+      "value": "true"
+    },
+    {
+      "key": "path-exists:/opt/repos/manel/vexel_lang/ext/edelweiss/gameplay/shop.vx",
+      "value": "true"
+    },
+    {
+      "key": "path-exists:/opt/repos/manel/vexel_lang/ext/edelweiss/gameplay/stew.vx",
+      "value": "true"
+    },
+    {
+      "key": "path-exists:/opt/repos/manel/vexel_lang/ext/edelweiss/gameplay/university.vx",
       "value": "true"
     },
     {
@@ -54,19 +81,43 @@
       "value": "/opt/repos/manel/vexel_lang/ext/edelweiss/gameplay/quests.vx"
     },
     {
+      "key": "path-target:/opt/repos/manel/vexel_lang/ext/edelweiss/gameplay/shop.vx",
+      "value": "/opt/repos/manel/vexel_lang/ext/edelweiss/gameplay/shop.vx"
+    },
+    {
+      "key": "path-target:/opt/repos/manel/vexel_lang/ext/edelweiss/gameplay/stew.vx",
+      "value": "/opt/repos/manel/vexel_lang/ext/edelweiss/gameplay/stew.vx"
+    },
+    {
+      "key": "path-target:/opt/repos/manel/vexel_lang/ext/edelweiss/gameplay/university.vx",
+      "value": "/opt/repos/manel/vexel_lang/ext/edelweiss/gameplay/university.vx"
+    },
+    {
       "key": "source-kind:/opt/repos/manel/vexel_lang/ext/edelweiss/gameplay/lumberjack.vx",
       "value": "file"
     },
     {
       "key": "source-kind:/opt/repos/manel/vexel_lang/ext/edelweiss/gameplay/pear.vx",
       "value": "file"
+    },
+    {
+      "key": "source-kind:/opt/repos/manel/vexel_lang/ext/edelweiss/gameplay/shop.vx",
+      "value": "file"
+    },
+    {
+      "key": "source-kind:/opt/repos/manel/vexel_lang/ext/edelweiss/gameplay/stew.vx",
+      "value": "file"
+    },
+    {
+      "key": "source-kind:/opt/repos/manel/vexel_lang/ext/edelweiss/gameplay/university.vx",
+      "value": "file"
     }
   ],
   "source_metadata": [
     {
-      "location": "/opt/repos/manel/vexel_lang/ext/edelweiss/gameplay/quests.vx:3:31",
+      "location": "/opt/repos/manel/vexel_lang/ext/edelweiss/gameplay/quests.vx:3:32",
       "tags": [
-        "[[require(payload_bytes, 5)]]"
+        "[[require(payload_bytes, 14)]]"
       ]
     }
   ],
@@ -84,7 +135,7 @@
       "target default"
     ],
     "payload_bytes": [
-      "/opt/repos/manel/vexel_lang/ext/edelweiss/gameplay/quests.vx:3:1 [[require(payload_bytes, 5)]]"
+      "/opt/repos/manel/vexel_lang/ext/edelweiss/gameplay/quests.vx:3:1 [[require(payload_bytes, 14)]]"
     ],
     "ram_bytes": [
       "target default"
@@ -125,9 +176,9 @@
       ]
     },
     "payload_bytes": {
-      "value": 5,
+      "value": 14,
       "origins": [
-        "/opt/repos/manel/vexel_lang/ext/edelweiss/gameplay/quests.vx:3:1 [[require(payload_bytes, 5)]]"
+        "/opt/repos/manel/vexel_lang/ext/edelweiss/gameplay/quests.vx:3:1 [[require(payload_bytes, 14)]]"
       ]
     },
     "ram_bytes": {
@@ -157,15 +208,15 @@
   },
   "queries": [],
   "activation": "serial",
-  "payload_budget": 5,
-  "extent": 5,
+  "payload_budget": 14,
+  "extent": 14,
   "sources": [
     {
       "name": "lumberjack",
       "source": "lumberjack",
       "logical_type": "#Step(phase:#u8,command:#u8,text:#u8)",
-      "element_bits": 8,
-      "bytes": 3,
+      "element_bits": 16,
+      "bytes": 6,
       "offset": 0,
       "parameters": [
         {
@@ -224,8 +275,8 @@
       "name": "pear",
       "source": "pear",
       "logical_type": "#Exchange(choices:#u8,consume_pear:#u8,grant_boots:#u8,credit:#u8,text:#u8)",
-      "element_bits": 8,
-      "bytes": 5,
+      "element_bits": 16,
+      "bytes": 10,
       "offset": 0,
       "parameters": [
         {
@@ -306,13 +357,503 @@
           "value": "Runtime(Select(Runtime(Select(Runtime(Compare(!=,Runtime(Input(a2),0,255),0),0,1),Runtime(Compare(!=,Runtime(Input(a0),0,255),0),0,1),0),0,1),Runtime(Select(Runtime(Compare(!=,Runtime(Input(a1),0,255),0),0,1),6,5),5,6),4),4,6)"
         }
       ]
+    },
+    {
+      "name": "stew",
+      "source": "stew",
+      "logical_type": "#Stew(choices:#u8,debit:#u16,maximum_life:#u8,text:#u8)",
+      "element_bits": 16,
+      "bytes": 8,
+      "offset": 0,
+      "parameters": [
+        {
+          "name": "maximum_life",
+          "logical_type": "#u8",
+          "min": 0,
+          "max": 255,
+          "leaves": [
+            {
+              "parameter": "vxp_a0",
+              "path": "maximum_life",
+              "logical_type": "#u8",
+              "min": 0,
+              "max": 255
+            }
+          ]
+        },
+        {
+          "name": "rupees",
+          "logical_type": "#u16",
+          "min": 0,
+          "max": 65535,
+          "leaves": [
+            {
+              "parameter": "vxp_a1",
+              "path": "rupees",
+              "logical_type": "#u16",
+              "min": 0,
+              "max": 65535
+            }
+          ]
+        },
+        {
+          "name": "answer",
+          "logical_type": "#u8",
+          "min": 0,
+          "max": 255,
+          "leaves": [
+            {
+              "parameter": "vxp_a2",
+              "path": "answer",
+              "logical_type": "#u8",
+              "min": 0,
+              "max": 255
+            }
+          ]
+        }
+      ],
+      "leaves": [
+        {
+          "path": "stew.choices",
+          "logical_type": "#u8",
+          "stored": true,
+          "value": "Runtime(Select(Runtime(Compare(>,Runtime(Input(a0),0,255),38),0,1),0,Runtime(Select(Runtime(Compare(<,Runtime(Input(a1),0,65535),200),0,1),0,Runtime(Select(Runtime(Compare(==,Runtime(Input(a2),0,255),2),0,1),0,Runtime(Select(Runtime(Compare(==,Runtime(Input(a2),0,255),1),0,1),0,2),0,2)),0,2)),0,2)),0,2)"
+        },
+        {
+          "path": "stew.debit",
+          "logical_type": "#u16",
+          "stored": true,
+          "value": "Runtime(Select(Runtime(Compare(>,Runtime(Input(a0),0,255),38),0,1),0,Runtime(Select(Runtime(Compare(<,Runtime(Input(a1),0,65535),200),0,1),0,Runtime(Select(Runtime(Compare(==,Runtime(Input(a2),0,255),2),0,1),200,0),0,200)),0,200)),0,200)"
+        },
+        {
+          "path": "stew.maximum_life",
+          "logical_type": "#u8",
+          "stored": true,
+          "value": "Runtime(Select(Runtime(Compare(>,Runtime(Input(a0),0,255),38),0,1),0,Runtime(Select(Runtime(Compare(<,Runtime(Input(a1),0,65535),200),0,1),0,Runtime(Select(Runtime(Compare(==,Runtime(Input(a2),0,255),2),0,1),Runtime(Arithmetic(+,8,Runtime(Input(a0),0,255),2),0,255),0),0,255)),0,255)),0,255)"
+        },
+        {
+          "path": "stew.text",
+          "logical_type": "#u8",
+          "stored": true,
+          "value": "Runtime(Select(Runtime(Compare(>,Runtime(Input(a0),0,255),38),0,1),7,Runtime(Select(Runtime(Compare(<,Runtime(Input(a1),0,65535),200),0,1),8,Runtime(Select(Runtime(Compare(==,Runtime(Input(a2),0,255),2),0,1),10,Runtime(Select(Runtime(Compare(==,Runtime(Input(a2),0,255),1),0,1),0,9),0,9)),0,10)),0,10)),0,10)"
+        }
+      ]
+    },
+    {
+      "name": "university",
+      "source": "university",
+      "logical_type": "#Course(next:#u8,choices:#u8,debit:#u8,weapon:#u8,text:#u8)",
+      "element_bits": 16,
+      "bytes": 10,
+      "offset": 0,
+      "parameters": [
+        {
+          "name": "phase",
+          "logical_type": "#u8",
+          "min": 0,
+          "max": 255,
+          "leaves": [
+            {
+              "parameter": "vxp_a0",
+              "path": "phase",
+              "logical_type": "#u8",
+              "min": 0,
+              "max": 255
+            }
+          ]
+        },
+        {
+          "name": "rupees",
+          "logical_type": "#u16",
+          "min": 0,
+          "max": 65535,
+          "leaves": [
+            {
+              "parameter": "vxp_a1",
+              "path": "rupees",
+              "logical_type": "#u16",
+              "min": 0,
+              "max": 65535
+            }
+          ]
+        },
+        {
+          "name": "has_claw",
+          "logical_type": "#u8",
+          "min": 0,
+          "max": 255,
+          "leaves": [
+            {
+              "parameter": "vxp_a2",
+              "path": "has_claw",
+              "logical_type": "#u8",
+              "min": 0,
+              "max": 255
+            }
+          ]
+        },
+        {
+          "name": "has_bomb",
+          "logical_type": "#u8",
+          "min": 0,
+          "max": 255,
+          "leaves": [
+            {
+              "parameter": "vxp_a3",
+              "path": "has_bomb",
+              "logical_type": "#u8",
+              "min": 0,
+              "max": 255
+            }
+          ]
+        },
+        {
+          "name": "answer",
+          "logical_type": "#u8",
+          "min": 0,
+          "max": 255,
+          "leaves": [
+            {
+              "parameter": "vxp_a4",
+              "path": "answer",
+              "logical_type": "#u8",
+              "min": 0,
+              "max": 255
+            }
+          ]
+        }
+      ],
+      "leaves": [
+        {
+          "path": "university.next",
+          "logical_type": "#u8",
+          "stored": true,
+          "value": "Runtime(Select(Runtime(Compare(==,Runtime(Input(a0),0,255),0),0,1),1,Runtime(Select(Runtime(Compare(==,Runtime(Input(a0),0,255),1),0,1),Runtime(Select(Runtime(Select(Runtime(Compare(!=,Runtime(Input(a2),0,255),0),0,1),1,Runtime(Compare(==,Runtime(Input(a4),0,255),1),0,1)),0,1),2,Runtime(Select(Runtime(Select(Runtime(Compare(==,Runtime(Input(a4),0,255),2),0,1),Runtime(Compare(>=,Runtime(Input(a1),0,65535),50),0,1),0),0,1),2,1),1,2)),1,2),Runtime(Select(Runtime(Compare(==,Runtime(Input(a0),0,255),2),0,1),Runtime(Select(Runtime(Select(Runtime(Compare(!=,Runtime(Input(a3),0,255),0),0,1),1,Runtime(Compare(==,Runtime(Input(a4),0,255),1),0,1)),0,1),255,Runtime(Select(Runtime(Select(Runtime(Compare(==,Runtime(Input(a4),0,255),2),0,1),Runtime(Compare(>=,Runtime(Input(a1),0,65535),50),0,1),0),0,1),255,2),2,255)),2,255),255),2,255)),1,255)),1,255)"
+        },
+        {
+          "path": "university.choices",
+          "logical_type": "#u8",
+          "stored": true,
+          "value": "Runtime(Select(Runtime(Compare(==,Runtime(Input(a0),0,255),0),0,1),0,Runtime(Select(Runtime(Compare(==,Runtime(Input(a0),0,255),1),0,1),Runtime(Select(Runtime(Select(Runtime(Compare(!=,Runtime(Input(a2),0,255),0),0,1),1,Runtime(Compare(==,Runtime(Input(a4),0,255),1),0,1)),0,1),0,Runtime(Select(Runtime(Select(Runtime(Compare(==,Runtime(Input(a4),0,255),2),0,1),Runtime(Compare(>=,Runtime(Input(a1),0,65535),50),0,1),0),0,1),0,Runtime(Select(Runtime(Compare(>=,Runtime(Input(a1),0,65535),50),0,1),2,1),1,2)),0,2)),0,2),Runtime(Select(Runtime(Compare(==,Runtime(Input(a0),0,255),2),0,1),Runtime(Select(Runtime(Select(Runtime(Compare(!=,Runtime(Input(a3),0,255),0),0,1),1,Runtime(Compare(==,Runtime(Input(a4),0,255),1),0,1)),0,1),0,Runtime(Select(Runtime(Select(Runtime(Compare(==,Runtime(Input(a4),0,255),2),0,1),Runtime(Compare(>=,Runtime(Input(a1),0,65535),50),0,1),0),0,1),0,Runtime(Select(Runtime(Compare(>=,Runtime(Input(a1),0,65535),50),0,1),2,1),1,2)),0,2)),0,2),0),0,2)),0,2)),0,2)"
+        },
+        {
+          "path": "university.debit",
+          "logical_type": "#u8",
+          "stored": true,
+          "value": "Runtime(Select(Runtime(Compare(==,Runtime(Input(a0),0,255),0),0,1),0,Runtime(Select(Runtime(Compare(==,Runtime(Input(a0),0,255),1),0,1),Runtime(Select(Runtime(Select(Runtime(Compare(!=,Runtime(Input(a2),0,255),0),0,1),1,Runtime(Compare(==,Runtime(Input(a4),0,255),1),0,1)),0,1),0,Runtime(Select(Runtime(Select(Runtime(Compare(==,Runtime(Input(a4),0,255),2),0,1),Runtime(Compare(>=,Runtime(Input(a1),0,65535),50),0,1),0),0,1),50,0),0,50)),0,50),Runtime(Select(Runtime(Compare(==,Runtime(Input(a0),0,255),2),0,1),Runtime(Select(Runtime(Select(Runtime(Compare(!=,Runtime(Input(a3),0,255),0),0,1),1,Runtime(Compare(==,Runtime(Input(a4),0,255),1),0,1)),0,1),0,Runtime(Select(Runtime(Select(Runtime(Compare(==,Runtime(Input(a4),0,255),2),0,1),Runtime(Compare(>=,Runtime(Input(a1),0,65535),50),0,1),0),0,1),50,0),0,50)),0,50),0),0,50)),0,50)),0,50)"
+        },
+        {
+          "path": "university.weapon",
+          "logical_type": "#u8",
+          "stored": true,
+          "value": "Runtime(Select(Runtime(Compare(==,Runtime(Input(a0),0,255),0),0,1),0,Runtime(Select(Runtime(Compare(==,Runtime(Input(a0),0,255),1),0,1),Runtime(Select(Runtime(Select(Runtime(Compare(!=,Runtime(Input(a2),0,255),0),0,1),1,Runtime(Compare(==,Runtime(Input(a4),0,255),1),0,1)),0,1),0,Runtime(Select(Runtime(Select(Runtime(Compare(==,Runtime(Input(a4),0,255),2),0,1),Runtime(Compare(>=,Runtime(Input(a1),0,65535),50),0,1),0),0,1),1,0),0,1)),0,1),Runtime(Select(Runtime(Compare(==,Runtime(Input(a0),0,255),2),0,1),Runtime(Select(Runtime(Select(Runtime(Compare(!=,Runtime(Input(a3),0,255),0),0,1),1,Runtime(Compare(==,Runtime(Input(a4),0,255),1),0,1)),0,1),0,Runtime(Select(Runtime(Select(Runtime(Compare(==,Runtime(Input(a4),0,255),2),0,1),Runtime(Compare(>=,Runtime(Input(a1),0,65535),50),0,1),0),0,1),4,0),0,4)),0,4),0),0,4)),0,4)),0,4)"
+        },
+        {
+          "path": "university.text",
+          "logical_type": "#u8",
+          "stored": true,
+          "value": "Runtime(Select(Runtime(Compare(==,Runtime(Input(a0),0,255),0),0,1),11,Runtime(Select(Runtime(Compare(==,Runtime(Input(a0),0,255),1),0,1),Runtime(Select(Runtime(Select(Runtime(Compare(!=,Runtime(Input(a2),0,255),0),0,1),1,Runtime(Compare(==,Runtime(Input(a4),0,255),1),0,1)),0,1),0,Runtime(Select(Runtime(Select(Runtime(Compare(==,Runtime(Input(a4),0,255),2),0,1),Runtime(Compare(>=,Runtime(Input(a1),0,65535),50),0,1),0),0,1),13,12),12,13)),0,13),Runtime(Select(Runtime(Compare(==,Runtime(Input(a0),0,255),2),0,1),Runtime(Select(Runtime(Select(Runtime(Compare(!=,Runtime(Input(a3),0,255),0),0,1),1,Runtime(Compare(==,Runtime(Input(a4),0,255),1),0,1)),0,1),0,Runtime(Select(Runtime(Select(Runtime(Compare(==,Runtime(Input(a4),0,255),2),0,1),Runtime(Compare(>=,Runtime(Input(a1),0,65535),50),0,1),0),0,1),15,14),14,15)),0,15),0),0,15)),0,15)),0,15)"
+        }
+      ]
+    },
+    {
+      "name": "shop_stock",
+      "source": "shop_stock",
+      "logical_type": "#Stock(text:#u8,affordable:#u8)",
+      "element_bits": 16,
+      "bytes": 4,
+      "offset": 0,
+      "parameters": [
+        {
+          "name": "row",
+          "logical_type": "#u8",
+          "min": 0,
+          "max": 255,
+          "leaves": [
+            {
+              "parameter": "vxp_a0",
+              "path": "row",
+              "logical_type": "#u8",
+              "min": 0,
+              "max": 255
+            }
+          ]
+        },
+        {
+          "name": "rupees",
+          "logical_type": "#u16",
+          "min": 0,
+          "max": 65535,
+          "leaves": [
+            {
+              "parameter": "vxp_a1",
+              "path": "rupees",
+              "logical_type": "#u16",
+              "min": 0,
+              "max": 65535
+            }
+          ]
+        },
+        {
+          "name": "has_lamp",
+          "logical_type": "#u8",
+          "min": 0,
+          "max": 255,
+          "leaves": [
+            {
+              "parameter": "vxp_a2",
+              "path": "has_lamp",
+              "logical_type": "#u8",
+              "min": 0,
+              "max": 255
+            }
+          ]
+        },
+        {
+          "name": "has_coat",
+          "logical_type": "#u8",
+          "min": 0,
+          "max": 255,
+          "leaves": [
+            {
+              "parameter": "vxp_a3",
+              "path": "has_coat",
+              "logical_type": "#u8",
+              "min": 0,
+              "max": 255
+            }
+          ]
+        },
+        {
+          "name": "has_sword",
+          "logical_type": "#u8",
+          "min": 0,
+          "max": 255,
+          "leaves": [
+            {
+              "parameter": "vxp_a4",
+              "path": "has_sword",
+              "logical_type": "#u8",
+              "min": 0,
+              "max": 255
+            }
+          ]
+        },
+        {
+          "name": "has_bow",
+          "logical_type": "#u8",
+          "min": 0,
+          "max": 255,
+          "leaves": [
+            {
+              "parameter": "vxp_a5",
+              "path": "has_bow",
+              "logical_type": "#u8",
+              "min": 0,
+              "max": 255
+            }
+          ]
+        }
+      ],
+      "leaves": [
+        {
+          "path": "shop_stock.text",
+          "logical_type": "#u8",
+          "stored": true,
+          "value": "Runtime(Select(Runtime(Compare(==,Runtime(Input(a0),0,255),0),0,1),16,Runtime(Select(Runtime(Compare(==,Runtime(Input(a0),0,255),1),0,1),Runtime(Select(Runtime(Compare(==,Runtime(Input(a2),0,255),0),0,1),17,Runtime(Select(Runtime(Compare(==,Runtime(Input(a3),0,255),0),0,1),18,19),18,19)),17,19),Runtime(Select(Runtime(Compare(==,Runtime(Input(a0),0,255),2),0,1),Runtime(Select(Runtime(Compare(==,Runtime(Input(a4),0,255),0),0,1),20,Runtime(Select(Runtime(Compare(==,Runtime(Input(a5),0,255),0),0,1),21,22),21,22)),20,22),23),20,23)),17,23)),16,23)"
+        },
+        {
+          "path": "shop_stock.affordable",
+          "logical_type": "#u8",
+          "stored": true,
+          "value": "Runtime(Select(Runtime(Compare(==,Runtime(Input(a0),0,255),0),0,1),Runtime(Select(Runtime(Compare(>=,Runtime(Input(a1),0,65535),20),0,1),1,0),0,1),Runtime(Select(Runtime(Compare(==,Runtime(Input(a0),0,255),1),0,1),Runtime(Select(Runtime(Compare(==,Runtime(Input(a2),0,255),0),0,1),Runtime(Select(Runtime(Compare(>=,Runtime(Input(a1),0,65535),75),0,1),1,0),0,1),Runtime(Select(Runtime(Compare(==,Runtime(Input(a3),0,255),0),0,1),Runtime(Select(Runtime(Compare(>=,Runtime(Input(a1),0,65535),200),0,1),1,0),0,1),Runtime(Select(Runtime(Compare(>=,Runtime(Input(a1),0,65535),500),0,1),1,0),0,1)),0,1)),0,1),Runtime(Select(Runtime(Compare(==,Runtime(Input(a0),0,255),2),0,1),Runtime(Select(Runtime(Compare(==,Runtime(Input(a4),0,255),0),0,1),Runtime(Select(Runtime(Compare(>=,Runtime(Input(a1),0,65535),150),0,1),1,0),0,1),Runtime(Select(Runtime(Compare(==,Runtime(Input(a5),0,255),0),0,1),Runtime(Select(Runtime(Compare(>=,Runtime(Input(a1),0,65535),100),0,1),1,0),0,1),0),0,1)),0,1),1),0,1)),0,1)),0,1)"
+        }
+      ]
+    },
+    {
+      "name": "shop_trade",
+      "source": "shop_trade",
+      "logical_type": "#Purchase(done:#u8,debit:#u16,heal:#u8,item:#u8,weapon:#u8,text:#u8,random:#u8)",
+      "element_bits": 16,
+      "bytes": 14,
+      "offset": 0,
+      "parameters": [
+        {
+          "name": "row",
+          "logical_type": "#u8",
+          "min": 0,
+          "max": 255,
+          "leaves": [
+            {
+              "parameter": "vxp_a0",
+              "path": "row",
+              "logical_type": "#u8",
+              "min": 0,
+              "max": 255
+            }
+          ]
+        },
+        {
+          "name": "rupees",
+          "logical_type": "#u16",
+          "min": 0,
+          "max": 65535,
+          "leaves": [
+            {
+              "parameter": "vxp_a1",
+              "path": "rupees",
+              "logical_type": "#u16",
+              "min": 0,
+              "max": 65535
+            }
+          ]
+        },
+        {
+          "name": "has_lamp",
+          "logical_type": "#u8",
+          "min": 0,
+          "max": 255,
+          "leaves": [
+            {
+              "parameter": "vxp_a2",
+              "path": "has_lamp",
+              "logical_type": "#u8",
+              "min": 0,
+              "max": 255
+            }
+          ]
+        },
+        {
+          "name": "has_coat",
+          "logical_type": "#u8",
+          "min": 0,
+          "max": 255,
+          "leaves": [
+            {
+              "parameter": "vxp_a3",
+              "path": "has_coat",
+              "logical_type": "#u8",
+              "min": 0,
+              "max": 255
+            }
+          ]
+        },
+        {
+          "name": "has_sword",
+          "logical_type": "#u8",
+          "min": 0,
+          "max": 255,
+          "leaves": [
+            {
+              "parameter": "vxp_a4",
+              "path": "has_sword",
+              "logical_type": "#u8",
+              "min": 0,
+              "max": 255
+            }
+          ]
+        },
+        {
+          "name": "has_bow",
+          "logical_type": "#u8",
+          "min": 0,
+          "max": 255,
+          "leaves": [
+            {
+              "parameter": "vxp_a5",
+              "path": "has_bow",
+              "logical_type": "#u8",
+              "min": 0,
+              "max": 255
+            }
+          ]
+        },
+        {
+          "name": "has_fire",
+          "logical_type": "#u8",
+          "min": 0,
+          "max": 255,
+          "leaves": [
+            {
+              "parameter": "vxp_a6",
+              "path": "has_fire",
+              "logical_type": "#u8",
+              "min": 0,
+              "max": 255
+            }
+          ]
+        },
+        {
+          "name": "book_roll",
+          "logical_type": "#u8",
+          "min": 0,
+          "max": 255,
+          "leaves": [
+            {
+              "parameter": "vxp_a7",
+              "path": "book_roll",
+              "logical_type": "#u8",
+              "min": 0,
+              "max": 255
+            }
+          ]
+        }
+      ],
+      "leaves": [
+        {
+          "path": "shop_trade.done",
+          "logical_type": "#u8",
+          "stored": true,
+          "value": "Runtime(Select(Runtime(Compare(==,Runtime(Input(a0),0,255),3),0,1),1,Runtime(Select(Runtime(Select(Runtime(Compare(==,Runtime(Input(a0),0,255),0),0,1),Runtime(Compare(>=,Runtime(Input(a1),0,65535),20),0,1),0),0,1),1,Runtime(Select(Runtime(Compare(==,Runtime(Input(a0),0,255),1),0,1),Runtime(Select(Runtime(Compare(==,Runtime(Input(a2),0,255),0),0,1),Runtime(Select(Runtime(Compare(>=,Runtime(Input(a1),0,65535),75),0,1),1,0),0,1),Runtime(Select(Runtime(Compare(==,Runtime(Input(a3),0,255),0),0,1),Runtime(Select(Runtime(Compare(>=,Runtime(Input(a1),0,65535),200),0,1),1,0),0,1),Runtime(Select(Runtime(Compare(<,Runtime(Input(a1),0,65535),500),0,1),0,Runtime(Select(Runtime(Compare(==,Runtime(Input(a6),0,255),0),0,1),1,Runtime(Select(Runtime(Compare(==,Runtime(Input(a7),0,255),255),0,1),0,1),0,1)),0,1)),0,1)),0,1)),0,1),Runtime(Select(Runtime(Compare(==,Runtime(Input(a0),0,255),2),0,1),Runtime(Select(Runtime(Compare(==,Runtime(Input(a4),0,255),0),0,1),Runtime(Select(Runtime(Compare(>=,Runtime(Input(a1),0,65535),150),0,1),1,0),0,1),Runtime(Select(Runtime(Compare(==,Runtime(Input(a5),0,255),0),0,1),Runtime(Select(Runtime(Compare(>=,Runtime(Input(a1),0,65535),100),0,1),1,0),0,1),1),0,1)),0,1),0),0,1)),0,1)),0,1)),0,1)"
+        },
+        {
+          "path": "shop_trade.debit",
+          "logical_type": "#u16",
+          "stored": true,
+          "value": "Runtime(Select(Runtime(Compare(==,Runtime(Input(a0),0,255),3),0,1),0,Runtime(Select(Runtime(Select(Runtime(Compare(==,Runtime(Input(a0),0,255),0),0,1),Runtime(Compare(>=,Runtime(Input(a1),0,65535),20),0,1),0),0,1),20,Runtime(Select(Runtime(Compare(==,Runtime(Input(a0),0,255),1),0,1),Runtime(Select(Runtime(Compare(==,Runtime(Input(a2),0,255),0),0,1),Runtime(Select(Runtime(Compare(>=,Runtime(Input(a1),0,65535),75),0,1),75,0),0,75),Runtime(Select(Runtime(Compare(==,Runtime(Input(a3),0,255),0),0,1),Runtime(Select(Runtime(Compare(>=,Runtime(Input(a1),0,65535),200),0,1),200,0),0,200),Runtime(Select(Runtime(Compare(<,Runtime(Input(a1),0,65535),500),0,1),0,Runtime(Select(Runtime(Compare(==,Runtime(Input(a6),0,255),0),0,1),500,Runtime(Select(Runtime(Compare(==,Runtime(Input(a7),0,255),255),0,1),0,500),0,500)),0,500)),0,500)),0,500)),0,500),Runtime(Select(Runtime(Compare(==,Runtime(Input(a0),0,255),2),0,1),Runtime(Select(Runtime(Compare(==,Runtime(Input(a4),0,255),0),0,1),Runtime(Select(Runtime(Compare(>=,Runtime(Input(a1),0,65535),150),0,1),150,0),0,150),Runtime(Select(Runtime(Compare(==,Runtime(Input(a5),0,255),0),0,1),Runtime(Select(Runtime(Compare(>=,Runtime(Input(a1),0,65535),100),0,1),100,0),0,100),0),0,100)),0,150),0),0,150)),0,500)),0,500)),0,500)"
+        },
+        {
+          "path": "shop_trade.heal",
+          "logical_type": "#u8",
+          "stored": true,
+          "value": "Runtime(Select(Runtime(Compare(==,Runtime(Input(a0),0,255),3),0,1),0,Runtime(Select(Runtime(Select(Runtime(Compare(==,Runtime(Input(a0),0,255),0),0,1),Runtime(Compare(>=,Runtime(Input(a1),0,65535),20),0,1),0),0,1),1,0),0,1)),0,1)"
+        },
+        {
+          "path": "shop_trade.item",
+          "logical_type": "#u8",
+          "stored": true,
+          "value": "Runtime(Select(Runtime(Compare(==,Runtime(Input(a0),0,255),3),0,1),0,Runtime(Select(Runtime(Select(Runtime(Compare(==,Runtime(Input(a0),0,255),0),0,1),Runtime(Compare(>=,Runtime(Input(a1),0,65535),20),0,1),0),0,1),0,Runtime(Select(Runtime(Compare(==,Runtime(Input(a0),0,255),1),0,1),Runtime(Select(Runtime(Compare(==,Runtime(Input(a2),0,255),0),0,1),Runtime(Select(Runtime(Compare(>=,Runtime(Input(a1),0,65535),75),0,1),1,0),0,1),Runtime(Select(Runtime(Compare(==,Runtime(Input(a3),0,255),0),0,1),Runtime(Select(Runtime(Compare(>=,Runtime(Input(a1),0,65535),200),0,1),2,0),0,2),0),0,2)),0,2),0),0,2)),0,2)),0,2)"
+        },
+        {
+          "path": "shop_trade.weapon",
+          "logical_type": "#u8",
+          "stored": true,
+          "value": "Runtime(Select(Runtime(Compare(==,Runtime(Input(a0),0,255),3),0,1),0,Runtime(Select(Runtime(Select(Runtime(Compare(==,Runtime(Input(a0),0,255),0),0,1),Runtime(Compare(>=,Runtime(Input(a1),0,65535),20),0,1),0),0,1),0,Runtime(Select(Runtime(Compare(==,Runtime(Input(a0),0,255),1),0,1),Runtime(Select(Runtime(Compare(==,Runtime(Input(a2),0,255),0),0,1),0,Runtime(Select(Runtime(Compare(==,Runtime(Input(a3),0,255),0),0,1),0,Runtime(Select(Runtime(Compare(<,Runtime(Input(a1),0,65535),500),0,1),0,Runtime(Select(Runtime(Compare(==,Runtime(Input(a6),0,255),0),0,1),5,0),0,5)),0,5)),0,5)),0,5),Runtime(Select(Runtime(Compare(==,Runtime(Input(a0),0,255),2),0,1),Runtime(Select(Runtime(Compare(==,Runtime(Input(a4),0,255),0),0,1),Runtime(Select(Runtime(Compare(>=,Runtime(Input(a1),0,65535),150),0,1),2,0),0,2),Runtime(Select(Runtime(Compare(==,Runtime(Input(a5),0,255),0),0,1),Runtime(Select(Runtime(Compare(>=,Runtime(Input(a1),0,65535),100),0,1),6,0),0,6),0),0,6)),0,6),0),0,6)),0,6)),0,6)),0,6)"
+        },
+        {
+          "path": "shop_trade.text",
+          "logical_type": "#u8",
+          "stored": true,
+          "value": "Runtime(Select(Runtime(Compare(==,Runtime(Input(a0),0,255),3),0,1),0,Runtime(Select(Runtime(Select(Runtime(Compare(==,Runtime(Input(a0),0,255),0),0,1),Runtime(Compare(>=,Runtime(Input(a1),0,65535),20),0,1),0),0,1),0,Runtime(Select(Runtime(Compare(==,Runtime(Input(a0),0,255),1),0,1),Runtime(Select(Runtime(Compare(==,Runtime(Input(a2),0,255),0),0,1),Runtime(Select(Runtime(Compare(>=,Runtime(Input(a1),0,65535),75),0,1),24,0),0,24),Runtime(Select(Runtime(Compare(==,Runtime(Input(a3),0,255),0),0,1),Runtime(Select(Runtime(Compare(>=,Runtime(Input(a1),0,65535),200),0,1),25,0),0,25),Runtime(Select(Runtime(Compare(<,Runtime(Input(a1),0,65535),500),0,1),0,Runtime(Select(Runtime(Compare(==,Runtime(Input(a6),0,255),0),0,1),26,Runtime(Select(Runtime(Compare(==,Runtime(Input(a7),0,255),255),0,1),0,Runtime(Select(Runtime(Compare(==,Runtime(Input(a7),0,255),0),0,1),30,Runtime(Select(Runtime(Compare(==,Runtime(Input(a7),0,255),1),0,1),31,Runtime(Select(Runtime(Compare(==,Runtime(Input(a7),0,255),2),0,1),32,Runtime(Select(Runtime(Compare(==,Runtime(Input(a7),0,255),3),0,1),33,Runtime(Select(Runtime(Compare(==,Runtime(Input(a7),0,255),4),0,1),34,Runtime(Select(Runtime(Compare(==,Runtime(Input(a7),0,255),5),0,1),35,Runtime(Select(Runtime(Compare(==,Runtime(Input(a7),0,255),6),0,1),36,0),0,36)),0,36)),0,36)),0,36)),0,36)),0,36)),0,36)),0,36)),0,36)),0,36)),0,36)),0,36),Runtime(Select(Runtime(Compare(==,Runtime(Input(a0),0,255),2),0,1),Runtime(Select(Runtime(Compare(==,Runtime(Input(a4),0,255),0),0,1),Runtime(Select(Runtime(Compare(>=,Runtime(Input(a1),0,65535),150),0,1),27,0),0,27),Runtime(Select(Runtime(Compare(==,Runtime(Input(a5),0,255),0),0,1),Runtime(Select(Runtime(Compare(>=,Runtime(Input(a1),0,65535),100),0,1),28,0),0,28),29),0,29)),0,29),0),0,29)),0,36)),0,36)),0,36)"
+        },
+        {
+          "path": "shop_trade.random",
+          "logical_type": "#u8",
+          "stored": true,
+          "value": "Runtime(Select(Runtime(Compare(==,Runtime(Input(a0),0,255),3),0,1),0,Runtime(Select(Runtime(Select(Runtime(Compare(==,Runtime(Input(a0),0,255),0),0,1),Runtime(Compare(>=,Runtime(Input(a1),0,65535),20),0,1),0),0,1),0,Runtime(Select(Runtime(Compare(==,Runtime(Input(a0),0,255),1),0,1),Runtime(Select(Runtime(Compare(==,Runtime(Input(a2),0,255),0),0,1),0,Runtime(Select(Runtime(Compare(==,Runtime(Input(a3),0,255),0),0,1),0,Runtime(Select(Runtime(Compare(<,Runtime(Input(a1),0,65535),500),0,1),0,Runtime(Select(Runtime(Compare(==,Runtime(Input(a6),0,255),0),0,1),0,Runtime(Select(Runtime(Compare(==,Runtime(Input(a7),0,255),255),0,1),1,0),0,1)),0,1)),0,1)),0,1)),0,1),0),0,1)),0,1)),0,1)"
+        }
+      ]
     }
   ],
   "runtime_functions": [],
   "boundary_storage": [],
   "source_accesses": {
     "lumberjack": [],
-    "pear": []
+    "pear": [],
+    "stew": [],
+    "university": [],
+    "shop_stock": [],
+    "shop_trade": []
   },
   "mapper_storage": {
     "bytes": 0,
@@ -331,6 +872,30 @@
       "module": "vxp_source_pear",
       "window": "B",
       "frame_policy": "automatic"
+    },
+    {
+      "name": "vx_stew",
+      "module": "vxp_source_stew",
+      "window": "B",
+      "frame_policy": "automatic"
+    },
+    {
+      "name": "vx_university",
+      "module": "vxp_source_university",
+      "window": "B",
+      "frame_policy": "automatic"
+    },
+    {
+      "name": "vx_shop_stock",
+      "module": "vxp_source_shop_stock",
+      "window": "B",
+      "frame_policy": "automatic"
+    },
+    {
+      "name": "vx_shop_trade",
+      "module": "vxp_source_shop_trade",
+      "window": "B",
+      "frame_policy": "automatic"
     }
   ],
   "frame_planning": {
@@ -342,11 +907,11 @@
       {
         "name": "vx_lumberjack",
         "frame_policy": "automatic",
-        "projected_local_bytes": 0,
+        "projected_local_bytes": 12,
         "recursive": false,
         "open_boundary": false,
         "overlapping_occurrences": false,
-        "reason": "no projected local buffers",
+        "reason": "static RAM budget",
         "source_occurrences": [
           "vx_lumberjack"
         ],
@@ -355,13 +920,65 @@
       {
         "name": "vx_pear",
         "frame_policy": "automatic",
-        "projected_local_bytes": 0,
+        "projected_local_bytes": 20,
         "recursive": false,
         "open_boundary": false,
         "overlapping_occurrences": false,
-        "reason": "no projected local buffers",
+        "reason": "static RAM budget",
         "source_occurrences": [
           "vx_pear"
+        ],
+        "calls": []
+      },
+      {
+        "name": "vx_shop_stock",
+        "frame_policy": "automatic",
+        "projected_local_bytes": 8,
+        "recursive": false,
+        "open_boundary": false,
+        "overlapping_occurrences": false,
+        "reason": "static RAM budget",
+        "source_occurrences": [
+          "vx_shop_stock"
+        ],
+        "calls": []
+      },
+      {
+        "name": "vx_shop_trade",
+        "frame_policy": "automatic",
+        "projected_local_bytes": 28,
+        "recursive": false,
+        "open_boundary": false,
+        "overlapping_occurrences": false,
+        "reason": "static RAM budget",
+        "source_occurrences": [
+          "vx_shop_trade"
+        ],
+        "calls": []
+      },
+      {
+        "name": "vx_stew",
+        "frame_policy": "automatic",
+        "projected_local_bytes": 16,
+        "recursive": false,
+        "open_boundary": false,
+        "overlapping_occurrences": false,
+        "reason": "static RAM budget",
+        "source_occurrences": [
+          "vx_stew"
+        ],
+        "calls": []
+      },
+      {
+        "name": "vx_university",
+        "frame_policy": "automatic",
+        "projected_local_bytes": 20,
+        "recursive": false,
+        "open_boundary": false,
+        "overlapping_occurrences": false,
+        "reason": "static RAM budget",
+        "source_occurrences": [
+          "vx_university"
         ],
         "calls": []
       }
@@ -378,7 +995,19 @@
       "lumberjack.release",
       "pear.begin",
       "pear.produce",
-      "pear.release"
+      "pear.release",
+      "stew.begin",
+      "stew.produce",
+      "stew.release",
+      "university.begin",
+      "university.produce",
+      "university.release",
+      "shop_stock.begin",
+      "shop_stock.produce",
+      "shop_stock.release",
+      "shop_trade.begin",
+      "shop_trade.produce",
+      "shop_trade.release"
     ],
     "before": [
       [
@@ -400,6 +1029,54 @@
       [
         "pear.produce",
         "pear.release"
+      ],
+      [
+        "pear.release",
+        "stew.begin"
+      ],
+      [
+        "stew.begin",
+        "stew.produce"
+      ],
+      [
+        "stew.produce",
+        "stew.release"
+      ],
+      [
+        "stew.release",
+        "university.begin"
+      ],
+      [
+        "university.begin",
+        "university.produce"
+      ],
+      [
+        "university.produce",
+        "university.release"
+      ],
+      [
+        "university.release",
+        "shop_stock.begin"
+      ],
+      [
+        "shop_stock.begin",
+        "shop_stock.produce"
+      ],
+      [
+        "shop_stock.produce",
+        "shop_stock.release"
+      ],
+      [
+        "shop_stock.release",
+        "shop_trade.begin"
+      ],
+      [
+        "shop_trade.begin",
+        "shop_trade.produce"
+      ],
+      [
+        "shop_trade.produce",
+        "shop_trade.release"
       ]
     ]
   },

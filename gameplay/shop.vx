@@ -1,0 +1,41 @@
+// The four-row menu returns text IDs and affordability, never text addresses.
+#Stock(text:#u8, affordable:#u8);
+&^shop_stock(row:#u8, rupees:#u16, has_lamp:#u8, has_coat:#u8,
+             has_sword:#u8, has_bow:#u8) {
+    row==0 ? #Stock(16,rupees>=20 ? 1 : 0) : (
+    row==1 ? (
+        has_lamp==0 ? #Stock(17,rupees>=75 ? 1 : 0) : (
+        has_coat==0 ? #Stock(18,rupees>=200 ? 1 : 0) :
+        #Stock(19,rupees>=500 ? 1 : 0))
+    ) : (
+    row==2 ? (
+        has_sword==0 ? #Stock(20,rupees>=150 ? 1 : 0) : (
+        has_bow==0 ? #Stock(21,rupees>=100 ? 1 : 0) : #Stock(22,0))
+    ) : #Stock(23,1)))
+}
+
+// item: 0=none, 1=lamp, 2=coat. Weapon IDs match the engine (0=no change).
+// book_roll=255 means no draw is available. Request one only for a paid
+// ordinary book; replaying with the same draw produces the same result.
+#Purchase(done:#u8, debit:#u16, heal:#u8, item:#u8, weapon:#u8, text:#u8, random:#u8);
+&^shop_trade(row:#u8, rupees:#u16, has_lamp:#u8, has_coat:#u8,
+             has_sword:#u8, has_bow:#u8, has_fire:#u8, book_roll:#u8) {
+    row==3 ? #Purchase(1,0,0,0,0,0,0) : (
+    row==0 && rupees>=20 ? #Purchase(1,20,1,0,0,0,0) : (
+    row==1 ? (
+        has_lamp==0 ? (rupees>=75 ? #Purchase(1,75,0,1,0,24,0) : #Purchase(0,0,0,0,0,0,0)) : (
+        has_coat==0 ? (rupees>=200 ? #Purchase(1,200,0,2,0,25,0) : #Purchase(0,0,0,0,0,0,0)) : (
+        rupees<500 ? #Purchase(0,0,0,0,0,0,0) : (
+        has_fire==0 ? #Purchase(1,500,0,0,5,26,0) : (
+        book_roll==255 ? #Purchase(0,0,0,0,0,0,1) :
+        #Purchase(1,500,0,0,0,
+            book_roll==0 ? 30 : (book_roll==1 ? 31 : (book_roll==2 ? 32 :
+            (book_roll==3 ? 33 : (book_roll==4 ? 34 : (book_roll==5 ? 35 :
+            (book_roll==6 ? 36 : 0)))))),0)))))
+    ) : (
+    row==2 ? (
+        has_sword==0 ? (rupees>=150 ? #Purchase(1,150,0,0,2,27,0) : #Purchase(0,0,0,0,0,0,0)) : (
+        has_bow==0 ? (rupees>=100 ? #Purchase(1,100,0,0,6,28,0) : #Purchase(0,0,0,0,0,0,0)) :
+        #Purchase(1,0,0,0,0,29,0))
+    ) : #Purchase(0,0,0,0,0,0,0))))
+}

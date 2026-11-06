@@ -1,9 +1,17 @@
 #include <common.h>
+#include <gameplay/quest.h>
+
+#if EDW_VEXEL
+USING_MODULE(quest, PAGE_C);
+void wolfi_in_university(void) {
+    trampoline_page_c(MODULE_SEGMENT(quest, PAGE_C), quest_university);
+}
+#else
 
 
 static void message(const char *msg) {
 	uint8_t pj = ((state.entities[0].pos.j+0x80)>>8) - map.pos.j;
-	IN_MODULE( popup, PAGE_B,
+	IN_MODULE( largepopup, PAGE_B,
 		if (pj>16) {
 			largePopupInitCanvas(pj-12);
 		} else {
@@ -13,7 +21,7 @@ static void message(const char *msg) {
 		largePopupTextProperties.y = 2;
 		largePopupTextProperties.x = 10;
 		largePopupWriteText(msg);
-	);	
+	);
 	for (uint8_t i=0; i<60; i++) {
 		wait_frame();
 	}
@@ -22,7 +30,7 @@ static void message(const char *msg) {
 static void learn_self_defense() {
 
 	uint8_t pj = ((state.entities[0].pos.j+0x80)>>8) - map.pos.j;
-	IN_MODULE( popup, PAGE_B,
+	IN_MODULE( largepopup, PAGE_B,
 		if (pj>16) {
 			largePopupInitCanvas(pj-12);
 		} else {
@@ -50,10 +58,11 @@ static void learn_self_defense() {
 	);
 	
 	uint8_t option = 0;	
+	IN_MODULE(largepopup, PAGE_B,
 	while (true) {
 		
 		// UPDATE JOYSTICK
-		update_keyboard_and_joystick();
+		quest_read_input();
 		if (keyboard_click[8] & K_LEFT) {
 			
 			if (option>0) {
@@ -99,18 +108,20 @@ static void learn_self_defense() {
 			state.rupees-=50;
 			state.has_weapon[E_CLAW] = true;
 			state.weapon = E_CLAW;
+			init_weapon();
 			IN_MODULE(infobar, PAGE_B, infobar_update_weapon());
 			message("\nYOU LEARNED THE\nLATENT POWER OF\n YOUR CLAWS");
 			break;
 		}			
 		wait_frame();
-	}		
+	}
+	);
 }
 
 static void learn_self_demolitions() {
 
 	uint8_t pj = ((state.entities[0].pos.j+0x80)>>8) - map.pos.j;
-	IN_MODULE( popup, PAGE_B,
+	IN_MODULE( largepopup, PAGE_B,
 		if (pj>16) {
 			largePopupInitCanvas(pj-12);
 		} else {
@@ -138,10 +149,11 @@ static void learn_self_demolitions() {
 	);
 	
 	uint8_t option = 0;	
+	IN_MODULE(largepopup, PAGE_B,
 	while (true) {
 		
 		// UPDATE JOYSTICK
-		update_keyboard_and_joystick();
+		quest_read_input();
 		if (keyboard_click[8] & K_LEFT) {
 			
 			if (option>0) {
@@ -187,12 +199,14 @@ static void learn_self_demolitions() {
 			state.rupees-=50;
 			state.has_weapon[E_BOMB] = true;
 			state.weapon = E_BOMB;
+			init_weapon();
 			IN_MODULE(infobar, PAGE_B, infobar_update_weapon());
 			message("\nYOU LEARNED THE\nLATENT POWER OF\nTRINITROLUENE");
 			break;
 		}			
 		wait_frame();
-	}		
+	}
+	);
 }
 
 void wolfi_in_university() {
@@ -203,3 +217,5 @@ void wolfi_in_university() {
 	if (state.has_weapon[E_BOMB]==false) learn_self_demolitions();
 }
 
+
+#endif

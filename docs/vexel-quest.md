@@ -3,7 +3,8 @@
 This migration starts from Edelweiss `fecb997` and the supplied `sdcc_msx`
 checkout. The playable lumberjack milestone is committed as `f2b5fdc`.
 The integration now implements the lumberjack conversation, following decision,
-axe reward and town-hall pear exchange while keeping the C branches for comparison.
+axe reward, pear exchange, Fish'n'Ships, university and Food'n'Stuff while
+keeping the C branches for comparison.
 The original local library edit and untracked files are left untouched.
 
 ## Boundary and ownership
@@ -29,8 +30,8 @@ An absent entity is rejected before an engine slot is accessed. Delivery
 despawns the follower and disables its automatic spawning, preventing a second
 reward through ordinary game events.
 
-The output is `(phase, command, text ID)`, occupying three bytes in the shared
-payload arena. `quest_interact` reads all leaves before applying any effect.
+The output is `(phase, command, text ID)`, three logical byte fields in the
+shared payload arena. `quest_interact` reads all leaves before applying any effect.
 The test sink deliberately overwrites the released payload during dialogue;
 the transition must still finish correctly. Commands initialize the existing
 eight-entry follower trail, despawn through the original callback, equip the
@@ -52,11 +53,31 @@ confirm ordering is preserved, including simultaneous clicks. A second visit
 cannot earn a second reward without another pear. No persistent exchange state
 or generic command interpreter is needed.
 
-`gameplay/quests.vx` imports both sources with an explicit five-byte payload
-budget. Their serial projections share offset zero: three bytes for lumberjack,
-five for pear, five total. The engine finishes consuming one invocation before
-starting another; no caller relies on a particular ordering of the two quests.
-Both use the same text buffer described below.
+`gameplay/quests.vx` imports all six sources with an explicit 14-byte payload
+budget. Their serial projections share offset zero. The current projection
+uses 16-bit slots to accommodate 500-rupee purchases; the largest result has
+seven fields. The engine finishes consuming one invocation before starting
+another. All interactions use the same text buffer described below.
+
+The three town services add these pure rules:
+
+- `stew` returns an offer or refusal, a debit, a new maximum health and a text
+  ID. The 40-health ceiling takes precedence over affordability, as before.
+- `university` returns the next phase, choice count, debit, weapon and text ID.
+  It welcomes the player, skips learned abilities, and reevaluates funds for
+  the second course after the first purchase. The adapter follows those
+  phases; it does not decide which course to offer.
+- `shop_stock` returns each row's text ID and affordability. `shop_trade`
+  returns completion, debit, healing, item, weapon, text and random-request
+  fields. Insufficient funds leave the menu open at the selected row. All
+  effects are copied before any drawing, weapon initialization or random draw.
+
+A shop query initially supplies `book_roll=255` (not drawn). Only an affordable
+ordinary book requests randomness; the adapter draws once and reruns the pure
+rule with that value. Buying a first spell book, leaving or failing to afford
+a book consumes no random value. A fixed draw gives reproducible behaviour on
+both targets. The old eight outcomes are retained, including outcome seven's
+lack of an acknowledgement and the unpurchasable weapon's joke response.
 
 Text IDs are resolved in `quest_text`, a page-D module. That module copies the
 selected, bounded string into a 96-byte RAM buffer. Its caller restores page D
@@ -73,10 +94,20 @@ contract; the serial projection is not a general concurrency guarantee.
 
 ## Execution and placement
 
-The portable Vexel projection and its adapter compile together into the `quest`
-page-C module. NPC and town-hall modules enter through the existing resident
-page-C trampoline, which restores their mapping before returning. The text
-copy runs in page D; popup and infobar code run in page B.
+The adapter and lumberjack/pear rules compile into the `quest` page-C module.
+The new pure service rules occupy `quest_services` in page B. Every service
+evaluation and result read occurs while that bank is mapped; all fields are
+copied before restoring the previous page B and invoking drawing or effects.
+The same foreground can therefore reuse page B for the popup and infobar.
+Text copies run in page D. Building and NPC modules enter the adapter through
+the existing resident page-C trampoline, which restores their mapping.
+
+The generator retains the complete portable `vx_bridges.c` and also packages
+its unchanged function bodies into `vx_quests.inc` and `vx_services.inc`.
+It checks the expected source order and absence of runtime helper functions
+before splitting; changed emission assumptions fail generation for review.
+Both parts are hashed and compiled by the normal build. This is the small
+Konami-5 embedding's placement policy, not a new Vexel lowering pass.
 
 `src/gameplay/vx_runtime.h` supplies the ABI declarations for this embedding.
 Its `VX_RESIDENT` is deliberately empty. SDCC's `__nonbanked` attribute would
@@ -100,7 +131,7 @@ door entry/exit and other cutscenes; it is outside this slice.
 
 The supported Vexel frontend from `vexel_lang` revision `edea4f1` generated this
 projection. `generated/quests/manifest.json` records its executable hash,
-hashes of all three source files and generated artifact hashes. No compiler
+hashes of all six source files and generated artifact hashes. No compiler
 changes were needed. Ordinary builds validate these hashes without a solver.
 
 Verified with SDCC 4.2.0, its sdasz80, GCC, SDL2 2.30.0 and openMSX 19.1 using
@@ -151,6 +182,22 @@ and input queue. These bytes and the resident input helper are absent from
 ordinary builds. Stack and elapsed-time figures cover the whole scenario,
 including the lumberjack, door entry, five pear visits and fixed display waits.
 
+With all three town services migrated, ordinary globals occupy 3,789 bytes
+(`0xC000..0xCECC`), leaving 307 bytes before the fixed map. That is 111 bytes
+above the corrected C reference: the 14-byte result arena, 96-byte text buffer
+and one fault byte. The three services add nine RAM bytes over the pear
+milestone. The current smoke driver uses 13 additional RAM bytes per variant.
+
+The production adapter/quest bank occupies 4,774 bytes, the service-rule bank
+7,232 bytes and the text bank 1,657 bytes. Occupied ROM is 432,951 bytes for
+Vexel and 424,084 for the corrected C reference; resident code still ends at
+`0x5EBD` in both. These measurements use the same toolchain and flags as above.
+The complete 19-visit smoke run takes 51.1828 emulated seconds for C and
+51.6000 for Vexel, including rendering and fixed waits. Additional stack use
+observed from scenario entry is 182 bytes for C and 192 for Vexel; these remain
+measurements of the exercised paths, including interrupts, rather than a
+whole-game bound.
+
 `make test` compares deterministic traces from the **production** original C
 callbacks and Vexel-backed callbacks under UBSan. It checks dialogue ordering,
 follower trail initialization, repeated contact, one reward, reset and despawn
@@ -179,6 +226,15 @@ catches stale dialogues even if both implementations share the bug. Route
 navigation and unrelated quests still need ordinary playtesting.
 No physical MSX test has been performed.
 
+Town-service validation extends this to payments at exact balances and just
+below them, healing and health caps, consecutive courses, learned abilities,
+stock progression, immediate weapon initialization, all eight ordinary-book
+draws and failed purchases followed by leaving. Host traces compare the real
+C and Vexel adapters under UBSan, with sinks overwriting the released payload.
+The full-engine scenario also visits all three services, compares 29 more
+popup renderings and verifies restoration of both map buffers after all 19
+building exits. Its random source is fixed only in the smoke profile.
+
 ## Small baseline repairs
 
 - Use the installed tools and pinned local library instead of missing private
@@ -204,6 +260,13 @@ No physical MSX test has been performed.
   during the exit animation, removing the building's dialogue without waiting
   for the player to scroll. This adds five ROM bytes and no RAM to each build
   relative to the pear milestone above.
+- Map `largepopup` when the three town services call its functions, and keep
+  that bank mapped during reference-menu cursor writes. They previously
+  mapped the different `popup` module and left cursor calls unguarded.
+- Initialize newly selected shop and university weapons before updating the
+  infobar. Previously ownership and the icon changed but attack entities could
+  retain the previous weapon's initialization. Both implementations receive
+  this repair.
 
 The optimized renderer, audio and assembly implementations are unchanged.
 
@@ -213,10 +276,10 @@ This is a working route for moving decisions into Vexel while retaining the
 engine and both targets. It provides a concrete resource-lifetime boundary
 where banked text can no longer escape into gameplay as a raw address.
 
-Most gameplay is still C. These two interactions establish that relevant state
-and small typed results also handle choice-dependent inventory effects with
-the same adapter and owned text storage. Another shop or conversation can use
-this boundary without a generic VM. Suspending scenes across ordinary gameplay
+Most gameplay outside these town services is still C. Relevant state and small
+typed results now cover choice-dependent inventory effects, multi-stage offers
+and explicit randomness with the same adapter and owned text storage.
+Suspending scenes across ordinary gameplay
 frames would still require an explicit continuation design.
 Asset IDs do not yet cover all sprite/audio/map consumers, and the legacy
 engine's other pointer lifetimes remain its responsibility.
@@ -226,3 +289,7 @@ contains mapper register writes and layout assumptions specific to Konami-5.
 This first comparison intentionally retains those assumptions. There is no
 RAM mapper, new heap, LLM optimization loop, or general engine scheduler added
 by this slice.
+
+The project accepts ROM growth up to approximately 16 MB with a future mapper.
+RAM, stack use, bank safety and execution speed take priority over cartridge
+size. Current bank-size checks remain necessary for the Konami-5 layout.

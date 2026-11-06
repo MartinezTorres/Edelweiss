@@ -1,5 +1,8 @@
-// Both foreground sources release their results before another invocation.
-// The solver can share this five-byte arena; the engine owns text separately.
-[[require(payload_bytes, 5)]] quest_payload_bytes=5;
+// Foreground sources release their results before another invocation.
+// All services share one result arena; the engine owns text separately.
+[[require(payload_bytes, 14)]] quest_payload_bytes=14;
 ::lumberjack;
 ::pear;
+::stew;
+::university;
+::shop;
