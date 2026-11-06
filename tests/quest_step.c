@@ -41,12 +41,26 @@ int main(void) {
         }
     }
     step(255, 255, 255, QUEST_NONE, QUEST_NO_TEXT);
-    for (phase = 1; phase <= QUEST_TEXT_THANKS; ++phase) {
+    /* A forged acceptance cannot spend a missing pear; each real acceptance
+     * consumes exactly one pear and grants just the appropriate reward. */
+    for (phase = 0; phase < 8; ++phase) {
+        uint8_t pear = phase & 1, boots = (phase >> 1) & 1, accept = phase >> 2;
+        uint8_t exchange = pear && accept;
+        vx_pear(pear, boots, accept);
+        assert(vx_pear_read(0) == (pear ? 2 : 1));
+        assert(vx_pear_read(1) == exchange);
+        assert(vx_pear_read(2) == (exchange && !boots));
+        assert(vx_pear_read(3) == (exchange && boots ? 100 : 0));
+        assert(vx_pear_read(4) == (exchange ? (boots ? QUEST_TEXT_PEAR_RUPEES :
+                                            QUEST_TEXT_PEAR_BOOTS) : QUEST_TEXT_PEAR_OFFER));
+    }
+    assert(sizeof(vx_payload) == 5);
+    for (phase = 1; phase <= QUEST_TEXT_PEAR_RUPEES; ++phase) {
         assert(quest_text_copy(phase, text, sizeof(text)));
         assert(strlen(text) < sizeof(text));
         assert(!quest_text_copy(phase, text, 1) && text[0] == 0);
         assert(!quest_text_copy(phase, text, 0));
     }
     assert(!quest_text_copy(255, text, sizeof(text)) && text[0] == 0);
-    puts("quest step: transitions, cancellation, repeated events and bounded text passed");
+    puts("quest steps: lumberjack transitions, pear rewards and bounded text passed");
 }

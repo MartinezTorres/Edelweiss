@@ -1,10 +1,10 @@
 # Edelweiss
 
-An MSX1 game with a Linux/SDL development build. The lumberjack rescue and
-town-hall axe reward now run from Vexel; the renderer, audio, collision system,
-entity storage and optimized assembly remain in the existing engine.
+An MSX1 game with a Linux/SDL development build. The lumberjack rescue, axe
+reward and town-hall pear exchange now run from Vexel; the renderer, audio,
+collision system, entity storage and optimized assembly remain in the engine.
 
-The original C quest is available with `GAMEPLAY=reference`. Both variants use
+The original C quests are available with `GAMEPLAY=reference`. Both variants use
 the same modernized build and engine, so they can be compared directly.
 
 ## Build and play
@@ -17,7 +17,7 @@ was verified with SDCC 4.2.0, SDL2 2.30.0 and openMSX 19.1.
 make -j4                    # Linux executable and Konami-5 cartridge
 make run                    # Linux / SDL
 make run-msx                # openMSX, C-BIOS_MSX1, KonamiSCC mapper
-make GAMEPLAY=reference -j4 # Retained C quest
+make GAMEPLAY=reference -j4 # Retained C quests
 ```
 
 Outputs are `build/vexel/linux/weiss` and `build/vexel/msx/weiss.rom`, or the
@@ -43,9 +43,18 @@ the surrounding Vexel repository.
 
 ## Edit the gameplay
 
-The source is [gameplay/lumberjack.vx](gameplay/lumberjack.vx). It receives a
-phase and an event, and returns three bytes: next phase, command and text ID.
-It does not receive entity pointers, resource addresses or a copy of the world.
+The entry file [gameplay/quests.vx](gameplay/quests.vx) imports two pure rules:
+
+- [lumberjack.vx](gameplay/lumberjack.vx) receives a phase and an event, and
+  returns the next phase, command and text ID.
+- [pear.vx](gameplay/pear.vx) receives pear ownership, boots ownership and the
+  player's answer. It returns the available choice count, pear consumption,
+  boots reward, rupee credit and text ID.
+
+The rules share a five-byte result arena and receive only relevant state.
+The C adapter handles input and rendering, copies results before applying
+effects, and reuses one 96-byte text buffer. No entity or banked text pointer
+crosses into Vexel.
 
 ```sh
 # When this repository is in vexel_lang/ext/edelweiss:
@@ -59,12 +68,12 @@ make generate VEXEL=/path/to/vexel_lang/build/vexel
 ```
 
 The portable generated C, interface, resolution report and input hashes are
-kept in `generated/lumberjack`. An ordinary game build uses that projection
+kept in `generated/quests`. An ordinary game build uses that projection
 without requiring a Vexel installation. A source/projection hash mismatch
 fails the build with instructions to regenerate.
 
 The [integration notes](docs/vexel-quest.md) describe ownership, bank placement,
-the synchronous engine adapter and the limits of this first migration.
+the synchronous engine adapter and the limits of this migration.
 
 ## Check behaviour and inspect placement
 
@@ -76,12 +85,15 @@ make -j4 smoke   # Both complete engines on SDL and openMSX, no display required
 `smoke` builds separate `*-smoke` profiles, skips the title and brings the NPC
 to the player. It uses real entity callbacks, drawing, mapper changes and the
 game ISR; dialogue is acknowledged automatically after its usual display delay.
-It checks following, delivery, the reward and mapper restoration. This does
-not automate walking the complete route or replace a full playthrough.
+It checks following, delivery, the axe, pear choices, boots and rupee rewards,
+repeated visits and mapper restoration. This does not automate walking the
+complete route or replace a full playthrough.
 
-Screenshots and observed stack/timing reports are in `build/smoke`. All three
-MSX dialogue captures are compared between the two variants. The ordinary
-build contains neither the scenario driver nor automatic acknowledgement.
+Screenshots and observed stack/timing reports are in `build/smoke`. Three
+lumberjack images and nine pear popups are compared between variants. For the
+popups, the check compares their VRAM patterns, colors and placement while
+allowing the surrounding world to keep animating.
+The ordinary build contains neither the scenario driver nor scripted input.
 
 Every MSX build leaves editable SDCC `.asm`, `.lst`, `.rel` and `.sym` files
 under its `msx/` directory, and the cartridge has `.areas.map`, `.symbols.map`,
@@ -89,7 +101,7 @@ under its `msx/` directory, and the cartridge has `.areas.map`, `.symbols.map`,
 8 KiB bank, resident ROM overflowing page A, and globals reaching the map's
 fixed address at `0xD000`.
 
-The measured first slice keeps the cartridge at 416 KiB, adds 100 bytes of
-global RAM, and adds 12 bytes to the deepest observed stack use in the smoke
-scenario. These are measurements of this build and path, not a whole-game
-stack proof. See the integration notes for the complete comparison.
+The two quests use 102 more bytes of global RAM than the C reference, just two
+more than the lumberjack milestone. The cartridge is now 424 KiB. Stack and
+timing measurements cover the exercised paths, not a whole-game stack proof.
+See the integration notes for the complete comparison.

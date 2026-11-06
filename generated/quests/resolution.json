@@ -2,8 +2,8 @@
   "format": "vexel-relational-source-1",
   "status": "resolved",
   "stats": {
-    "work": 23135,
-    "decisions": 3,
+    "work": 34396,
+    "decisions": 6,
     "models": 1,
     "unfinished": 0
   },
@@ -12,27 +12,61 @@
   "capture_proofs": [],
   "source_inputs": [
     {
+      "path": "/opt/repos/manel/vexel_lang/ext/edelweiss/gameplay/quests.vx",
+      "fnv1a": "e669b16de60ed1ec"
+    },
+    {
       "path": "/opt/repos/manel/vexel_lang/ext/edelweiss/gameplay/lumberjack.vx",
-      "fnv1a": "9a803604a2442fc5"
+      "fnv1a": "a52765ad6c24eeb1"
+    },
+    {
+      "path": "/opt/repos/manel/vexel_lang/ext/edelweiss/gameplay/pear.vx",
+      "fnv1a": "d8449d17a8d6c5f6"
     }
   ],
   "resource_inputs": [],
   "directory_inputs": [],
   "process_inputs": [],
   "input_dependencies": [
-    "/opt/repos/manel/vexel_lang/ext/edelweiss/gameplay/lumberjack.vx"
+    "/opt/repos/manel/vexel_lang/ext/edelweiss/gameplay/lumberjack.vx",
+    "/opt/repos/manel/vexel_lang/ext/edelweiss/gameplay/pear.vx",
+    "/opt/repos/manel/vexel_lang/ext/edelweiss/gameplay/quests.vx"
   ],
   "input_selections": [
     {
+      "key": "path-exists:/opt/repos/manel/vexel_lang/ext/edelweiss/gameplay/lumberjack.vx",
+      "value": "true"
+    },
+    {
+      "key": "path-exists:/opt/repos/manel/vexel_lang/ext/edelweiss/gameplay/pear.vx",
+      "value": "true"
+    },
+    {
       "key": "path-target:/opt/repos/manel/vexel_lang/ext/edelweiss/gameplay/lumberjack.vx",
       "value": "/opt/repos/manel/vexel_lang/ext/edelweiss/gameplay/lumberjack.vx"
+    },
+    {
+      "key": "path-target:/opt/repos/manel/vexel_lang/ext/edelweiss/gameplay/pear.vx",
+      "value": "/opt/repos/manel/vexel_lang/ext/edelweiss/gameplay/pear.vx"
+    },
+    {
+      "key": "path-target:/opt/repos/manel/vexel_lang/ext/edelweiss/gameplay/quests.vx",
+      "value": "/opt/repos/manel/vexel_lang/ext/edelweiss/gameplay/quests.vx"
+    },
+    {
+      "key": "source-kind:/opt/repos/manel/vexel_lang/ext/edelweiss/gameplay/lumberjack.vx",
+      "value": "file"
+    },
+    {
+      "key": "source-kind:/opt/repos/manel/vexel_lang/ext/edelweiss/gameplay/pear.vx",
+      "value": "file"
     }
   ],
   "source_metadata": [
     {
-      "location": "/opt/repos/manel/vexel_lang/ext/edelweiss/gameplay/lumberjack.vx:13:1",
+      "location": "/opt/repos/manel/vexel_lang/ext/edelweiss/gameplay/quests.vx:3:31",
       "tags": [
-        "[[require(payload_bytes, 3)]]"
+        "[[require(payload_bytes, 5)]]"
       ]
     }
   ],
@@ -50,7 +84,7 @@
       "target default"
     ],
     "payload_bytes": [
-      "/opt/repos/manel/vexel_lang/ext/edelweiss/gameplay/lumberjack.vx:12:1 [[require(payload_bytes, 3)]]"
+      "/opt/repos/manel/vexel_lang/ext/edelweiss/gameplay/quests.vx:3:1 [[require(payload_bytes, 5)]]"
     ],
     "ram_bytes": [
       "target default"
@@ -91,9 +125,9 @@
       ]
     },
     "payload_bytes": {
-      "value": 3,
+      "value": 5,
       "origins": [
-        "/opt/repos/manel/vexel_lang/ext/edelweiss/gameplay/lumberjack.vx:12:1 [[require(payload_bytes, 3)]]"
+        "/opt/repos/manel/vexel_lang/ext/edelweiss/gameplay/quests.vx:3:1 [[require(payload_bytes, 5)]]"
       ]
     },
     "ram_bytes": {
@@ -123,8 +157,8 @@
   },
   "queries": [],
   "activation": "serial",
-  "payload_budget": 3,
-  "extent": 3,
+  "payload_budget": 5,
+  "extent": 5,
   "sources": [
     {
       "name": "lumberjack",
@@ -185,12 +219,100 @@
           "value": "Runtime(Select(Runtime(Select(Runtime(Compare(==,Runtime(Input(a1),0,255),4),0,1),Runtime(Compare(!=,Runtime(Input(a0),0,255),5),0,1),0),0,1),0,Runtime(Select(Runtime(Select(Runtime(Compare(==,Runtime(Input(a0),0,255),0),0,1),Runtime(Compare(==,Runtime(Input(a1),0,255),1),0,1),0),0,1),1,Runtime(Select(Runtime(Select(Runtime(Compare(==,Runtime(Input(a0),0,255),1),0,1),Runtime(Compare(==,Runtime(Input(a1),0,255),3),0,1),0),0,1),2,Runtime(Select(Runtime(Select(Runtime(Compare(==,Runtime(Input(a0),0,255),2),0,1),Runtime(Compare(==,Runtime(Input(a1),0,255),3),0,1),0),0,1),0,Runtime(Select(Runtime(Select(Runtime(Compare(==,Runtime(Input(a0),0,255),3),0,1),Runtime(Compare(==,Runtime(Input(a1),0,255),2),0,1),0),0,1),3,0),0,3)),0,3)),0,3)),0,3)),0,3)"
         }
       ]
+    },
+    {
+      "name": "pear",
+      "source": "pear",
+      "logical_type": "#Exchange(choices:#u8,consume_pear:#u8,grant_boots:#u8,credit:#u8,text:#u8)",
+      "element_bits": 8,
+      "bytes": 5,
+      "offset": 0,
+      "parameters": [
+        {
+          "name": "has_pear",
+          "logical_type": "#u8",
+          "min": 0,
+          "max": 255,
+          "leaves": [
+            {
+              "parameter": "vxp_a0",
+              "path": "has_pear",
+              "logical_type": "#u8",
+              "min": 0,
+              "max": 255
+            }
+          ]
+        },
+        {
+          "name": "has_boots",
+          "logical_type": "#u8",
+          "min": 0,
+          "max": 255,
+          "leaves": [
+            {
+              "parameter": "vxp_a1",
+              "path": "has_boots",
+              "logical_type": "#u8",
+              "min": 0,
+              "max": 255
+            }
+          ]
+        },
+        {
+          "name": "accepted",
+          "logical_type": "#u8",
+          "min": 0,
+          "max": 255,
+          "leaves": [
+            {
+              "parameter": "vxp_a2",
+              "path": "accepted",
+              "logical_type": "#u8",
+              "min": 0,
+              "max": 255
+            }
+          ]
+        }
+      ],
+      "leaves": [
+        {
+          "path": "pear.choices",
+          "logical_type": "#u8",
+          "stored": true,
+          "value": "Runtime(Select(Runtime(Select(Runtime(Compare(!=,Runtime(Input(a2),0,255),0),0,1),Runtime(Compare(!=,Runtime(Input(a0),0,255),0),0,1),0),0,1),2,Runtime(Select(Runtime(Compare(!=,Runtime(Input(a0),0,255),0),0,1),2,1),1,2)),1,2)"
+        },
+        {
+          "path": "pear.consume_pear",
+          "logical_type": "#u8",
+          "stored": true,
+          "value": "Runtime(Select(Runtime(Select(Runtime(Compare(!=,Runtime(Input(a2),0,255),0),0,1),Runtime(Compare(!=,Runtime(Input(a0),0,255),0),0,1),0),0,1),1,0),0,1)"
+        },
+        {
+          "path": "pear.grant_boots",
+          "logical_type": "#u8",
+          "stored": true,
+          "value": "Runtime(Select(Runtime(Select(Runtime(Compare(!=,Runtime(Input(a2),0,255),0),0,1),Runtime(Compare(!=,Runtime(Input(a0),0,255),0),0,1),0),0,1),Runtime(Select(Runtime(Compare(!=,Runtime(Input(a1),0,255),0),0,1),0,1),0,1),0),0,1)"
+        },
+        {
+          "path": "pear.credit",
+          "logical_type": "#u8",
+          "stored": true,
+          "value": "Runtime(Select(Runtime(Select(Runtime(Compare(!=,Runtime(Input(a2),0,255),0),0,1),Runtime(Compare(!=,Runtime(Input(a0),0,255),0),0,1),0),0,1),Runtime(Select(Runtime(Compare(!=,Runtime(Input(a1),0,255),0),0,1),100,0),0,100),0),0,100)"
+        },
+        {
+          "path": "pear.text",
+          "logical_type": "#u8",
+          "stored": true,
+          "value": "Runtime(Select(Runtime(Select(Runtime(Compare(!=,Runtime(Input(a2),0,255),0),0,1),Runtime(Compare(!=,Runtime(Input(a0),0,255),0),0,1),0),0,1),Runtime(Select(Runtime(Compare(!=,Runtime(Input(a1),0,255),0),0,1),6,5),5,6),4),4,6)"
+        }
+      ]
     }
   ],
   "runtime_functions": [],
   "boundary_storage": [],
   "source_accesses": {
-    "lumberjack": []
+    "lumberjack": [],
+    "pear": []
   },
   "mapper_storage": {
     "bytes": 0,
@@ -201,6 +323,12 @@
     {
       "name": "vx_lumberjack",
       "module": "vxp_source_lumberjack",
+      "window": "B",
+      "frame_policy": "automatic"
+    },
+    {
+      "name": "vx_pear",
+      "module": "vxp_source_pear",
       "window": "B",
       "frame_policy": "automatic"
     }
@@ -223,6 +351,19 @@
           "vx_lumberjack"
         ],
         "calls": []
+      },
+      {
+        "name": "vx_pear",
+        "frame_policy": "automatic",
+        "projected_local_bytes": 0,
+        "recursive": false,
+        "open_boundary": false,
+        "overlapping_occurrences": false,
+        "reason": "no projected local buffers",
+        "source_occurrences": [
+          "vx_pear"
+        ],
+        "calls": []
       }
     ]
   },
@@ -234,7 +375,10 @@
     "events": [
       "lumberjack.begin",
       "lumberjack.produce",
-      "lumberjack.release"
+      "lumberjack.release",
+      "pear.begin",
+      "pear.produce",
+      "pear.release"
     ],
     "before": [
       [
@@ -244,6 +388,18 @@
       [
         "lumberjack.produce",
         "lumberjack.release"
+      ],
+      [
+        "lumberjack.release",
+        "pear.begin"
+      ],
+      [
+        "pear.begin",
+        "pear.produce"
+      ],
+      [
+        "pear.produce",
+        "pear.release"
       ]
     ]
   },

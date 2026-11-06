@@ -1,9 +1,0 @@
-{
-  "solver_sha256": "f3afe9c2734005c623c80214d91410a1611286a0d10d9949bd515dc8a73ec39d",
-  "files": {
-    "gameplay/lumberjack.vx": "7dfb78d91ee24f0750df00f68971e558ed7c62473b72dd1ae19e9ac26e85f1eb",
-    "generated/lumberjack/vexel.h": "25702e6cd93a5e1812af8ada0b12af0ecddbd050f4310a080d2459d3ab899bcc",
-    "generated/lumberjack/vx_bridges.c": "5865d236980c33bff98b4f3707cbec699629050ea297121e3b2c8405927331a1",
-    "generated/lumberjack/source-plan.json": "7730102d7c0d27b376da4defab93c19a437306611c1ae5093c0b839abced41bb"
-  }
-}

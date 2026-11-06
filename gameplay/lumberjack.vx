@@ -7,9 +7,8 @@ no_text=0; text_introduction=1; text_request=2; text_thanks=3;
 
 #Step(phase:#u8, command:#u8, text:#u8);
 
-// One live result, consumed completely before the next event. The three-byte
-// output budget is part of the puzzle; no heap or whole-world snapshot exists.
-[[require(payload_bytes, 3)]]
+// One three-byte result, consumed completely before the next event. The
+// shared output budget is in quests.vx; no whole-world snapshot exists.
 &^lumberjack(phase:#u8, event:#u8) {
     event==cancelled && phase!=completed ? #Step(waiting,none,no_text) : (
     phase==waiting && event==contact ? #Step(introduction,show_text,text_introduction) : (

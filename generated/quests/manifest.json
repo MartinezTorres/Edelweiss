@@ -1,0 +1,11 @@
+{
+  "solver_sha256": "f3afe9c2734005c623c80214d91410a1611286a0d10d9949bd515dc8a73ec39d",
+  "files": {
+    "gameplay/quests.vx": "f94795be480423c4f6059c0090770fa18a2a16c16e3ede7cbb5958f146df339a",
+    "gameplay/lumberjack.vx": "44f5cd1329c722e33a16be855709f35d3ae72e59919fa3757112b5674552eaf2",
+    "gameplay/pear.vx": "da4aee86a7a40d897f764dd0ca95992c45aa08792928403550b3ed4abdf84611",
+    "generated/quests/vexel.h": "26fe2d04e35758d2e381c4817c2661c9d01b091731103a0a4f62ca8080fc90ca",
+    "generated/quests/vx_bridges.c": "47a7c71ca4c740c2e664d1ebcbe490d5e49e1f03755fed1072229b38bca13428",
+    "generated/quests/source-plan.json": "4537548200a17b3a630a27902d9e96702a613a5cefce7d442a65b70d822655b8"
+  }
+}

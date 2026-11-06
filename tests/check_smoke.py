@@ -35,6 +35,23 @@ def png_image(path):
         offset += size + 12
     return layout, zlib.decompress(compressed)
 
+
+def popup_image(path):
+    # Compare the actual 88x32 popup patterns/colors and its placement in both
+    # name tables. The surrounding world keeps animating at different phases.
+    data = path.read_bytes()
+    assert len(data) == 960, f"Incomplete popup capture: {path}"
+    columns = []
+    for table in range(2):
+        for row in range(4):
+            start = 704 + table * 128 + row * 32
+            tiles = bytes(range(10 + row % 2, 32, 2))
+            column = data[start:start + 32].find(tiles)
+            assert column >= 0, f"Popup is not visible in name table: {path}"
+            columns.append(column)
+    assert len(set(columns)) == 1, f"Misaligned popup: {path}"
+    return data[:704], columns
+
 for variant in ("reference", "vexel"):
     profile = BUILD / (variant + "-smoke")
     env = dict(os.environ, SDL_VIDEODRIVER="dummy", SDL_AUDIODRIVER="dummy",
@@ -48,11 +65,15 @@ for variant in ("reference", "vexel"):
         r"(\w+): equ ([0-9A-Fa-f]+)h", Path(str(rom) + ".sym").read_text())}
     status = symbols["_edw_smoke_status"]
     messages = symbols["_edw_smoke_messages"]
+    capture = symbols["_edw_smoke_capture"]
     report = OUTPUT / (variant + "-msx.txt")
     # A failed rerun must not consume a previous success report.
     report.write_text("pending\n")
     for i in (1, 2, 3):
         (OUTPUT / f"{variant}-dialogue-{i}.png").write_bytes(b"")
+    for i in range(1, 10):
+        (OUTPUT / f"{variant}-pear-{i}.png").write_bytes(b"")
+        (OUTPUT / f"{variant}-pear-{i}.bin").write_bytes(b"")
     script = OUTPUT / (variant + "-quest.tcl")
     script.write_text(f"""set throttle on
 set speed 100
@@ -62,6 +83,7 @@ set low 65535
 set entry 0
 set started 0
 set count 0
+set pear 0
 set background_ok 1
 proc check_background {{}} {{
     global background_ok
@@ -84,6 +106,7 @@ debug set_watchpoint write_mem {status} {{}} {{
         set f [open {{{report}}} w]
         puts $f "status=$::wp_last_value"
         puts $f "dialogues=$count"
+        puts $f "pear_captures=$pear"
         puts $f "background_ok=$background_ok"
         puts $f "elapsed_seconds=[expr {{[machine_info time] - $started}}]"
         puts $f "entry_sp=$entry"
@@ -98,6 +121,21 @@ debug set_watchpoint write_mem {messages} {{}} {{
     if {{$count > 0 && $count <= 3}} {{
         check_background
         screenshot -raw "{OUTPUT}/{variant}-dialogue-$count.png"
+    }}
+}}
+debug set_watchpoint write_mem {capture} {{}} {{
+    set pear $::wp_last_value
+    if {{$pear > 0 && $pear <= 9}} {{
+        check_background
+        screenshot -raw "{OUTPUT}/{variant}-pear-$pear.png"
+        set f [open "{OUTPUT}/{variant}-pear-$pear.bin" wb]
+        foreach address {{0x0050 0x0850 0x2050 0x2850}} {{
+            puts -nonewline $f [debug read_block VRAM $address 176]
+        }}
+        foreach address {{0x18c0 0x1cc0}} {{
+            puts -nonewline $f [debug read_block VRAM $address 128]
+        }}
+        close $f
     }}
 }}
 after time 40 {{
@@ -115,6 +153,7 @@ after time 40 {{
     assert result.returncode == 0 and "status=3\n" in data, data + result.stderr
     values = dict(line.split("=", 1) for line in data.splitlines())
     assert values["dialogues"] == "3", values
+    assert values["pear_captures"] == "9", values
     assert values["background_ok"] == "1", "Game background must remain black: " + str(values)
     results[variant] = values
     print(f"{variant}: SDL and MSX full-engine quest passed; "
@@ -125,5 +164,11 @@ for i in (1, 2, 3):
     vexel = OUTPUT / f"vexel-dialogue-{i}.png"
     assert reference.stat().st_size > 1000, "Missing/blank dialogue screenshot"
     assert png_image(reference) == png_image(vexel), f"Dialogue {i} rendering differs"
+for i in range(1, 10):
+    reference = OUTPUT / f"reference-pear-{i}.png"
+    vexel = OUTPUT / f"vexel-pear-{i}.png"
+    assert reference.stat().st_size > 1000, "Missing/blank pear screenshot"
+    assert popup_image(reference.with_suffix(".bin")) == popup_image(vexel.with_suffix(".bin")), \
+        f"Pear capture {i} rendering/placement differs"
 (OUTPUT / "results.json").write_text(json.dumps(results, indent=2) + "\n")
-print("All three MSX dialogue captures match the reference")
+print("Three lumberjack images and nine pear popup renderings/placements match the reference")

@@ -1,0 +1,5 @@
+// Both foreground sources release their results before another invocation.
+// The solver can share this five-byte arena; the engine owns text separately.
+[[require(payload_bytes, 5)]] quest_payload_bytes=5;
+::lumberjack;
+::pear;

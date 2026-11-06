@@ -20,12 +20,15 @@ endif
 rwildcard = $(foreach d,$(wildcard $(addsuffix *,$1)),$(call rwildcard,$d/,$2) $(filter $(subst *,%,$2),$d))
 SOURCES := $(sort $(call rwildcard,src/ vendor/sdcc_msx/src/,*.c))
 ifeq ($(SMOKE),1)
-SOURCES += tests/quest_smoke.c
+SOURCES += tests/quest_smoke.c tests/quest_smoke_input.c
 CPPFLAGS += -DEDW_SMOKE=1
 endif
 ASSEMBLY := $(sort $(call rwildcard,src/ vendor/sdcc_msx/src/,*.s))
 HEADERS := $(sort $(call rwildcard,src/ vendor/sdcc_msx/inc/,*.h *.t))
-INCLUDES := -Isrc -Ivendor/sdcc_msx/inc -I$(BUILD)/inc -Isrc/gameplay -Igenerated/lumberjack
+ifeq ($(SMOKE),1)
+HEADERS += tests/quest_smoke_input.h
+endif
+INCLUDES := -Isrc -Ivendor/sdcc_msx/inc -I$(BUILD)/inc -Isrc/gameplay -Igenerated/quests
 CPPFLAGS += -DEDW_VEXEL=$(if $(filter vexel,$(GAMEPLAY)),1,0)
 CFLAGS ?= -O2 -g
 HOST_FLAGS := -std=gnu99 $(CFLAGS) -Wall -Wextra -Wno-unused-parameter
@@ -87,7 +90,7 @@ $(BUILD)/msx/weiss.rom: $(MSX_OBJECTS) $(LINKER)
 
 ifeq ($(GAMEPLAY),vexel)
 $(LINUX_OBJECTS) $(MSX_OBJECTS): | check-generated
-$(BUILD)/linux/src/gameplay/quest.o $(BUILD)/msx/src/gameplay/quest.rel: generated/lumberjack/vx_bridges.c generated/lumberjack/vexel.h
+$(BUILD)/linux/src/gameplay/quest.o $(BUILD)/msx/src/gameplay/quest.rel: generated/quests/vx_bridges.c generated/quests/vexel.h
 endif
 
 -include $(LINUX_OBJECTS:.o=.d)

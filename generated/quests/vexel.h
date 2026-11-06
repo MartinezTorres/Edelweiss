@@ -13,7 +13,9 @@
 #define VX_SNAPSHOT16(x) (x)
 #define VX_SNAPSHOT32(x) (x)
 #endif
-extern uint8_t vx_payload[3];
+extern uint8_t vx_payload[5];
 void vx_lumberjack(uint8_t vxp_a0,uint8_t vxp_a1) VX_ABI VX_RESIDENT;
 uint32_t vx_lumberjack_read(uint16_t index) VX_ABI VX_RESIDENT;
+void vx_pear(uint8_t vxp_a0,uint8_t vxp_a1,uint8_t vxp_a2) VX_ABI VX_RESIDENT;
+uint32_t vx_pear_read(uint16_t index) VX_ABI VX_RESIDENT;
 #endif

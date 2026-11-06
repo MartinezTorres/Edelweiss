@@ -1,0 +1,12 @@
+// The UI asks once with accepted=0 to obtain its options, then supplies the
+// selected answer and current inventory. No engine address crosses this API.
+pear_offer=4; pear_boots=5; pear_rupees=6;
+#Exchange(choices:#u8, consume_pear:#u8, grant_boots:#u8, credit:#u8, text:#u8);
+
+&^pear(has_pear:#u8, has_boots:#u8, accepted:#u8) {
+    choices:#u8 = has_pear!=0 ? 2 : 1;
+    accepted!=0 && has_pear!=0 ? (
+        has_boots!=0 ? #Exchange(choices,1,0,100,pear_rupees) :
+                      #Exchange(choices,1,1,0,pear_boots)
+    ) : #Exchange(choices,0,0,0,pear_offer)
+}

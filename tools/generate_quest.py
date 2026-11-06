@@ -9,8 +9,8 @@ import subprocess
 import tempfile
 
 ROOT = Path(__file__).resolve().parents[1]
-SOURCE = ROOT / "gameplay/lumberjack.vx"
-OUTPUT = ROOT / "generated/lumberjack"
+SOURCE = ROOT / "gameplay/quests.vx"
+OUTPUT = ROOT / "generated/quests"
 FILES = ("vexel.h", "vx_bridges.c", "source-plan.json")
 
 
@@ -34,7 +34,7 @@ def main():
     with tempfile.TemporaryDirectory(prefix="edelweiss-vexel-") as temporary:
         target = Path(temporary) / "generated"
         result = subprocess.run(
-            [str(solver), "gameplay/lumberjack.vx", "--source", "lumberjack",
+            [str(solver), str(SOURCE), "--source", "lumberjack", "--source", "pear",
              "--mode", "serial", "--emit-c", str(target)],
             cwd=ROOT, capture_output=True, text=True)
         if result.returncode:
@@ -44,7 +44,8 @@ def main():
         for name in FILES:
             shutil.copyfile(target / name, OUTPUT / name)
         (OUTPUT / "resolution.json").write_text(json.dumps(plan, indent=2) + "\n")
-    paths = [SOURCE, *(OUTPUT / name for name in FILES)]
+    paths = [Path(item["path"]) for item in plan["source_inputs"]]
+    paths += [OUTPUT / name for name in FILES]
     manifest = {"solver_sha256": digest(solver), "files": {
         str(path.relative_to(ROOT)): digest(path) for path in paths}}
     (OUTPUT / "manifest.json").write_text(json.dumps(manifest, indent=2) + "\n")

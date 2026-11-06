@@ -17,6 +17,15 @@ uint8_t quest_text_copy(uint8_t id, char *destination, uint8_t capacity) {
     case QUEST_TEXT_THANKS:
         text = "THANKS A LOT! I CAN NOT\nWORK WITH THESE\nMONSTERS. TAKE MY\nAXE, IT MIGHT BE HANDY.";
         break;
+    case QUEST_TEXT_PEAR_OFFER:
+        text = "THE MAYOR IS LOOKING\nFOR MYTHICAL FRUITS\nDO YOU HAVE ANY?\n";
+        break;
+    case QUEST_TEXT_PEAR_BOOTS:
+        text = "\nTHANKS A LOT\nTAKE THESE BOOTS\nIN EXCHANGE.";
+        break;
+    case QUEST_TEXT_PEAR_RUPEES:
+        text = "\nTHANKS A LOT\nTAKE THESE RUPPES\nIN EXCHANGE.";
+        break;
     default: return 0;
     }
     for (i = 0; i < capacity; ++i) {

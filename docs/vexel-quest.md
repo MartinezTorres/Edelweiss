@@ -1,8 +1,9 @@
-# The first Vexel gameplay slice
+# Vexel gameplay integration
 
 This migration starts from Edelweiss `fecb997` and the supplied `sdcc_msx`
-checkout. It implements the lumberjack conversation, following decision and
-axe reward in Vexel while keeping the original C branches for comparison.
+checkout. The playable lumberjack milestone is committed as `f2b5fdc`.
+The integration now implements the lumberjack conversation, following decision,
+axe reward and town-hall pear exchange while keeping the C branches for comparison.
 The original local library edit and untracked files are left untouched.
 
 ## Boundary and ownership
@@ -28,12 +29,34 @@ An absent entity is rejected before an engine slot is accessed. Delivery
 despawns the follower and disables its automatic spawning, preventing a second
 reward through ordinary game events.
 
-The output is `(phase, command, text ID)`, with an explicit three-byte payload
-budget in Vexel. `quest_interact` reads all leaves before applying any effect.
+The output is `(phase, command, text ID)`, occupying three bytes in the shared
+payload arena. `quest_interact` reads all leaves before applying any effect.
 The test sink deliberately overwrites the released payload during dialogue;
 the transition must still finish correctly. Commands initialize the existing
 eight-entry follower trail, despawn through the original callback, equip the
 axe and update the infobar. No full `T_State` copy or heap allocation is used.
+
+`gameplay/pear.vx` receives only `(has_pear, has_boots, accepted)` and produces
+`(choices, consume_pear, grant_boots, credit, text)`. A missing pear makes YES
+unavailable and prevents any reward, even for a forged acceptance. Declining
+preserves inventory. Accepting consumes the pear and grants boots if missing,
+otherwise 100 rupees. The existing engine retains currency arithmetic and its
+999-rupee display cap; these are not new Vexel numeric rules.
+
+`quest_exchange_pear` asks for the offer, runs a bounded yes/no menu, then asks
+for the result using the selected answer and current inventory. It copies the
+result leaves into locals before consuming the pear, applying the reward,
+updating the infobar and displaying the acknowledgement. Input, cursor drawing
+and the existing 60-frame reward delay remain C UI operations. The left, right,
+confirm ordering is preserved, including simultaneous clicks. A second visit
+cannot earn a second reward without another pear. No persistent exchange state
+or generic command interpreter is needed.
+
+`gameplay/quests.vx` imports both sources with an explicit five-byte payload
+budget. Their serial projections share offset zero: three bytes for lumberjack,
+five for pear, five total. The engine finishes consuming one invocation before
+starting another; no caller relies on a particular ordering of the two quests.
+Both use the same text buffer described below.
 
 Text IDs are resolved in `quest_text`, a page-D module. That module copies the
 selected, bounded string into a 96-byte RAM buffer. Its caller restores page D
@@ -44,7 +67,7 @@ successful copy includes a terminator. C pointers remain private engine
 implementation details.
 
 The foreground owns one invocation and one output. The ISR never enters the
-quest, and its current despawn callback does not reenter it. Adding another
+quests, and the current despawn callback does not reenter them. Adding another
 caller or a callback that can invoke gameplay requires revisiting this
 contract; the serial projection is not a general concurrency guarantee.
 
@@ -76,12 +99,15 @@ door entry/exit and other cutscenes; it is outside this slice.
 ## Validation and cost
 
 The supported Vexel frontend from `vexel_lang` revision `edea4f1` generated this
-projection. `generated/lumberjack/manifest.json` records its executable hash,
-source hash and generated artifact hashes. No compiler changes were needed.
+projection. `generated/quests/manifest.json` records its executable hash,
+hashes of all three source files and generated artifact hashes. No compiler
+changes were needed. Ordinary builds validate these hashes without a solver.
 
 Verified with SDCC 4.2.0, its sdasz80, GCC, SDL2 2.30.0 and openMSX 19.1 using
 C-BIOS_MSX1 and KonamiSCC. The retained C reference receives the same toolchain
 and engine compatibility fixes as the Vexel build.
+
+The first milestone (`f2b5fdc`, lumberjack only) measured:
 
 | Measurement | C reference | Vexel slice |
 |---|---:|---:|
@@ -93,25 +119,63 @@ and engine compatibility fixes as the Vexel build.
 | Additional stack depth observed during smoke scenario | 182 bytes | 194 bytes |
 | Scenario emulated time, including dialogue delays | 2.9240 s | 2.9251 s |
 
-The 100-byte RAM difference is the three-byte output, 96-byte owned text buffer
-and one fault byte. The measured smoke profile adds two reporting bytes to
+That 100-byte RAM difference was the three-byte output, 96-byte owned text buffer
+and one fault byte. That smoke profile added two reporting bytes to
 each variant. Its stack measurement starts inside the scenario driver and
 observes writes in the stack region, including interrupts. It is a path
 measurement, not a static worst-case bound; startup and other gameplay paths
 are outside it. Dialogue timing dominates the elapsed-time measurement.
 
+With the pear exchange included:
+
+| Measurement | C reference | Vexel quests |
+|---|---:|---:|
+| Cartridge size | 425,984 bytes | 434,176 bytes |
+| Occupied ROM, excluding bank padding | 423,873 bytes | 426,219 bytes |
+| Ordinary global RAM | 3,678 bytes | 3,780 bytes |
+| End of ordinary globals | `0xCE5E` | `0xCEC4` |
+| Space before fixed map at `0xD000` | 418 bytes | 316 bytes |
+| Additional stack depth observed during extended scenario | 182 bytes | 192 bytes |
+| Extended scenario emulated time, including display waits | 8.2614 s | 8.3282 s |
+
+Relative to the playable milestone, the second Vexel quest adds 962 occupied
+ROM bytes and two RAM bytes. It crosses a cartridge bank boundary, increasing
+the image from 416 to 424 KiB. The current reference includes the popup-bank
+repair described below, which itself adds 101 ROM bytes. Resident production
+code still ends at `0x5EBD` in both variants. The Vexel adapter and both rules
+occupy 2,972 bytes in their page-C module; the text module occupies 507 bytes
+in page D. Neither needs another text buffer or persistent gameplay state.
+
+The extended smoke profile adds eight RAM bytes per variant for its reports
+and input queue. These bytes and the resident input helper are absent from
+ordinary builds. Stack and elapsed-time figures cover the whole scenario,
+including the lumberjack, door entry, five pear visits and fixed display waits.
+
 `make test` compares deterministic traces from the **production** original C
 callbacks and Vexel-backed callbacks under UBSan. It checks dialogue ordering,
 follower trail initialization, repeated contact, one reward, reset and despawn
-before delivery. Small linker fixtures cover XL2/XL3 word and byte relocations,
-resident ROM overflow, map overlap and unplaceable banked resident sections.
+before delivery. Pear cases cover unavailable YES, declining, changing one's
+mind, both rewards, repeat visits, simultaneous clicks and the existing currency
+arithmetic. Rendering and infobar stubs overwrite the released projection to
+check that effects use owned values. Small linker fixtures cover XL2/XL3 word
+and byte relocations, resident ROM overflow, map overlap and unplaceable banked
+resident sections.
 
-`make smoke` runs both complete engines on Linux and an emulated MSX1. All
-three rendered MSX dialogue images match. The scenario exercises real mapper
-switches, renderer/ISR activity and the original spawn/despawn callbacks, then
-checks the bank shadows are restored. It reaches the town-hall routine
-directly; route navigation, door animation and unrelated quests need ordinary
-playtesting. No physical MSX test has been performed.
+`make smoke` runs both complete engines on Linux and an emulated MSX1. It
+compares three full lumberjack images and nine pear popup renderings. For the
+pear captures, it compares the popup's VRAM patterns, colors and placement in
+both name tables; the surrounding world continues animating independently.
+It also checks that the popup tiles are actually present, so two missing menus
+cannot pass by equality alone. Screenshots are retained for visual inspection.
+
+The scenario exercises real mapper switches, renderer/ISR activity and the
+original spawn/despawn callbacks, then checks the bank shadows are restored.
+The pear cases use a small RAM input queue read by a resident test helper:
+the page-C scenario module is unmapped while the town hall or Vexel adapter
+runs. The normal door-entry animation drains pending map transfers and hides
+the player before the first pear menu. Route navigation, complete door
+entry/exit sequences and unrelated quests still need ordinary playtesting.
+No physical MSX test has been performed.
 
 ## Small baseline repairs
 
@@ -131,6 +195,9 @@ playtesting. No physical MSX test has been performed.
   as its RAM shadow, independently of the reference screenshots.
 - Restore the black backdrop and display-enable bit on game entry, including
   when the player skips the title during a flash or while it is blanked.
+- Keep the popup bank mapped while the original C pear menu moves its cursor.
+  Previously only the initial drawing mapped that bank; navigation could call
+  an unmapped renderer. This repair makes the retained MSX reference usable.
 
 The optimized renderer, audio and assembly implementations are unchanged.
 
@@ -140,9 +207,11 @@ This is a working route for moving decisions into Vexel while retaining the
 engine and both targets. It provides a concrete resource-lifetime boundary
 where banked text can no longer escape into gameplay as a raw address.
 
-Most gameplay is still C. The next useful slice is another small conversation
-or inventory exchange using this same boundary. A wider migration should first
-decide how the engine commits multiple commands and suspends/resumes scenes.
+Most gameplay is still C. These two interactions establish that relevant state
+and small typed results also handle choice-dependent inventory effects with
+the same adapter and owned text storage. Another shop or conversation can use
+this boundary without a generic VM. Suspending scenes across ordinary gameplay
+frames would still require an explicit continuation design.
 Asset IDs do not yet cover all sprite/audio/map consumers, and the legacy
 engine's other pointer lifetimes remain its responsibility.
 

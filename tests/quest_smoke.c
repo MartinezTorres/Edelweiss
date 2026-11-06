@@ -1,12 +1,22 @@
 /* Full-engine scenario, compiled only with SMOKE=1. Both quest variants use
  * real rendering, callbacks, mapper switches and the ordinary game ISR. */
 #include <common.h>
+#include "quest_smoke_input.h"
 #ifndef MSX
 #include <stdlib.h>
 #endif
 
 volatile uint8_t edw_smoke_status;
 volatile uint8_t edw_smoke_messages;
+
+static void exchange(uint8_t menu, uint8_t first, uint8_t second) {
+    edw_smoke_menu = menu;
+    edw_smoke_keys[0] = first;
+    edw_smoke_keys[1] = second;
+    edw_smoke_key_count = second ? 2 : 1;
+    edw_smoke_key_index = 0;
+    TRAMPOLINE_PAGE_C(wolfi_in_town_hall);
+}
 
 void quest_smoke(void) {
     Entity *npc = &state.entities[ENTITY_LUMBERJACK];
@@ -28,11 +38,36 @@ void quest_smoke(void) {
         state.follower_entity_spawn_idx != 0) goto failed;
     if (CURRENT_SEGMENT(PAGE_B) != old_b || CURRENT_SEGMENT(PAGE_C) != old_c ||
         CURRENT_SEGMENT(PAGE_D) != old_d) goto failed;
+
+    /* The normal door animation lets pending map transfers finish before a
+     * menu writes its name-table tiles, and hides the player during the UI. */
+    TRAMPOLINE_PAGE_C(wolfi_door_warp_enter);
+    state.has_pear = state.has_boots = false;
+    state.rupees = 7;
+    exchange(1, K_RIGHT | K_SPACE, 0); /* Cannot choose YES without a pear. */
+    if (state.has_pear || state.has_boots || state.rupees != 7) goto failed;
+    state.has_pear = true;
+    exchange(2, K_SPACE, 0); /* Declining preserves inventory. */
+    if (!state.has_pear || state.has_boots || state.rupees != 7) goto failed;
+    exchange(3, K_RIGHT, K_SPACE);
+    if (state.has_pear || !state.has_boots || state.rupees != 7) goto failed;
+    quest_smoke_checkpoint(5); /* Boots reward. */
+    exchange(6, K_RIGHT | K_SPACE, 0); /* A repeated visit cannot pay twice. */
+    if (state.has_pear || !state.has_boots || state.rupees != 7) goto failed;
+    state.has_pear = true;
+    state.rupees = 950;
+    exchange(7, K_RIGHT, K_SPACE);
+    /* The ordinary infobar ISR retains the game's existing 999-rupee cap. */
+    if (state.has_pear || !state.has_boots || state.rupees != 999) goto failed;
+    quest_smoke_checkpoint(9); /* Rupees reward. */
+    if (edw_smoke_status == 128 || CURRENT_SEGMENT(PAGE_B) != old_b ||
+        CURRENT_SEGMENT(PAGE_C) != old_c || CURRENT_SEGMENT(PAGE_D) != old_d)
+        goto failed;
     edw_smoke_status = 3;
 #ifdef MSX
     for (;;) wait_frame();
 #else
-    puts("EDW_SMOKE_OK: 3 dialogues, follower, axe, mapper restored");
+    puts("EDW_SMOKE_OK: lumberjack, pear choices, boots, rupees, mapper restored");
     exit(0);
 #endif
 failed:

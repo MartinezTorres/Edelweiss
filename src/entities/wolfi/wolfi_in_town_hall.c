@@ -5,6 +5,7 @@ USING_MODULE(quest, PAGE_C);
 #endif
 
 
+#if !EDW_VEXEL
 static void exit_message(const char *msg) {
 	uint8_t pj = ((state.entities[0].pos.j+0x80)>>8) - map.pos.j;
 	IN_MODULE( largepopup, PAGE_B,
@@ -22,6 +23,7 @@ static void exit_message(const char *msg) {
 		wait_frame();
 	}
 }
+#endif
 
 void wolfi_in_town_hall() {
 
@@ -43,6 +45,9 @@ void wolfi_in_town_hall() {
 		return;
 	}
 
+	#if EDW_VEXEL
+	trampoline_page_c(MODULE_SEGMENT(quest, PAGE_C), quest_exchange_pear);
+	#else
 	uint8_t pj = ((state.entities[0].pos.j+0x80)>>8) - map.pos.j;
 	IN_MODULE( largepopup, PAGE_B,
 		if (pj>16) {
@@ -72,10 +77,12 @@ void wolfi_in_town_hall() {
 	);
 	
 	uint8_t option = 0;	
+	// Cursor writes need the popup bank too, not just the initial drawing.
+	IN_MODULE(largepopup, PAGE_B,
 	while (true) {
 		
 		// UPDATE JOYSTICK
-		update_keyboard_and_joystick();
+		quest_read_input();
 		if (keyboard_click[8] & K_LEFT) {
 			
 			if (option>0) {
@@ -136,5 +143,7 @@ void wolfi_in_town_hall() {
 		}			
 		wait_frame();
 	}	
+	);
+	#endif
 }
 
