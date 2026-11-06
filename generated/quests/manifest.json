@@ -1,16 +1,19 @@
 {
   "solver_sha256": "f3afe9c2734005c623c80214d91410a1611286a0d10d9949bd515dc8a73ec39d",
   "files": {
-    "gameplay/quests.vx": "9b31c752a8ad65aaeece85ab15c35d98fb2d54777dec0058dec511fafdf5836f",
+    "gameplay/quests.vx": "6f37292e042fe27000197bab3164d4b2c0cb791fc407e14b0640a960edd6ad95",
     "gameplay/lumberjack.vx": "44f5cd1329c722e33a16be855709f35d3ae72e59919fa3757112b5674552eaf2",
     "gameplay/pear.vx": "da4aee86a7a40d897f764dd0ca95992c45aa08792928403550b3ed4abdf84611",
     "gameplay/stew.vx": "f1bdd746f1202598c9f816572d8bd347062464cbb05a979a7ad798915ffaa7f8",
     "gameplay/university.vx": "1cbbfd3634696ebcf72286961afd690b9959fbdf1841e4778c83ba036a6e9417",
     "gameplay/shop.vx": "da1313d98fb4119917a7d13be55cbfefa93988434ec5405365407deba51662b8",
-    "generated/quests/vexel.h": "2e805d58ac3dfdf1d0c47fc789755fac7a5fa19ff1771d345159529cd7f3cf37",
-    "generated/quests/vx_bridges.c": "f81e8b09e147deb3ed5d1d414431604d2a13a057a89ab337e52b660ad58d3d46",
-    "generated/quests/source-plan.json": "4ca83881de716399faea54c7a7209748145f834a3b0961d59a911c9e23b46e91",
-    "generated/quests/vx_quests.inc": "906e8dadb4b4270a9e5d6bf6d823898d6d1928d9f10598dc3544435730d96b7d",
-    "generated/quests/vx_services.inc": "aee958448a9c27dfbfb6a39186cb3408123569078403af6e6260422e7b3dcea8"
+    "gameplay/password.vx": "8b47adca4c36c0a5fe38ca043a2488eef93f6e8c5c2923892a0163ec0fa7ffd5",
+    "generated/quests/vexel.h": "8ca1c82353e792c6fb94247714bb3a5daca312fadaa90c73651c61fee034e2bc",
+    "generated/quests/vx_bridges.c": "4243a4058fed9c3c42f48be737c2ea6a51b011f53434d571cd6da4b6ae775dc2",
+    "generated/quests/source-plan.json": "5105ac3434dbfc14eb5dae49a4c6c86e2dadbb2afd11b6bbc1fefbec8e34eca6",
+    "generated/quests/vx_quests.inc": "c104db24d564043de82c889ef08ae690cfde29d271c5f895e3d6d1fccdbd25dd",
+    "generated/quests/vx_services.inc": "aee958448a9c27dfbfb6a39186cb3408123569078403af6e6260422e7b3dcea8",
+    "generated/quests/vx_password.inc": "3bbdcf25fc096458bcc9ac3c86035dc08bf4ee49f4e731ed21b0dd91f28921de",
+    "generated/quests/vx_password_encode.inc": "48e7813eef74845d3c128014bc48e423024b2fd0db126113e41cb1f02c4465b7"
   }
 }

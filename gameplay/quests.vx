@@ -1,8 +1,9 @@
 // Foreground sources release their results before another invocation.
 // All services share one result arena; the engine owns text separately.
-[[require(payload_bytes, 14)]] quest_payload_bytes=14;
+[[require(payload_bytes, 20)]] quest_payload_bytes=20;
 ::lumberjack;
 ::pear;
 ::stew;
 ::university;
 ::shop;
+::password;

@@ -13,4 +13,6 @@
 #define VX_RESIDENT
 #endif
 void vx_trap(uint8_t reason) VX_ABI VX_RESIDENT;
+uint32_t vx_shift(uint32_t a, uint32_t count, uint8_t bits,
+                  uint8_t right, uint8_t is_signed) VX_ABI VX_RESIDENT;
 #endif

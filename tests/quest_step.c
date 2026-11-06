@@ -3,6 +3,7 @@
 #include <string.h>
 #include <gameplay/quest.h>
 #include "vexel.h"
+#include "vx_shift.h"
 void vx_trap(uint8_t reason) { (void)reason; assert(0); }
 
 static void step(uint8_t phase, uint8_t event, uint8_t next,
@@ -60,8 +61,8 @@ int main(void) {
     assert(vx_university_read(2) == 0 && vx_university_read(3) == 0);
     vx_shop_trade(255, 65535, 1, 1, 1, 1, 1, 0);
     assert(vx_shop_trade_read(0) == 0 && vx_shop_trade_read(1) == 0);
-    assert(sizeof(vx_payload) == 14);
-    for (phase = 1; phase <= QUEST_TEXT_BOOK_6; ++phase) {
+    assert(sizeof(vx_payload) == 20);
+    for (phase = 1; phase <= QUEST_TEXT_PASSWORD_MONEY; ++phase) {
         assert(quest_text_copy(phase, text, sizeof(text)));
         assert(strlen(text) < sizeof(text));
         assert(!quest_text_copy(phase, text, 1) && text[0] == 0);

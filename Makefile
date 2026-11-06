@@ -26,7 +26,7 @@ endif
 ASSEMBLY := $(sort $(call rwildcard,src/ vendor/sdcc_msx/src/,*.s))
 HEADERS := $(sort $(call rwildcard,src/ vendor/sdcc_msx/inc/,*.h *.t))
 ifeq ($(SMOKE),1)
-HEADERS += tests/quest_smoke_input.h
+HEADERS += tests/quest_smoke_input.h tests/password_legacy.h
 endif
 INCLUDES := -Isrc -Ivendor/sdcc_msx/inc -I$(BUILD)/inc -Isrc/gameplay -Igenerated/quests
 CPPFLAGS += -DEDW_VEXEL=$(if $(filter vexel,$(GAMEPLAY)),1,0)
@@ -92,6 +92,8 @@ ifeq ($(GAMEPLAY),vexel)
 $(LINUX_OBJECTS) $(MSX_OBJECTS): | check-generated
 $(BUILD)/linux/src/gameplay/quest.o $(BUILD)/msx/src/gameplay/quest.rel: generated/quests/vx_quests.inc generated/quests/vexel.h
 $(BUILD)/linux/src/gameplay/quest_services.o $(BUILD)/msx/src/gameplay/quest_services.rel: generated/quests/vx_services.inc generated/quests/vexel.h
+$(BUILD)/linux/src/gameplay/password.o $(BUILD)/msx/src/gameplay/password.rel: generated/quests/vx_password_encode.inc generated/quests/vexel.h
+$(BUILD)/linux/src/gameplay/password_rules.o $(BUILD)/msx/src/gameplay/password_rules.rel: generated/quests/vx_password.inc generated/quests/vexel.h
 endif
 
 -include $(LINUX_OBJECTS:.o=.d)

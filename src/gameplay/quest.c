@@ -1,8 +1,5 @@
 #include <common.h>
 #include "quest.h"
-#ifndef MSX
-#include <stdlib.h>
-#endif
 
 #if EDW_VEXEL
 /* The adapter and the small lumberjack/pear rules share page C. Town-service
@@ -12,23 +9,10 @@
 USING_MODULE(quest_text, PAGE_D);
 USING_MODULE(quest_services, PAGE_B);
 
-static char dialogue[QUEST_TEXT_CAPACITY];
-volatile uint8_t quest_fault;
-
-void vx_trap(uint8_t reason) VX_ABI VX_RESIDENT {
-    quest_fault = reason;
-#ifdef MSX
-    for (;;) {}
-#else
-    fprintf(stderr, "Vexel quest fault: %u\n", reason);
-    abort();
-#endif
-}
-
 static void load_text(uint8_t text) {
     uint8_t copied;
     IN_MODULE(quest_text, PAGE_D,
-        copied = quest_text_copy(text, dialogue, sizeof(dialogue));
+        copied = quest_text_copy(text, quest_dialogue, sizeof(quest_dialogue));
     );
     if (!copied) vx_trap(32);
 }
@@ -53,7 +37,7 @@ void quest_interact(uint8_t event) {
         switch (command) {
         case QUEST_SHOW_TEXT:
             load_text(text);
-            large_message(dialogue);
+            large_message(quest_dialogue);
             event = QUEST_DIALOGUE_CLOSED;
             break;
         case QUEST_START_FOLLOWING:
@@ -122,7 +106,7 @@ static uint8_t choose_text(uint8_t text, uint8_t choices) {
     IN_MODULE(largepopup, PAGE_B,
         init_text_canvas();
         largePopupTextProperties.x = 2;
-        largePopupWriteText(dialogue);
+        largePopupWriteText(quest_dialogue);
         largePopupTextProperties.x = 10;
         largePopupWriteText("NO");
         if (choices == 2) {
@@ -140,7 +124,7 @@ static void timed_text(uint8_t text) {
     IN_MODULE(largepopup, PAGE_B,
         init_text_canvas();
         largePopupTextProperties.x = 10;
-        largePopupWriteText(dialogue);
+        largePopupWriteText(quest_dialogue);
     );
     for (i = 0; i < 60; ++i) wait_frame();
 }
@@ -235,7 +219,7 @@ void quest_shop(void) {
             );
             load_text(text);
             largePopupTextProperties.color = affordable ? FBlack+BWhite : FMediumRed+BWhite;
-            largePopupWriteText(dialogue);
+            largePopupWriteText(quest_dialogue);
         }
         largePopupTextProperties.color = FBlack+BWhite;
         draw_cursor(0, 1, 1);

@@ -5,9 +5,7 @@ import argparse
 import os
 from pathlib import Path
 import re
-import struct
 import subprocess
-import zlib
 
 ROOT = Path(__file__).resolve().parents[1]
 parser = argparse.ArgumentParser(description=__doc__)
@@ -16,24 +14,6 @@ BUILD = ROOT / parser.parse_args().build_root
 OUTPUT = BUILD / "smoke"
 OUTPUT.mkdir(parents=True, exist_ok=True)
 results = {}
-
-
-def png_image(path):
-    # Same renderer/encoder on both sides. Compare image data rather than the
-    # PNG's creation-time text. Identical filters + samples imply identical pixels.
-    data = path.read_bytes()
-    assert data[:8] == b"\x89PNG\r\n\x1a\n", f"Missing screenshot: {path}"
-    offset, compressed, layout = 8, bytearray(), []
-    while offset < len(data):
-        size = struct.unpack_from(">I", data, offset)[0]
-        kind = data[offset + 4:offset + 8]
-        payload = data[offset + 8:offset + 8 + size]
-        if kind == b"IDAT":
-            compressed.extend(payload)
-        elif kind in (b"IHDR", b"PLTE", b"tRNS"):
-            layout.append((kind, payload))
-        offset += size + 12
-    return layout, zlib.decompress(compressed)
 
 
 def popup_image(path):
@@ -71,10 +51,11 @@ for variant in ("reference", "vexel"):
     report.write_text("pending\n")
     for i in (1, 2, 3):
         (OUTPUT / f"{variant}-dialogue-{i}.png").write_bytes(b"")
+        (OUTPUT / f"{variant}-dialogue-{i}.bin").write_bytes(b"")
     for i in range(1, 10):
         (OUTPUT / f"{variant}-pear-{i}.png").write_bytes(b"")
         (OUTPUT / f"{variant}-pear-{i}.bin").write_bytes(b"")
-    for i in range(20, 49):
+    for i in (*range(20, 49), *range(50, 60)):
         (OUTPUT / f"{variant}-service-{i}.png").write_bytes(b"")
         (OUTPUT / f"{variant}-service-{i}.bin").write_bytes(b"")
     script = OUTPUT / (variant + "-quest.tcl")
@@ -91,12 +72,24 @@ set closed 0
 set restored 1
 set map_tiles {{}}
 set background_ok 1
+set health_restored 1
 proc check_background {{}} {{
     global background_ok
     if {{([debug read {{VDP regs}} 7] & 15) != 1 ||
          ([debug read memory 0xf3e6] & 15) != 1}} {{
         set background_ok 0
     }}
+}}
+proc capture_popup {{base}} {{
+    screenshot -raw "$base.png"
+    set f [open "$base.bin" wb]
+    foreach address {{0x0050 0x0850 0x2050 0x2850}} {{
+        puts -nonewline $f [debug read_block VRAM $address 176]
+    }}
+    foreach address {{0x18c0 0x1cc0}} {{
+        puts -nonewline $f [debug read_block VRAM $address 128]
+    }}
+    close $f
 }}
 debug set_watchpoint write_mem {status} {{}} {{
     if {{$::wp_last_value != 0}} {{check_background}}
@@ -116,6 +109,7 @@ debug set_watchpoint write_mem {status} {{}} {{
         puts $f "menus_closed=$closed"
         puts $f "map_restored=$restored"
         puts $f "background_ok=$background_ok"
+        puts $f "health_restored=$health_restored"
         puts $f "elapsed_seconds=[expr {{[machine_info time] - $started}}]"
         puts $f "entry_sp=$entry"
         puts $f "lowest_stack_write=$low"
@@ -128,11 +122,20 @@ debug set_watchpoint write_mem {messages} {{}} {{
     set count $::wp_last_value
     if {{$count > 0 && $count <= 3}} {{
         check_background
-        screenshot -raw "{OUTPUT}/{variant}-dialogue-$count.png"
+        capture_popup "{OUTPUT}/{variant}-dialogue-$count"
     }}
 }}
 debug set_watchpoint write_mem {capture} {{}} {{
     set checkpoint $::wp_last_value
+    if {{$checkpoint == 53}} {{
+        foreach {{address tile}} {{0x1ad6 10 0x1ed6 14}} {{
+            for {{set i 0}} {{$i < 10}} {{incr i}} {{
+                set expected [expr {{$i < 3 ? $tile : 0}}]
+                if {{[debug read VRAM [expr {{$address+$i}}]] != $expected ||
+                    [debug read VRAM [expr {{$address+32+$i}}]] != 0}} {{set health_restored 0}}
+            }}
+        }}
+    }}
     if {{$checkpoint == 10}} {{
         set map_tiles [debug read_block VRAM 0x18c0 128][debug read_block VRAM 0x1cc0 128]
     }} elseif {{$checkpoint == 11}} {{
@@ -140,18 +143,10 @@ debug set_watchpoint write_mem {capture} {{}} {{
         set actual [debug read_block VRAM 0x18c0 128][debug read_block VRAM 0x1cc0 128]
         if {{$map_tiles eq {{}} || $actual ne $map_tiles}} {{set restored 0}}
         screenshot -raw "{OUTPUT}/{variant}-closed-$closed.png"
-    }} elseif {{($checkpoint > 0 && $checkpoint <= 9) || ($checkpoint >= 20 && $checkpoint <= 48)}} {{
+    }} elseif {{($checkpoint > 0 && $checkpoint <= 9) || ($checkpoint >= 20 && $checkpoint <= 59 && $checkpoint != 49)}} {{
         if {{$checkpoint <= 9}} {{set pear $checkpoint; set kind pear}} else {{set kind service}}
         check_background
-        screenshot -raw "{OUTPUT}/{variant}-$kind-$checkpoint.png"
-        set f [open "{OUTPUT}/{variant}-$kind-$checkpoint.bin" wb]
-        foreach address {{0x0050 0x0850 0x2050 0x2850}} {{
-            puts -nonewline $f [debug read_block VRAM $address 176]
-        }}
-        foreach address {{0x18c0 0x1cc0}} {{
-            puts -nonewline $f [debug read_block VRAM $address 128]
-        }}
-        close $f
+        capture_popup "{OUTPUT}/{variant}-$kind-$checkpoint"
     }}
 }}
 after time 90 {{
@@ -170,9 +165,10 @@ after time 90 {{
     values = dict(line.split("=", 1) for line in data.splitlines())
     assert values["dialogues"] == "3", values
     assert values["pear_captures"] == "9", values
-    assert values["menus_closed"] == "19" and values["map_restored"] == "1", \
+    assert values["menus_closed"] == "24" and values["map_restored"] == "1", \
         "Door exit must restore both map buffers without scrolling: " + str(values)
     assert values["background_ok"] == "1", "Game background must remain black: " + str(values)
+    assert values["health_restored"] == "1", "Restored hearts must replace both old health rows: " + str(values)
     results[variant] = values
     print(f"{variant}: SDL and MSX full-engine quest passed; "
           f"{values['additional_stack_bytes']} additional stack bytes observed")
@@ -181,17 +177,18 @@ for i in (1, 2, 3):
     reference = OUTPUT / f"reference-dialogue-{i}.png"
     vexel = OUTPUT / f"vexel-dialogue-{i}.png"
     assert reference.stat().st_size > 1000, "Missing/blank dialogue screenshot"
-    assert png_image(reference) == png_image(vexel), f"Dialogue {i} rendering differs"
+    assert popup_image(reference.with_suffix(".bin")) == popup_image(vexel.with_suffix(".bin")), \
+        f"Dialogue {i} rendering/placement differs"
 for i in range(1, 10):
     reference = OUTPUT / f"reference-pear-{i}.png"
     vexel = OUTPUT / f"vexel-pear-{i}.png"
     assert reference.stat().st_size > 1000, "Missing/blank pear screenshot"
     assert popup_image(reference.with_suffix(".bin")) == popup_image(vexel.with_suffix(".bin")), \
         f"Pear capture {i} rendering/placement differs"
-for i in range(20, 49):
+for i in (*range(20, 49), *range(50, 60)):
     reference = OUTPUT / f"reference-service-{i}.bin"
     vexel = OUTPUT / f"vexel-service-{i}.bin"
     assert popup_image(reference) == popup_image(vexel), f"Service capture {i} rendering/placement differs"
 (OUTPUT / "results.json").write_text(json.dumps(results, indent=2) + "\n")
-print("Three lumberjack images and nine pear popup renderings/placements match the reference")
-print("29 service popup renderings/placements match; all 19 building exits restore both map buffers")
+print("Three lumberjack and nine pear popup renderings/placements match the reference")
+print("39 service/password popup renderings/placements match; all 24 building exits restore both map buffers")

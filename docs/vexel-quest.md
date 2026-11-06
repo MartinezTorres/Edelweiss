@@ -3,7 +3,7 @@
 This migration starts from Edelweiss `fecb997` and the supplied `sdcc_msx`
 checkout. The playable lumberjack milestone is committed as `f2b5fdc`.
 The integration now implements the lumberjack conversation, following decision,
-axe reward, pear exchange, Fish'n'Ships, university and Food'n'Stuff while
+axe reward, pear exchange, Fish'n'Ships, university, Food'n'Stuff and saloon passwords while
 keeping the C branches for comparison.
 The original local library edit and untracked files are left untouched.
 
@@ -53,10 +53,10 @@ confirm ordering is preserved, including simultaneous clicks. A second visit
 cannot earn a second reward without another pear. No persistent exchange state
 or generic command interpreter is needed.
 
-`gameplay/quests.vx` imports all six sources with an explicit 14-byte payload
+`gameplay/quests.vx` imports all eight sources with an explicit 20-byte payload
 budget. Their serial projections share offset zero. The current projection
 uses 16-bit slots to accommodate 500-rupee purchases; the largest result has
-seven fields. The engine finishes consuming one invocation before starting
+ten logical byte fields (the password). The engine finishes consuming one invocation before starting
 another. All interactions use the same text buffer described below.
 
 The three town services add these pure rules:
@@ -78,6 +78,50 @@ rule with that value. Buying a first spell book, leaving or failing to afford
 a book consumes no random value. A fixed draw gives reproducible behaviour on
 both targets. The old eight outcomes are retained, including outcome seven's
 lack of an acknowledgement and the unpurchasable weapon's joke response.
+
+`gameplay/password.vx` owns password encoding, case normalization, validation,
+cheat recognition and the resulting inventory policy. `password_encode` takes
+four values and returns ten character bytes; `password_decode` takes a length,
+ten bytes and the selected weapon, and returns a typed effect record. The
+adapter copies bounded input into RAM, reads all result fields while the rule
+bank is mapped, and applies nothing for a rejected result. No caller pointer
+crosses the Vexel ABI. Runtime conditional branches with a byte input use an
+explicit byte zero to retain that type; fixed range loops expand during
+resolution.
+
+The canonical layout is the **original SDCC/MSX layout**, not the old GCC
+bitfield layout. The four bytes before obfuscation are:
+
+| Byte | Meaning | Valid restored values |
+|---|---|---|
+| 0 | lamp, boots, coat, pear in bits 0..3 | upper four bits zero |
+| 1 | ownership of the eight weapons | paw (bit 0) owned |
+| 2 | rupees divided by 16 | 0..62; upper two bits zero |
+| 3 | maximum health divided by 2 | 3..20; upper three bits zero |
+
+XOR the bytes with `82 46 38 73` (hex), emit each byte's low nibble then high
+nibble as `A`..`P`, and append two checksum letters, high nibble first. Starting
+at `0x46`, each of the eight emitted letters updates the checksum with
+`((checksum + letter) & 255) ^ 0x37`. For example, the initial inventory
+(paw, six maximum health, no items or money) is `CIHEIDAHJB`; all items and
+weapons with 999 rupees and 40 health produces `NIJLGAHGIA` and restores 992
+rupees. This rounding is retained intentionally. Legitimate old MSX passwords
+remain usable; the incompatible historical Linux encoding is not auto-detected.
+
+Both checksum characters, alphabet, length, reserved bits and game bounds must
+pass before any mutation. Restoring also heals fully, keeps the current weapon
+if owned or falls back to the paw, initializes its engine entities and rebuilds
+both infobar buffers. Loading a weaker checkpoint therefore clears obsolete
+hearts and icons. `NISHI` grants all items/weapons, 999 rupees and 40 health;
+`MSX2` changes only money to 999. Input is case-insensitive. These codes do not
+store position, quest completion or other world progression.
+
+The common saloon UI remains C and uses the same shared text buffer as the
+other quests. It preserves the prior keyboard-routine enable state and the
+original ten-character automatic submission / Enter behaviour. The restore
+response now separates its last two lines, avoiding a write beyond the popup.
+The corrected C reference uses explicit bytes too: no uninitialized decode
+accumulator or compiler-dependent bitfield union remains in production.
 
 Text IDs are resolved in `quest_text`, a page-D module. That module copies the
 selected, bounded string into a 96-byte RAM buffer. Its caller restores page D
@@ -102,11 +146,26 @@ The same foreground can therefore reuse page B for the popup and infobar.
 Text copies run in page D. Building and NPC modules enter the adapter through
 the existing resident page-C trampoline, which restores their mapping.
 
+The saloon has its own `password` page-C adapter, including the encoder and
+its specialized checksum helper. The decoder and its helpers occupy
+`password_rules` in page B. The checked-shift helper has the same semantics as
+Vexel's portable runtime and lives in the page-C adapter, which remains mapped
+throughout a decode. The shared `vx_trap` entry is resident
+because either page-C adapter can call it. Text remains page D. The ordinary
+runtime helper and fault handler do not depend on a NEO-8 mapper.
+
 The generator retains the complete portable `vx_bridges.c` and also packages
-its unchanged function bodies into `vx_quests.inc` and `vx_services.inc`.
-It checks the expected source order and absence of runtime helper functions
+its unchanged function bodies into `vx_quests.inc`, `vx_services.inc` and
+`vx_password.inc` and `vx_password_encode.inc`.
+It checks the expected source order and eight materialized helper specializations
 before splitting; changed emission assumptions fail generation for review.
-Both parts are hashed and compiled by the normal build. This is the small
+The four explicit `&~` helpers in `password.vx` keep normalization, byte decoding,
+checksum calculation and validation from expanding repeatedly into every result
+field. Constant arguments produce eight specialized C functions. All of them
+are placed with their password callers; ownership is checked against the plan
+before splitting. The eight-byte checksum has different specializations for
+encoding and decoding, so neither calls the other's bank.
+All parts are hashed and compiled by the normal build. This is the small
 Konami-5 embedding's placement policy, not a new Vexel lowering pass.
 
 `src/gameplay/vx_runtime.h` supplies the ABI declarations for this embedding.
@@ -131,7 +190,7 @@ door entry/exit and other cutscenes; it is outside this slice.
 
 The supported Vexel frontend from `vexel_lang` revision `edea4f1` generated this
 projection. `generated/quests/manifest.json` records its executable hash,
-hashes of all six source files and generated artifact hashes. No compiler
+hashes of the entry file and all gameplay source files and generated artifact hashes. No compiler
 changes were needed. Ordinary builds validate these hashes without a solver.
 
 Verified with SDCC 4.2.0, its sdasz80, GCC, SDL2 2.30.0 and openMSX 19.1 using
@@ -182,11 +241,11 @@ and input queue. These bytes and the resident input helper are absent from
 ordinary builds. Stack and elapsed-time figures cover the whole scenario,
 including the lumberjack, door entry, five pear visits and fixed display waits.
 
-With all three town services migrated, ordinary globals occupy 3,789 bytes
+At the three-town-service milestone (`70d7247`), ordinary globals occupied 3,789 bytes
 (`0xC000..0xCECC`), leaving 307 bytes before the fixed map. That is 111 bytes
 above the corrected C reference: the 14-byte result arena, 96-byte text buffer
 and one fault byte. The three services add nine RAM bytes over the pear
-milestone. The current smoke driver uses 13 additional RAM bytes per variant.
+milestone. That smoke driver used 13 additional RAM bytes per variant.
 
 The production adapter/quest bank occupies 4,774 bytes, the service-rule bank
 7,232 bytes and the text bank 1,657 bytes. Occupied ROM is 432,951 bytes for
@@ -197,6 +256,41 @@ The complete 19-visit smoke run takes 51.1828 emulated seconds for C and
 observed from scenario entry is 182 bytes for C and 192 for Vexel; these remain
 measurements of the exercised paths, including interrupts, rather than a
 whole-game bound.
+
+With saloon passwords migrated, production costs are:
+
+| Measurement | Corrected C reference | Vexel gameplay |
+|---|---:|---:|
+| Cartridge size | 434,176 bytes | 450,560 bytes |
+| Occupied ROM, excluding bank padding | 426,117 bytes | 442,249 bytes |
+| Ordinary global RAM | 3,774 bytes | 3,795 bytes |
+| End of ordinary globals (exclusive) | `0xCEBE` | `0xCED3` |
+| Space before fixed map at `0xD000` | 322 bytes | 301 bytes |
+| Resident ROM end (exclusive) | `0x5EBD` | `0x5ECB` |
+
+The Vexel build adds six global bytes over the town-services milestone: its
+result arena grows from 14 to 20 bytes. The saloon shares the existing 96-byte
+text buffer. The corrected reference now uses that buffer too; the remaining
+21-byte difference is the Vexel result arena and fault byte. No extra persistent
+password or gameplay state is allocated in production.
+
+The saloon adapter, encoder and checked-shift helper occupy 4,166 bytes in page
+C; the decoder and its materialized helpers occupy 6,774 bytes in page B.
+The existing quest and service banks occupy 4,760 and 7,232 bytes; the shared
+text bank occupies 1,920 bytes. Moving the fault handler to resident ROM costs
+14 bytes there and frees 14 from the quest bank. The smoke-only input queue,
+saved password and reports occupy 33 bytes per variant. Materialized helper
+results use automatic storage. The 24-visit run observes 204 additional stack
+bytes for C and 268 for Vexel, from scenario entry and including interrupts.
+Elapsed emulated times are 70.6478 and 71.2755 seconds, including all display
+waits. These are exercised-path measurements, not whole-game bounds.
+
+Popup comparisons read VRAM patterns, colors and placement in both name tables
+for every dialogue, including the lumberjack. Comparing the entire screenshot
+would also compare unrelated sprite/infobar animation phases; those legitimately
+differ with execution timing. Background color, inventory, health rendering and
+map restoration retain their independent checks, and full screenshots remain
+available for inspection.
 
 `make test` compares deterministic traces from the **production** original C
 callbacks and Vexel-backed callbacks under UBSan. It checks dialogue ordering,
@@ -209,8 +303,7 @@ and byte relocations, resident ROM overflow, map overlap and unplaceable banked
 resident sections.
 
 `make smoke` runs both complete engines on Linux and an emulated MSX1. It
-compares three full lumberjack images and nine pear popup renderings. For the
-pear captures, it compares the popup's VRAM patterns, colors and placement in
+compares three lumberjack and nine pear popup renderings. It compares the popup's VRAM patterns, colors and placement in
 both name tables; the surrounding world continues animating independently.
 It also checks that the popup tiles are actually present, so two missing menus
 cannot pass by equality alone. Screenshots are retained for visual inspection.
@@ -234,6 +327,21 @@ C and Vexel adapters under UBSan, with sinks overwriting the released payload.
 The full-engine scenario also visits all three services, compares 29 more
 popup renderings and verifies restoration of both map buffers after all 19
 building exits. Its random source is fixed only in the smoke profile.
+
+Password checks add seven fixed MSX vectors, each checksum nibble failing
+independently, malformed lengths/alphabet, reserved bits with a valid checksum,
+impossible health/currency, lowercase, cheats, selected-weapon fallback and
+UI keyboard-state restoration. Rejections compare the entire state and verify
+that no effect sink ran; successful sinks overwrite the released arena.
+
+The full-engine scenario adds five saloon visits after purchasing equipment:
+record a password, clear inventory, restore, initialize and spawn a real bow
+projectile, reject a corrupt checksum, then exercise both commands. In MSX
+smoke builds, every displayed password is also compared with the frozen
+original bitfield encoder compiled by SDCC. Both name tables are checked for
+obsolete hearts after restoring six health over forty. Ten saloon popup
+captures join the 29 service captures, and all 24 building exits must restore
+the map without scrolling. These checks remain separate from production.
 
 ## Small baseline repairs
 

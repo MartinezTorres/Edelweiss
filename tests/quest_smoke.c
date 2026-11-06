@@ -43,6 +43,19 @@ static void leave_building(void) {
     quest_smoke_checkpoint(11); /* Both map buffers must be restored now. */
 }
 
+static void saloon(uint8_t menu, const char *code) {
+    uint8_t i;
+    edw_smoke_menu = menu;
+    for (i = 0; code[i] && i < 10; ++i) edw_smoke_keys[i] = code[i];
+    if (i < 10) edw_smoke_keys[i++] = 13;
+    edw_smoke_key_count = i;
+    edw_smoke_key_index = 0;
+    enter_building();
+    TRAMPOLINE_PAGE_C(wolfi_in_saloon);
+    quest_smoke_checkpoint(menu + 1);
+    leave_building();
+}
+
 void quest_smoke(void) {
     Entity *npc = &state.entities[ENTITY_LUMBERJACK];
     uint8_t i;
@@ -171,6 +184,45 @@ void quest_smoke(void) {
     visit(2,46,K_DOWN|K_SPACE,K_DOWN,K_DOWN|K_SPACE);
     if (state.rupees != 499 || edw_smoke_random_calls != 1) goto failed;
     leave_building();
+    /* Save the equipment just acquired, clear it, then restore through the
+     * real saloon. Verify against the frozen legacy SDCC encoder too. */
+    edw_smoke_save_password = 1;
+    saloon(50, "");
+    if (state.rupees != 499 || !state.has_weapon[E_BOW]) goto failed;
+    for (i = 1; i < 8; ++i) state.has_weapon[i] = false;
+    state.has_lamp = state.has_boots = state.has_coat = state.has_pear = false;
+    state.rupees = 0;
+    state.entities[0].maximum_life = 40;
+    state.entities[0].life = 1;
+    state.weapon = E_PAW;
+    init_weapon();
+    IN_MODULE(infobar, PAGE_B, infobar_init());
+    saloon(52, edw_smoke_password);
+    if (state.rupees != 496 || state.entities[0].life != 6 || state.entities[0].maximum_life != 6 ||
+        !state.has_lamp || !state.has_boots || !state.has_coat || state.has_pear || state.weapon != E_PAW) goto failed;
+    for (i = 0; i < 7; ++i) if (!state.has_weapon[i]) goto failed;
+    if (state.has_weapon[7]) goto failed;
+    state.weapon = E_BOW;
+    init_weapon();
+    if (!state.entities[ENTITY_PROJECTILE_0].callbacks || !state.entities[ENTITY_PROJECTILE_1].callbacks) goto failed;
+    state.entities[0].orientation = E_RIGHT;
+    if (!spawn_entity(ENTITY_PROJECTILE_0)) goto failed;
+    if (state.entities[ENTITY_PROJECTILE_0].damage != 2 ||
+        state.entities[ENTITY_PROJECTILE_0].vel.j != 96 ||
+        !sprites[state.entities[ENTITY_PROJECTILE_0].spawn_idx].enabled) goto failed;
+    despawn_entity(ENTITY_PROJECTILE_0);
+    /* Individually wrong checksum nibble must reject the entire restore. */
+    edw_smoke_password[9] = edw_smoke_password[9] == 'P' ? 'A' : edw_smoke_password[9] + 1;
+    state.rupees = 17;
+    state.entities[0].life = 2;
+    saloon(54, edw_smoke_password);
+    if (state.rupees != 17 || state.entities[0].life != 2 || state.weapon != E_BOW) goto failed;
+    saloon(56, "nishi");
+    if (state.rupees != 999 || state.entities[0].life != 40 || !state.has_weapon[7] || !state.has_pear) goto failed;
+    state.rupees = 1;
+    state.entities[0].life = 2;
+    saloon(58, "msx2");
+    if (state.rupees != 999 || state.entities[0].life != 2 || state.weapon != E_BOW) goto failed;
     if (edw_smoke_status == 128 || CURRENT_SEGMENT(PAGE_B) != old_b ||
         CURRENT_SEGMENT(PAGE_C) != old_c || CURRENT_SEGMENT(PAGE_D) != old_d)
         goto failed;
@@ -178,7 +230,7 @@ void quest_smoke(void) {
 #ifdef MSX
     for (;;) wait_frame();
 #else
-    puts("EDW_SMOKE_OK: quests, all town services, equipment, random draw, mapper restored");
+    puts("EDW_SMOKE_OK: quests, all town services, equipment, passwords, random draw, mapper restored");
     exit(0);
 #endif
 failed:

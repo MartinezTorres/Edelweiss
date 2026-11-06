@@ -1,5 +1,7 @@
 #include "quest.h"
 
+char quest_dialogue[QUEST_TEXT_CAPACITY];
+
 /* These bytes and the copier share one page-D module. A dialogue never owns
  * a pointer into it: page D is restored before the first wait/render call. */
 uint8_t quest_text_copy(uint8_t id, char *destination, uint8_t capacity) {
@@ -56,6 +58,10 @@ uint8_t quest_text_copy(uint8_t id, char *destination, uint8_t capacity) {
     case QUEST_TEXT_BOOK_4: text = "\nNOT A ZELDA GAME"; break;
     case QUEST_TEXT_BOOK_5: text = "\nLIFE AND MIRACLES\n OF LINK"; break;
     case QUEST_TEXT_BOOK_6: text = "\nBEST GAMES OF\nMSX-DEV 2021"; break;
+    case QUEST_TEXT_PASSWORD_REJECT: text = "\nTHE DRUNKEN WIZARD\nSEEMS CONFUSED"; break;
+    case QUEST_TEXT_PASSWORD_RESTORE: text = "\nTHE DRUNKEN WIZARD\nSTARTS TO CHANT!\nYOU FEEL DIZZY!"; break;
+    case QUEST_TEXT_PASSWORD_NISHI: text = "THE DRUNKEN WIZARD\nJUMPS AND SINGS WITH\nGREAT JOY!\nYOU FEEL EMPOWERED!"; break;
+    case QUEST_TEXT_PASSWORD_MONEY: text = "THE DRUNKEN WIZARD\nASSERTS AND STARTS\nTO CHANT!\nYOU FEEL EMPOWERED!"; break;
     default: return 0;
     }
     for (i = 0; i < capacity; ++i) {

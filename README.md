@@ -1,11 +1,11 @@
 # Edelweiss
 
 An MSX1 game with a Linux/SDL development build. The lumberjack rescue, axe
-reward, town-hall pear exchange, Fish'n'Ships, university and Food'n'Stuff now
+reward, town-hall pear exchange, Fish'n'Ships, university, Food'n'Stuff and saloon passwords now
 run from Vexel. The renderer, audio, collision system, entity storage and
 optimized assembly remain in the engine.
 
-The original C quests are available with `GAMEPLAY=reference`. Both variants use
+The corrected C reference quests are available with `GAMEPLAY=reference`. Both variants use
 the same modernized build and engine, so they can be compared directly.
 
 ## Build and play
@@ -56,8 +56,10 @@ The entry file [gameplay/quests.vx](gameplay/quests.vx) imports the gameplay rul
   payment and learned abilities.
 - [shop.vx](gameplay/shop.vx) selects stock, affordability and purchase
   effects. Ordinary books request an explicit random draw before committing.
+- [password.vx](gameplay/password.vx) encodes the original MSX password layout,
+  validates input and selects restore or cheat effects.
 
-The rules share a 14-byte result arena and receive only relevant state.
+The rules share a 20-byte result arena and receive only relevant state.
 The C adapter handles input and rendering, copies results before applying
 effects, and reuses one 96-byte text buffer. No entity or banked text pointer
 crosses into Vexel.
@@ -78,6 +80,15 @@ kept in `generated/quests`. An ordinary game build uses that projection
 without requiring a Vexel installation. A source/projection hash mismatch
 fails the build with instructions to regenerate.
 
+At the saloon, record the ten letters the wizard shows. Type those letters
+(case-insensitive) to restore items, weapons, maximum health and rupees;
+ten characters submit automatically, or Enter submits a shorter answer.
+Rupees round down to a multiple of 16, matching the old MSX format. A valid
+restore heals fully and keeps the selected weapon if owned, otherwise selects
+the paw. This is an inventory checkpoint, not a save of position or world
+progress. The legacy `NISHI` and `MSX2` commands remain available.
+Old MSX passwords are preserved; the old Linux bitfield encoding was different.
+
 The [integration notes](docs/vexel-quest.md) describe ownership, bank placement,
 the synchronous engine adapter and the limits of this migration.
 
@@ -92,11 +103,11 @@ make -j4 smoke   # Both complete engines on SDL and openMSX, no display required
 to the player. It uses real entity callbacks, drawing, mapper changes and the
 game ISR; dialogue is acknowledged automatically after its usual display delay.
 It checks the quests, town-service menus, payments, healing, acquired weapons,
-random book selection, dialogue removal on exit and mapper restoration. This does
+random book selection, password save/reset/restore, dialogue removal on exit and mapper restoration. This does
 not automate walking the complete route or replace a full playthrough.
 
 Screenshots and observed stack/timing reports are in `build/smoke`. Three
-lumberjack images, nine pear popups and 29 service popups are compared between
+lumberjack popups, nine pear popups and 39 service/password popups are compared between
 variants. For the popups, the check compares their VRAM patterns, colors and placement while
 allowing the surrounding world to keep animating.
 The ordinary build contains neither the scenario driver nor scripted input.
