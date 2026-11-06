@@ -5,6 +5,10 @@ USING_MODULE(entity_wolfi_sprite, PAGE_D);
 
 void wolfi_door_warp_exit() {
 
+	// Restore both map name tables after the building's popup. The exit
+	// animation gives the ISR time to redraw them before gameplay resumes.
+	state.request_pattern_name_transfer = true;
+
 	state.entities[0].orientation = E_DOWN;
 	sprites[0].spriteInfo = (state.entities[0].animation_counter & 0x04? &wolfi_2_0 : &wolfi_2_1);
 	sprites[0].enabled = true;

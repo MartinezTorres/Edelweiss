@@ -15,11 +15,18 @@ static void exchange(uint8_t menu, uint8_t first, uint8_t second) {
     edw_smoke_keys[1] = second;
     edw_smoke_key_count = second ? 2 : 1;
     edw_smoke_key_index = 0;
+    TRAMPOLINE_PAGE_C(wolfi_door_warp_enter);
     TRAMPOLINE_PAGE_C(wolfi_in_town_hall);
+}
+
+static void leave_town_hall(void) {
+    TRAMPOLINE_PAGE_C(wolfi_door_warp_exit);
+    quest_smoke_checkpoint(11); /* Both map buffers must be restored now. */
 }
 
 void quest_smoke(void) {
     Entity *npc = &state.entities[ENTITY_LUMBERJACK];
+    uint8_t i;
     uint8_t old_b = CURRENT_SEGMENT(PAGE_B);
     uint8_t old_c = CURRENT_SEGMENT(PAGE_C);
     uint8_t old_d = CURRENT_SEGMENT(PAGE_D);
@@ -39,27 +46,33 @@ void quest_smoke(void) {
     if (CURRENT_SEGMENT(PAGE_B) != old_b || CURRENT_SEGMENT(PAGE_C) != old_c ||
         CURRENT_SEGMENT(PAGE_D) != old_d) goto failed;
 
-    /* The normal door animation lets pending map transfers finish before a
-     * menu writes its name-table tiles, and hides the player during the UI. */
-    TRAMPOLINE_PAGE_C(wolfi_door_warp_enter);
+    /* Drain the last dialogue's redraw and capture the undisturbed map.
+     * No scenario step scrolls it; each door exit must restore these tiles. */
+    for (i = 0; i < 12; ++i) wait_frame();
+    quest_smoke_checkpoint(10);
     state.has_pear = state.has_boots = false;
     state.rupees = 7;
     exchange(1, K_RIGHT | K_SPACE, 0); /* Cannot choose YES without a pear. */
     if (state.has_pear || state.has_boots || state.rupees != 7) goto failed;
+    leave_town_hall();
     state.has_pear = true;
     exchange(2, K_SPACE, 0); /* Declining preserves inventory. */
     if (!state.has_pear || state.has_boots || state.rupees != 7) goto failed;
+    leave_town_hall();
     exchange(3, K_RIGHT, K_SPACE);
     if (state.has_pear || !state.has_boots || state.rupees != 7) goto failed;
     quest_smoke_checkpoint(5); /* Boots reward. */
+    leave_town_hall();
     exchange(6, K_RIGHT | K_SPACE, 0); /* A repeated visit cannot pay twice. */
     if (state.has_pear || !state.has_boots || state.rupees != 7) goto failed;
+    leave_town_hall();
     state.has_pear = true;
     state.rupees = 950;
     exchange(7, K_RIGHT, K_SPACE);
     /* The ordinary infobar ISR retains the game's existing 999-rupee cap. */
     if (state.has_pear || !state.has_boots || state.rupees != 999) goto failed;
     quest_smoke_checkpoint(9); /* Rupees reward. */
+    leave_town_hall();
     if (edw_smoke_status == 128 || CURRENT_SEGMENT(PAGE_B) != old_b ||
         CURRENT_SEGMENT(PAGE_C) != old_c || CURRENT_SEGMENT(PAGE_D) != old_d)
         goto failed;

@@ -84,6 +84,9 @@ set entry 0
 set started 0
 set count 0
 set pear 0
+set closed 0
+set restored 1
+set map_tiles {{}}
 set background_ok 1
 proc check_background {{}} {{
     global background_ok
@@ -107,6 +110,8 @@ debug set_watchpoint write_mem {status} {{}} {{
         puts $f "status=$::wp_last_value"
         puts $f "dialogues=$count"
         puts $f "pear_captures=$pear"
+        puts $f "menus_closed=$closed"
+        puts $f "map_restored=$restored"
         puts $f "background_ok=$background_ok"
         puts $f "elapsed_seconds=[expr {{[machine_info time] - $started}}]"
         puts $f "entry_sp=$entry"
@@ -124,8 +129,16 @@ debug set_watchpoint write_mem {messages} {{}} {{
     }}
 }}
 debug set_watchpoint write_mem {capture} {{}} {{
-    set pear $::wp_last_value
-    if {{$pear > 0 && $pear <= 9}} {{
+    set checkpoint $::wp_last_value
+    if {{$checkpoint == 10}} {{
+        set map_tiles [debug read_block VRAM 0x18c0 128][debug read_block VRAM 0x1cc0 128]
+    }} elseif {{$checkpoint == 11}} {{
+        incr closed
+        set actual [debug read_block VRAM 0x18c0 128][debug read_block VRAM 0x1cc0 128]
+        if {{$map_tiles eq {{}} || $actual ne $map_tiles}} {{set restored 0}}
+        screenshot -raw "{OUTPUT}/{variant}-closed-$closed.png"
+    }} elseif {{$checkpoint > 0 && $checkpoint <= 9}} {{
+        set pear $checkpoint
         check_background
         screenshot -raw "{OUTPUT}/{variant}-pear-$pear.png"
         set f [open "{OUTPUT}/{variant}-pear-$pear.bin" wb]
@@ -154,6 +167,8 @@ after time 40 {{
     values = dict(line.split("=", 1) for line in data.splitlines())
     assert values["dialogues"] == "3", values
     assert values["pear_captures"] == "9", values
+    assert values["menus_closed"] == "5" and values["map_restored"] == "1", \
+        "Door exit must restore both map buffers without scrolling: " + str(values)
     assert values["background_ok"] == "1", "Game background must remain black: " + str(values)
     results[variant] = values
     print(f"{variant}: SDL and MSX full-engine quest passed; "
@@ -172,3 +187,4 @@ for i in range(1, 10):
         f"Pear capture {i} rendering/placement differs"
 (OUTPUT / "results.json").write_text(json.dumps(results, indent=2) + "\n")
 print("Three lumberjack images and nine pear popup renderings/placements match the reference")
+print("All five town-hall exits restore both map buffers without scrolling")

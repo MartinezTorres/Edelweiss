@@ -86,8 +86,8 @@ make -j4 smoke   # Both complete engines on SDL and openMSX, no display required
 to the player. It uses real entity callbacks, drawing, mapper changes and the
 game ISR; dialogue is acknowledged automatically after its usual display delay.
 It checks following, delivery, the axe, pear choices, boots and rupee rewards,
-repeated visits and mapper restoration. This does not automate walking the
-complete route or replace a full playthrough.
+repeated visits, dialogue removal on exit and mapper restoration. This does
+not automate walking the complete route or replace a full playthrough.
 
 Screenshots and observed stack/timing reports are in `build/smoke`. Three
 lumberjack images and nine pear popups are compared between variants. For the

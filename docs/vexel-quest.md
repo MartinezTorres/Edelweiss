@@ -126,7 +126,7 @@ observes writes in the stack region, including interrupts. It is a path
 measurement, not a static worst-case bound; startup and other gameplay paths
 are outside it. Dialogue timing dominates the elapsed-time measurement.
 
-With the pear exchange included:
+At the pear-exchange milestone (`800ccbd`):
 
 | Measurement | C reference | Vexel quests |
 |---|---:|---:|
@@ -172,9 +172,11 @@ The scenario exercises real mapper switches, renderer/ISR activity and the
 original spawn/despawn callbacks, then checks the bank shadows are restored.
 The pear cases use a small RAM input queue read by a resident test helper:
 the page-C scenario module is unmapped while the town hall or Vexel adapter
-runs. The normal door-entry animation drains pending map transfers and hides
-the player before the first pear menu. Route navigation, complete door
-entry/exit sequences and unrelated quests still need ordinary playtesting.
+runs. The scenario now runs the normal door-entry and exit animations for each
+pear visit. It saves the map tiles before any pear menu and verifies that both
+screen buffers match those tiles after every exit, without scrolling. This
+catches stale dialogues even if both implementations share the bug. Route
+navigation and unrelated quests still need ordinary playtesting.
 No physical MSX test has been performed.
 
 ## Small baseline repairs
@@ -198,6 +200,10 @@ No physical MSX test has been performed.
 - Keep the popup bank mapped while the original C pear menu moves its cursor.
   Previously only the initial drawing mapped that bank; navigation could call
   an unmapped renderer. This repair makes the retained MSX reference usable.
+- Request a map redraw on door exit. The ISR restores both screen buffers
+  during the exit animation, removing the building's dialogue without waiting
+  for the player to scroll. This adds five ROM bytes and no RAM to each build
+  relative to the pear milestone above.
 
 The optimized renderer, audio and assembly implementations are unchanged.
 
