@@ -96,6 +96,8 @@ $(BUILD)/linux/src/gameplay/password.o $(BUILD)/msx/src/gameplay/password.rel: g
 $(BUILD)/linux/src/gameplay/password_rules.o $(BUILD)/msx/src/gameplay/password_rules.rel: generated/quests/vx_password.inc generated/quests/vexel.h
 $(BUILD)/linux/src/gameplay/world_rules.o $(BUILD)/msx/src/gameplay/world_rules.rel: generated/quests/vx_world.inc generated/quests/vexel.h
 $(BUILD)/linux/src/gameplay/drop_rules.o $(BUILD)/msx/src/gameplay/drop_rules.rel: generated/quests/vx_drops.inc generated/quests/vexel.h
+$(BUILD)/linux/src/gameplay/town_rules.o $(BUILD)/msx/src/gameplay/town_rules.rel: generated/quests/vx_town.inc generated/quests/vexel.h
+$(BUILD)/linux/src/entities/enemy_ghosti/entity_ghosti.o $(BUILD)/msx/src/entities/enemy_ghosti/entity_ghosti.rel: generated/quests/vx_ghost.inc generated/quests/vexel.h
 endif
 
 -include $(LINUX_OBJECTS:.o=.d)

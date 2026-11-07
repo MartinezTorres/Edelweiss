@@ -4,8 +4,8 @@ This migration starts from Edelweiss `fecb997` and the supplied `sdcc_msx`
 checkout. The playable lumberjack milestone is committed as `f2b5fdc`.
 The integration now implements the lumberjack conversation, following decision,
 axe reward, pear exchange, Fish'n'Ships, university, Food'n'Stuff, saloon
-passwords, world interactions and pickup/drop rules while keeping the C
-branches for comparison.
+passwords, world interactions, pickup/drop rules, town dispatch/content and
+ghost behaviour while keeping the C branches for comparison.
 The original local library edit and untracked files are left untouched.
 
 ## Boundary and ownership
@@ -54,7 +54,7 @@ confirm ordering is preserved, including simultaneous clicks. A second visit
 cannot earn a second reward without another pear. No persistent exchange state
 or generic command interpreter is needed.
 
-`gameplay/quests.vx` imports all thirteen source entry points with an explicit 20-byte payload
+`gameplay/quests.vx` imports all twenty-one source entry points with an explicit 20-byte payload
 budget. Their serial projections share offset zero. The current projection
 uses 16-bit slots to accommodate 500-rupee purchases; the largest result has
 ten logical byte fields (the password). The engine finishes consuming one invocation before starting
@@ -161,6 +161,40 @@ quests, and the current despawn callback does not reenter them. Adding another
 caller or a callback that can invoke gameplay requires revisiting this
 contract; the serial projection is not a general concurrency guarantee.
 
+`gameplay/town.vx` owns building dispatch, the four teleporting houses,
+signboard selection/repeat suppression and the monster-house sequence.
+House choice requests a first `rand7` draw and a second only when bit 2 of
+the first is clear. The adapter never prefetches the second draw. Both tunnel
+languages are retained, selected by a value input and copied before travel.
+Unknown doors still run entry/exit without a service or random draw.
+The board rule keeps the existing one-byte remembered column, including
+updating it for unknown columns. Repeat reads produce no text.
+
+The monster house returns one append-text/damage/wait step at a time. All
+three bites run, even at zero health, with 30 frames after each and a final
+60-frame pause. Results are copied before drawing or waiting. These are
+synchronous scene steps; ordinary world AI remains paused, as before.
+
+`gameplay/ghost.vx` receives coordinates, anchors, signed byte velocities,
+player position and cadence/health values. The engine supplies six random
+low bits at spawn. The last two draws are retained even though both branches
+of the old position expression used the same offset. Spawning still uses
+anchor minus 256/512. The rules update once every four cycles according to
+spawn slot, restore maximum life on active ticks, combine anchor attraction
+and player pursuit, and select a sprite frame. Positions wrap at 16 bits and
+velocities at 8 bits. A bias before an arithmetic shift expresses signed
+division by 512 towards zero without a general division helper.
+
+The common invulnerability/pushing/death gate runs before any ghost projection.
+It can spawn a Vexel-backed drop without overlapping a live ghost result.
+All ghost outputs are copied before sprite and collision effects. The C
+reference replaces left-shifting a negative velocity with multiplication by
+two, removing C undefined behaviour while preserving the original MSX result.
+The two redundant spawn draws are standalone calls in the reference: SDCC
+4.2 otherwise removes them with the identical conditional arms. This corrects
+a historical Linux/MSX difference in random-stream consumption; both profiles
+now perform the six calls written in the original C source.
+
 ## Execution and placement
 
 The adapter and lumberjack/pear rules compile into the `quest` page-C module.
@@ -186,11 +220,25 @@ dialogue uses the same page-D copier and owned text buffer as the town quests.
 These five new entry points reuse the existing 20-byte result arena; no new
 production global state or text buffer is needed.
 
+Town rules use their own page-B module and the existing page-D text copier.
+Ghost rules and their materialized velocity helper live in the ghost page-C
+callback bank, avoiding a bank switch on each update. `vx_ghost_math.h`
+expands signed interpretation at the emitted 8/16-bit widths and checked shifts
+with their constant parameters. It uses unsigned arithmetic and a sign bias,
+avoiding negative C shifts and signed overflow. Each value operand is evaluated
+once. SDCC folds the widths/counts instead of calling generic arithmetic
+helpers repeatedly; the generated rule bodies remain unchanged. Unsupported
+signed widths fail to compile and require a placement/runtime review. The
+standalone projection harness retains the portable arithmetic helpers.
+All sources reuse the 20-byte result arena.
+
 The generator retains the complete portable `vx_bridges.c` and also packages
 its unchanged function bodies into `vx_quests.inc`, `vx_services.inc` and
-`vx_password.inc`, `vx_password_encode.inc`, `vx_world.inc` and `vx_drops.inc`.
-It checks the expected source order and eight materialized helper specializations
-before splitting; changed emission assumptions fail generation for review.
+`vx_password.inc`, `vx_password_encode.inc`, `vx_world.inc`, `vx_drops.inc`,
+`vx_town.inc` and `vx_ghost.inc`. It checks the source order and nine helper
+specializations. Helpers are grouped by their reported source ownership;
+adding the ghost helper can renumber password helpers without changing their
+placement. Unexpected ownership or counts fail generation for review.
 The four explicit `&~` helpers in `password.vx` keep normalization, byte decoding,
 checksum calculation and validation from expanding repeatedly into every result
 field. Constant arguments produce eight specialized C functions. All of them
@@ -317,7 +365,7 @@ bytes for C and 268 for Vexel, from scenario entry and including interrupts.
 Elapsed emulated times are 70.6478 and 71.2755 seconds, including all display
 waits. These are exercised-path measurements, not whole-game bounds.
 
-With world interactions and drops migrated, production costs are:
+At the world-interaction/drop milestone (`4af6401`), production costs were:
 
 | Measurement | Corrected C reference | Vexel gameplay |
 |---|---:|---:|
@@ -338,6 +386,35 @@ Additional stack usage observed from scenario entry is 240 bytes for C and
 285 for Vexel, including interrupts. These remain exercised-path measurements,
 not a whole-game stack bound. All 60 captured popups match between profiles;
 the 24 building exits and the world warning restore both map buffers.
+
+With town interactions and the ghost migrated, production costs are:
+
+| Measurement | Corrected C reference | Vexel gameplay |
+|---|---:|---:|
+| Cartridge size | 434,176 bytes | 458,752 bytes |
+| Occupied ROM, excluding bank padding | 426,692 bytes | 455,233 bytes |
+| Ordinary global RAM | 3,774 bytes | 3,795 bytes |
+| Space before fixed map at `0xD000` | 322 bytes | 301 bytes |
+| Resident ROM end (exclusive) | `0x5EBD` | `0x5ECB` |
+
+The town-rule bank uses 4,951 bytes, the ghost callback/rules bank 3,330 bytes,
+and the text bank 2,809 bytes. Global RAM and resident ROM remain unchanged.
+The smoke profile adds 40 RAM bytes per variant for inputs and reports.
+
+An active ghost callback averages 1.84 ms in C and 5.24 ms with the Vexel
+projection; a skipped tick averages 0.55 and 1.48 ms. The first generic-runtime
+version took 60.97 ms per active callback, so constant-width arithmetic
+specialization is necessary here. The remaining overhead is material:
+5.24 ms is about 31% of a 60 Hz frame budget, although an individual ghost
+updates its movement only once every four game cycles. This is not a whole-game
+frame-rate measurement. Broader enemy migration should include further emitter/
+ABI optimization and profiling with multiple active enemies.
+
+The complete 67-capture scenario takes 133.4455 emulated seconds for C and
+134.4952 for Vexel, including all display waits and scrolling. Additional
+stack usage observed from scenario entry is 240 and 285 bytes respectively,
+unchanged from the world-interaction scenario. This remains an exercised-path
+measurement, including interrupts, rather than a whole-game stack bound.
 
 Popup comparisons read VRAM patterns, colors and placement in both name tables
 for every dialogue, including the lumberjack. Comparing the entire screenshot
@@ -417,6 +494,21 @@ money cap. The random source and repositioning are smoke-only. Nine small-popup
 captures compare text and placement, and both complete map name tables must
 be restored after the rock warning without scrolling.
 
+Town validation compares all twelve house destinations in both languages,
+first/second random-draw counts, service dispatch, all nine boards, repeat and
+unknown-board behaviour, and the monster's text/damage/wait order at several
+health levels. Ghost checks compare C and Vexel callbacks with an independent
+fixed-width arithmetic oracle, including signed extremes, coordinate wrap,
+spawn bits, frame variants, skipped ticks and collision/death gates. Effect
+stubs overwrite the released result arena.
+
+The connected scenario adds three house trips, a repeated signboard read,
+all three monster bites with map restoration, and the real ghost spawn/update/
+death chain including explosion and drop callbacks. A 32-update active batch
+and a 32-update skipped batch measure MSX callback costs, including the
+resident trampoline and any intervening ISR work. These are batch averages,
+not worst-case bounds or whole-game frame timings.
+
 ## Small baseline repairs
 
 - Use the installed tools and pinned local library instead of missing private
@@ -460,7 +552,7 @@ This is a working route for moving decisions into Vexel while retaining the
 engine and both targets. It provides a concrete resource-lifetime boundary
 where banked text can no longer escape into gameplay as a raw address.
 
-Combat, enemy behaviour, town/board content and other gameplay remain C.
+Combat, other enemies, weapon behaviour and obstacle changes remain C.
 Relevant state and small typed results now cover choice-dependent inventory
 effects, multi-stage offers, world travel, well progression and explicit
 randomness with the same adapter and owned text storage.

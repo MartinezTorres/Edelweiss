@@ -1,0 +1,33 @@
+// Services: none, saloon, fish, hall, university, monster house, shop.
+// Houses 7..10 are SW, NW, NE, SE. Engine animations surround the visit.
+&^town_door(i:#u8,j:#u8)->#u8 {
+    i==45 && j==52 ? 1 : (i==57 && j==53 ? 2 : (
+    i==48 && j==57 ? 3 : (i==53 && j==73 ? 4 : (
+    i==59 && j==76 ? 5 : (i==57 && j==67 ? 6 : (
+    i==59 && j==60 ? 7 : (i==47 && j==65 ? 8 : (
+    i==46 && j==71 ? 9 : (i==59 && j==71 ? 10 : 0)))))))))
+}
+#Trip(text:#u8,i:#u8,j:#u8,draw:#u8);
+&^town_house(house:#u8,first:#u8,second:#u8,spanish:#u8) {
+    choice:#u8=(first&4)!=0 ? 0 : ((second&4)!=0 ? 1 : 2);
+    destination:#u8=choice>=house ? choice+1 : choice;
+    house>3 ? #Trip(0,0,0,0) : (
+    first==255 ? #Trip(0,0,0,1) : (
+    (first&4)==0 && second==255 ? #Trip(0,0,0,2) :
+    #Trip(spanish!=0 ? 49 : 48,
+          destination==0 || destination==3 ? 59 : (destination==1 ? 47 : 46),
+          destination==0 ? 60 : (destination==1 ? 65 : 71),0)))
+}
+#Board(text:#u8,next:#u8);
+&^town_board(column:#u8,last:#u8) {
+    text:#u8=column==39 ? 50 : (column==44 ? 51 : (column==57 ? 52 : (
+        column==59 ? 53 : (column==64 ? 54 : (column==66 ? 55 : (
+        column==72 ? 56 : (column==74 ? 57 : (column==92 ? 58 : 0))))))));
+    (#Board(column==last ? (#u8)0 : text,column))
+}
+// Append one line, bite, then wait. The fourth step is the final pause.
+#Bite(next:#u8,text:#u8,life:#u8,wait:#u8);
+&^town_monster(phase:#u8,life:#u8) {
+    phase<3 ? #Bite(phase+1,59+phase,life>0 ? life-1 : (#u8)0,30) : (
+    phase==3 ? #Bite(4,0,life,60) : #Bite(4,0,life,0))
+}

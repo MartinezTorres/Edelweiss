@@ -66,14 +66,18 @@ for variant in ("reference", "vexel"):
     report = OUTPUT / (variant + "-msx.txt")
     # A failed rerun must not consume a previous success report.
     report.write_text("pending\n")
-    for i in (1, 2, 3):
+    for i in (1, 2, 3, 4):
         (OUTPUT / f"{variant}-dialogue-{i}.png").write_bytes(b"")
         (OUTPUT / f"{variant}-dialogue-{i}.bin").write_bytes(b"")
     for i in range(1, 10):
         (OUTPUT / f"{variant}-pear-{i}.png").write_bytes(b"")
         (OUTPUT / f"{variant}-pear-{i}.bin").write_bytes(b"")
+    for i in range(1, 13):
         (OUTPUT / f"{variant}-world-{i}.png").write_bytes(b"")
         (OUTPUT / f"{variant}-world-{i}.bin").write_bytes(b"")
+    for i in range(70, 73):
+        (OUTPUT / f"{variant}-monster-{i}.png").write_bytes(b"")
+        (OUTPUT / f"{variant}-monster-{i}.bin").write_bytes(b"")
     for i in (*range(20, 49), *range(50, 60)):
         (OUTPUT / f"{variant}-service-{i}.png").write_bytes(b"")
         (OUTPUT / f"{variant}-service-{i}.bin").write_bytes(b"")
@@ -95,6 +99,9 @@ set health_restored 1
 set small_count 0
 set world_tiles {{}}
 set world_restored 0
+set ghost_begin 0
+set ghost_active_us 0
+set ghost_skipped_us 0
 proc check_background {{}} {{
     global background_ok
     if {{([debug read {{VDP regs}} 7] & 15) != 1 ||
@@ -146,6 +153,8 @@ debug set_watchpoint write_mem {status} {{}} {{
         puts $f "small_messages=$small_count"
         puts $f "world_stage=[debug read memory {world_stage}]"
         puts $f "world_map_restored=$world_restored"
+        puts $f "ghost_active_us=$ghost_active_us"
+        puts $f "ghost_skipped_us=$ghost_skipped_us"
         puts $f "elapsed_seconds=[expr {{[machine_info time] - $started}}]"
         puts $f "entry_sp=$entry"
         puts $f "lowest_stack_write=$low"
@@ -156,20 +165,36 @@ debug set_watchpoint write_mem {status} {{}} {{
 }}
 debug set_watchpoint write_mem {messages} {{}} {{
     set count $::wp_last_value
-    if {{$count > 0 && $count <= 3}} {{
+    if {{$count > 0 && $count <= 4}} {{
         check_background
         capture_popup "{OUTPUT}/{variant}-dialogue-$count"
     }}
 }}
 debug set_watchpoint write_mem {small_messages} {{}} {{
     set small_count $::wp_last_value
-    if {{$small_count > 0 && $small_count <= 9}} {{
+    if {{$small_count > 0 && $small_count <= 12}} {{
         check_background
         capture_small_popup "{OUTPUT}/{variant}-world-$small_count"
     }}
 }}
 debug set_watchpoint write_mem {capture} {{}} {{
     set checkpoint $::wp_last_value
+    if {{$checkpoint >= 70 && $checkpoint <= 72}} {{
+        capture_small_popup "{OUTPUT}/{variant}-monster-$checkpoint"
+    }} elseif {{$checkpoint == 73}} {{
+        set world_tiles [debug read_block VRAM 0x1800 704][debug read_block VRAM 0x1c00 704]
+    }} elseif {{$checkpoint == 74}} {{
+        set actual [debug read_block VRAM 0x1800 704][debug read_block VRAM 0x1c00 704]
+        set world_restored [expr {{$world_restored && $actual eq $world_tiles}}]
+    }} elseif {{$checkpoint == 80 || $checkpoint == 84}} {{
+        set ghost_begin [machine_info time]
+    }} elseif {{$checkpoint == 81}} {{
+        set ghost_active_us [expr {{1000000.0 * ([machine_info time] - $ghost_begin) / 32}}]
+    }} elseif {{$checkpoint == 85}} {{
+        set ghost_skipped_us [expr {{1000000.0 * ([machine_info time] - $ghost_begin) / 32}}]
+    }} elseif {{$checkpoint == 82}} {{
+        screenshot -raw "{OUTPUT}/{variant}-ghost.png"
+    }}
     if {{$checkpoint == 60}} {{
         set world_tiles [debug read_block VRAM 0x1800 704][debug read_block VRAM 0x1c00 704]
     }} elseif {{$checkpoint == 61}} {{
@@ -213,19 +238,21 @@ after time 180 {{
     data = report.read_text()
     assert result.returncode == 0 and "status=3\n" in data, data + result.stderr
     values = dict(line.split("=", 1) for line in data.splitlines())
-    assert values["dialogues"] == "3", values
+    assert values["dialogues"] == "4", values
     assert values["pear_captures"] == "9", values
     assert values["menus_closed"] == "24" and values["map_restored"] == "1", \
         "Door exit must restore both map buffers without scrolling: " + str(values)
     assert values["background_ok"] == "1", "Game background must remain black: " + str(values)
     assert values["health_restored"] == "1", "Restored hearts must replace both old health rows: " + str(values)
-    assert values["small_messages"] == "9" and values["world_stage"] == "9", values
+    assert values["small_messages"] == "12" and values["world_stage"] == "13", values
     assert values["world_map_restored"] == "1", "Small dialogue must restore both map buffers: " + str(values)
     results[variant] = values
     print(f"{variant}: SDL and MSX full-engine quest passed; "
           f"{values['additional_stack_bytes']} additional stack bytes observed")
+    print(f"  Ghost callback: {float(values['ghost_active_us']):.1f} us active, "
+          f"{float(values['ghost_skipped_us']):.1f} us skipped (includes trampoline/ISR)")
 
-for i in (1, 2, 3):
+for i in (1, 2, 3, 4):
     reference = OUTPUT / f"reference-dialogue-{i}.png"
     vexel = OUTPUT / f"vexel-dialogue-{i}.png"
     assert reference.stat().st_size > 1000, "Missing/blank dialogue screenshot"
@@ -241,11 +268,13 @@ for i in (*range(20, 49), *range(50, 60)):
     reference = OUTPUT / f"reference-service-{i}.bin"
     vexel = OUTPUT / f"vexel-service-{i}.bin"
     assert popup_image(reference) == popup_image(vexel), f"Service capture {i} rendering/placement differs"
-for i in range(1, 10):
+for i in range(1, 13):
     reference = OUTPUT / f"reference-world-{i}.bin"
     vexel = OUTPUT / f"vexel-world-{i}.bin"
     assert small_popup_image(reference) == small_popup_image(vexel), f"World capture {i} rendering/placement differs"
+for i in range(70, 73):
+    assert small_popup_image(OUTPUT / f"reference-monster-{i}.bin") == small_popup_image(OUTPUT / f"vexel-monster-{i}.bin"), f"Monster bite {i} differs"
 (OUTPUT / "results.json").write_text(json.dumps(results, indent=2) + "\n")
-print("Three lumberjack and nine pear popup renderings/placements match the reference")
+print("Three lumberjack, one signboard and nine pear popup renderings/placements match the reference")
 print("39 service/password popup renderings/placements match; all 24 building exits restore both map buffers")
-print("Nine world popups match; lamp/password travel, wells, passages, boots and pickups pass on SDL and MSX")
+print("Twelve world popups and three monster bites match; town dispatch, conditional draws and ghost lifecycle pass")

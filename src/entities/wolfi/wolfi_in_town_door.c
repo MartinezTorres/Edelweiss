@@ -1,4 +1,16 @@
 #include <common.h>
+#ifdef EDW_SMOKE
+#include "../../../tests/quest_smoke_input.h"
+#define town_random quest_smoke_town_random
+#else
+#define town_random rand7
+#endif
+#if EDW_VEXEL
+#include <gameplay/quest.h>
+#include "vexel.h"
+USING_MODULE(town_rules, PAGE_B);
+USING_MODULE(quest_text, PAGE_D);
+#endif
 
 static void migrate_wolfi(uint8_t i, uint8_t j) {
 
@@ -21,6 +33,40 @@ void wolfi_in_town_door() {
 
 	TRAMPOLINE_PAGE_C(wolfi_door_warp_enter);
 	
+#if EDW_VEXEL
+    uint8_t service;
+    IN_MODULE(town_rules, PAGE_B,
+        vx_town_door(ti,tj); service=(uint8_t)vx_town_door_read(0);
+    );
+    switch(service) {
+    case 1: TRAMPOLINE_PAGE_C(wolfi_in_saloon); break;
+    case 2: TRAMPOLINE_PAGE_C(wolfi_in_fish_n_ships); break;
+    case 3: TRAMPOLINE_PAGE_C(wolfi_in_town_hall); break;
+    case 4: TRAMPOLINE_PAGE_C(wolfi_in_university); break;
+    case 5: TRAMPOLINE_PAGE_C(wolfi_in_monster_house); break;
+    case 6: TRAMPOLINE_PAGE_C(wolfi_in_food_n_stuff); break;
+    default:
+        if(service>=7 && service<=10) {
+            uint8_t first=255, second=255, draw, text, i, j, copied;
+            do {
+                IN_MODULE(town_rules, PAGE_B,
+                    vx_town_house(service-7,first,second,configuration.language!=E_ENGLISH);
+                    text=(uint8_t)vx_town_house_read(0);
+                    i=(uint8_t)vx_town_house_read(1); j=(uint8_t)vx_town_house_read(2);
+                    draw=(uint8_t)vx_town_house_read(3);
+                );
+                if(draw==1)first=town_random();
+                if(draw==2)second=town_random();
+            } while(draw);
+            IN_MODULE(quest_text, PAGE_D,
+                copied=quest_text_copy(text,quest_dialogue,sizeof(quest_dialogue));
+            );
+            if(!copied)vx_trap(35);
+            small_message(quest_dialogue);
+            migrate_wolfi(i,j);
+        }
+    }
+#else
 	if        (ti==45 && tj==52) { // Saloon
 		TRAMPOLINE_PAGE_C(wolfi_in_saloon);
 
@@ -30,11 +76,11 @@ void wolfi_in_town_door() {
 		TRAMPOLINE_PAGE_C(wolfi_in_town_hall);
 	} else if (ti==59 && tj==60) { // House south west
 			
-		if (rand7()&4) {
+		if (town_random()&4) {
 
 			small_message(T_HOUSE12);
 			migrate_wolfi(47, 65);
-		} else if (rand7()&4) {
+		} else if (town_random()&4) {
 			
 			small_message(T_HOUSE13);
 			migrate_wolfi(46, 71);
@@ -47,11 +93,11 @@ void wolfi_in_town_door() {
 	} else if (ti==47 && tj==65) { // House north west
 
 
-		if (rand7()&4) {
+		if (town_random()&4) {
 			
 			small_message(T_HOUSE21);
 			migrate_wolfi(59, 60);
-		} else if (rand7()&4) {
+		} else if (town_random()&4) {
 			
 			small_message(T_HOUSE23);
 			migrate_wolfi(46, 71);
@@ -63,11 +109,11 @@ void wolfi_in_town_door() {
 
 	} else if (ti==46 && tj==71) { // House north east
 
-		if (rand7()&4) {
+		if (town_random()&4) {
 			
 			small_message(T_HOUSE31);
 			migrate_wolfi(59, 60);
-		} else if (rand7()&4) {
+		} else if (town_random()&4) {
 			
 			small_message(T_HOUSE32);
 			migrate_wolfi(47, 65);
@@ -78,11 +124,11 @@ void wolfi_in_town_door() {
 		}
 	} else if (ti==59 && tj==71) { // House south
 
-		if (rand7()&4) {
+		if (town_random()&4) {
 			
 			small_message(T_HOUSE41);
 			migrate_wolfi(59, 60);
-		} else if (rand7()&4) {
+		} else if (town_random()&4) {
 			
 			small_message(T_HOUSE42);
 			migrate_wolfi(47, 65);
@@ -102,6 +148,7 @@ void wolfi_in_town_door() {
 
 	}
 
+#endif
 
 	TRAMPOLINE_PAGE_C(wolfi_door_warp_exit);
 }

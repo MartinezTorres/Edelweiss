@@ -141,7 +141,76 @@ void world_smoke(void) {
     update_drop();for(i=0;i<12;++i)wait_frame();
     if(state.rupees!=999 || edw_smoke_drop_calls!=3)goto failed;
     if(CURRENT_SEGMENT(PAGE_B)!=b || CURRENT_SEGMENT(PAGE_C)!=c || CURRENT_SEGMENT(PAGE_D)!=d)goto failed;
-    edw_smoke_world_stage=9;
+    /* Finish the town's dispatch layer through real map-triggered doors. */
+    edw_smoke_world_stage=10;
+    state.has_boots=true;
+    for(i=0;i<3;++i) {
+        static const uint8_t di[]={47,46,59};
+        static const uint8_t dj[]={65,71,71};
+        place(59,60);edw_smoke_town_calls=0;
+        edw_smoke_keys[0]=i==0?4:0;edw_smoke_keys[1]=i==1?4:0;
+        configuration.language=i==2?E_SPANISH:E_ENGLISH;
+        TRAMPOLINE_PAGE_C(wolfi_triggers);
+        if(p->pos.i!=(uint16_t)di[i]*512+240 || p->pos.j!=(uint16_t)dj[i]*512 ||
+           edw_smoke_town_calls!=(i==0?1:2))goto failed;
+    }
+    configuration.language=E_ENGLISH;
+    if(edw_smoke_small_messages!=12)goto failed;
+
+    edw_smoke_world_stage=11;
+    /* The board adapter owns repeat suppression. Display a real board twice. */
+    place(49,59);
+    if(tile_here()!=TILE_INFO_BOARD_GRASS)goto failed;
+    TRAMPOLINE_PAGE_C(wolfi_triggers);
+    TRAMPOLINE_PAGE_C(wolfi_triggers);
+    if(edw_smoke_messages!=4)goto failed;
+    place(59,76);p->life=2;
+    quest_smoke_checkpoint(73);
+    TRAMPOLINE_PAGE_C(wolfi_triggers);
+    if(p->life!=0)goto failed;
+    quest_smoke_checkpoint(74);
+
+    edw_smoke_world_stage=12;
+    {
+        Entity *e=&state.entities[ENTITY_GHOSTI_0];
+        uint8_t n;
+        place(52,8);p->life=6;
+        despawn_entity(ENTITY_GHOSTI_0);
+        e->anchor8.i=110;e->anchor8.j=16;
+        e->push_frames=0;e->life=e->maximum_life;
+        edw_smoke_ghost_calls=0;state.game_cycles=1;state.isr_count_delta=1;
+        if(!spawn_entity(ENTITY_GHOSTI_0) || edw_smoke_ghost_calls!=6 || e->spawn_idx!=6)goto failed;
+        if(e->pos.i!=27904 || e->pos.j!=3584 || e->vel.i!=1 || e->vel.j!=-4)goto failed;
+        /* Measure active and skipped updates separately, including their real
+         * trampoline/collision overhead and any intervening ISR work. */
+        edw_smoke_capture=80;
+        for(n=0;n<32;++n) {
+            state.game_cycles=2;
+            trampoline_page_c(MODULE_SEGMENT(entity_ghosti,PAGE_C),ghost_smoke_update);
+        }
+        edw_smoke_capture=81;
+        if(e->pos.i!=27152 || e->pos.j!=4448 || e->vel.i!=-16 || e->vel.j!=14)goto failed;
+        for(n=0;n<12;++n)wait_frame();
+        quest_smoke_checkpoint(82); /* Retain a rendered frame and state trace. */
+        edw_smoke_capture=84;
+        for(n=0;n<32;++n) {
+            state.game_cycles=1;
+            trampoline_page_c(MODULE_SEGMENT(entity_ghosti,PAGE_C),ghost_smoke_update);
+        }
+        edw_smoke_capture=85;
+        if(e->life!=16 || edw_smoke_ghost_calls!=6)goto failed;
+        /* The common death path spawns its real explosion and drop callbacks,
+         * then removes the ghost without entering its movement projection. */
+        despawn_entity(ENTITY_EXPLOSION_0);despawn_entity(ENTITY_EXPLOSION_1);
+        despawn_entity(ENTITY_DROP_ITEM_0);despawn_entity(ENTITY_DROP_ITEM_1);
+        edw_smoke_drop_roll=255;e->life=0;
+        trampoline_page_c(MODULE_SEGMENT(entity_ghosti,PAGE_C),ghost_smoke_update);
+        if(e->spawn_idx!=-1 || state.entities[ENTITY_EXPLOSION_0].spawn_idx<0 ||
+           edw_smoke_drop_calls!=4 || state.entities[ENTITY_DROP_ITEM_0].drop_item!=E_DROP_NOTHING)goto failed;
+        despawn_entity(ENTITY_EXPLOSION_0);despawn_entity(ENTITY_DROP_ITEM_0);
+    }
+    if(CURRENT_SEGMENT(PAGE_B)!=b || CURRENT_SEGMENT(PAGE_C)!=c || CURRENT_SEGMENT(PAGE_D)!=d)goto failed;
+    edw_smoke_world_stage=13;
     return;
 failed:
 #ifndef MSX

@@ -1,7 +1,7 @@
 {
   "solver_sha256": "f3afe9c2734005c623c80214d91410a1611286a0d10d9949bd515dc8a73ec39d",
   "files": {
-    "gameplay/quests.vx": "c091028117f677d23b87a669e878ae05dd79dccb1eefb0227134d2fb587c2e86",
+    "gameplay/quests.vx": "32bd89e79097d0489ed14fa8347d64ad3ae3ec18310fb33e8761698aac723891",
     "gameplay/lumberjack.vx": "44f5cd1329c722e33a16be855709f35d3ae72e59919fa3757112b5674552eaf2",
     "gameplay/pear.vx": "da4aee86a7a40d897f764dd0ca95992c45aa08792928403550b3ed4abdf84611",
     "gameplay/stew.vx": "f1bdd746f1202598c9f816572d8bd347062464cbb05a979a7ad798915ffaa7f8",
@@ -10,14 +10,18 @@
     "gameplay/password.vx": "8b47adca4c36c0a5fe38ca043a2488eef93f6e8c5c2923892a0163ec0fa7ffd5",
     "gameplay/world.vx": "0a195dc6a6bb7934932fd237c6b5398a3a715dee4cc0ede793b98dc0b4f179ce",
     "gameplay/drops.vx": "38608ec498a89e751f65b6c229a58ec8f10f9d73df60e709741c7b4207c68588",
-    "generated/quests/vexel.h": "5243c39e7b86886be2726259dd38f70e76d8af052ba21f2ae7bd05c1b17fc7e6",
-    "generated/quests/vx_bridges.c": "ee30f2f46df92d95c2787691325c4de94fb911c90c1ae9011465b864b9a05fae",
-    "generated/quests/source-plan.json": "c1560a40d23578f6b27a5c46d958f0381359b4d945d310fddabe725c71433224",
+    "gameplay/town.vx": "3b5825810cdc75799247238317c2b9356707f57101adad6fbce80524701a5856",
+    "gameplay/ghost.vx": "53adf21f32c43d432173e158c51e0ee3dbae4745ceb30e3a2904f66d121f77ab",
+    "generated/quests/vexel.h": "6ba08c4201659b312eb56e9dc9bd2da6610cb234e0fd84bd0db7cc78df38356e",
+    "generated/quests/vx_bridges.c": "3a3b68668bec7148857a65d752ea84fb35b11cdb34208c810a25d11293cc38a1",
+    "generated/quests/source-plan.json": "eb4922ad199da13f0e6a129bd3d122c6269bb7e828be35dd7d38b082c63b947f",
     "generated/quests/vx_quests.inc": "c104db24d564043de82c889ef08ae690cfde29d271c5f895e3d6d1fccdbd25dd",
     "generated/quests/vx_services.inc": "aee958448a9c27dfbfb6a39186cb3408123569078403af6e6260422e7b3dcea8",
-    "generated/quests/vx_password.inc": "3bbdcf25fc096458bcc9ac3c86035dc08bf4ee49f4e731ed21b0dd91f28921de",
-    "generated/quests/vx_password_encode.inc": "48e7813eef74845d3c128014bc48e423024b2fd0db126113e41cb1f02c4465b7",
+    "generated/quests/vx_password.inc": "313220030172e412aa3bb928b4bb23b7159c550a98aa3fb6d0a63813fd7b2579",
+    "generated/quests/vx_password_encode.inc": "8c99dff4aa15711c9d7e7fbf002fbd2756c56d270734ec61e94499f0721d0c7d",
     "generated/quests/vx_world.inc": "27518170717ef24f72a50800738c975f2bf3a407baeac530ebd2729cb2cd4454",
-    "generated/quests/vx_drops.inc": "173be63c1e4b67f8cc5a6b18bd3a027dd3a042ad519bffe6c1fdfee397775ebd"
+    "generated/quests/vx_drops.inc": "173be63c1e4b67f8cc5a6b18bd3a027dd3a042ad519bffe6c1fdfee397775ebd",
+    "generated/quests/vx_town.inc": "70a5a45add7c2d4c4aa110bc67ecee31d8f3f32c1a11295afa5b11d79252340d",
+    "generated/quests/vx_ghost.inc": "d826ac35dfa8ef02bbf42ef4bb0d8b8b32d7348165fa216c9866057c489beda8"
   }
 }

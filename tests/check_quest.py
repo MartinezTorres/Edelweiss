@@ -62,3 +62,18 @@ reference = build_run("drops-reference", drops, ["-DEDW_VEXEL=0"])
 vexel = build_run("drops-vexel", drops, ["-DEDW_VEXEL=1"])
 assert reference == vexel, "C and Vexel pickup/drop traces differ"
 print("Drops: probability boundaries, draw counts, one-time rewards and lifetime agree (UBSan)")
+
+town = ["tests/town_integration.c", "src/entities/wolfi/wolfi_in_town_door.c",
+        "src/entities/wolfi/wolfi_reads_info_boards.c", "src/entities/wolfi/wolfi_in_monster_house.c",
+        "src/entities/wolfi/wolfi_takes_damage.c", "src/entities/wolfi/wolfi_door_warp_enter.c",
+        "src/entities/wolfi/wolfi_door_warp_exit.c", "src/gameplay/town_rules.c", "src/gameplay/quest_text.c"]
+reference = build_run("town-reference", town, ["-DEDW_VEXEL=0"])
+vexel = build_run("town-vexel", town, ["-DEDW_VEXEL=1"])
+assert reference == vexel, "Town interaction traces differ"
+print("Town: house routes, random consumption, languages, boards and monster scene agree (UBSan)")
+
+ghost = ["tests/ghost_integration.c", "src/entities/enemy_ghosti/entity_ghosti.c"]
+reference = build_run("ghost-reference", ghost, ["-DEDW_VEXEL=0"])
+vexel = build_run("ghost-vexel", ghost, ["-DEDW_VEXEL=1"])
+assert reference == vexel, "Ghost behaviour traces differ"
+print("Ghost: fixed-width oracle, random draws, movement, cadence and effects agree (UBSan)")

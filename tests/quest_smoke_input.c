@@ -41,3 +41,8 @@ volatile uint8_t edw_smoke_small_messages;
 uint16_t edw_smoke_drop_roll;
 uint8_t edw_smoke_drop_calls;
 uint16_t quest_smoke_drop_random(void) { ++edw_smoke_drop_calls; return edw_smoke_drop_roll; }
+
+/* Reuse the idle input queue as a deterministic random stream. */
+uint8_t edw_smoke_town_calls, edw_smoke_ghost_calls;
+uint8_t quest_smoke_town_random(void) { return edw_smoke_keys[edw_smoke_town_calls++ & 1]; }
+uint16_t quest_smoke_ghost_random(void) { return edw_smoke_ghost_calls++; }

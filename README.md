@@ -2,7 +2,8 @@
 
 An MSX1 game with a Linux/SDL development build. The lumberjack rescue, axe
 reward, town-hall pear exchange, Fish'n'Ships, university, Food'n'Stuff,
-saloon passwords, world routes and pickup/drop rules now run from Vexel.
+saloon passwords, world routes, pickup/drop rules, town interactions and ghost
+behaviour now run from Vexel.
 The renderer, audio, collision system, entity storage and
 optimized assembly remain in the engine.
 
@@ -63,6 +64,11 @@ The entry file [gameplay/quests.vx](gameplay/quests.vx) imports the gameplay rul
   lamp refusals, well dialogue/progression and boots warnings.
 - [drops.vx](gameplay/drops.vx) selects drop probabilities and collection rewards.
   Randomness is an explicit input, requested only when the rule needs a draw.
+- [town.vx](gameplay/town.vx) dispatches buildings, chooses tunnel destinations,
+  selects signboard text and controls the monster house's three bites.
+- [ghost.vx](gameplay/ghost.vx) controls ghost spawning, update cadence, motion,
+  health restoration and sprite selection. Collision and common enemy effects
+  stay in the engine.
 
 The rules share a 20-byte result arena and receive only relevant state.
 The C adapter handles input and rendering, copies results before applying
@@ -112,10 +118,14 @@ random book selection, password save/reset/restore, dialogue removal on exit and
 not automate walking the complete route or replace a full playthrough. A connected
 world scenario collects money, buys a lamp, travels, saves/restores equipment,
 uses wells and secret passages, and checks boots, healing and one-time pickups.
+It also visits the teleporting houses, reads a sign twice, enters the monster
+house and runs a ghost through spawning, movement and death. Ghost callback
+timings are measured separately for active and skipped updates on MSX.
 
 Screenshots and observed stack/timing reports are in `build/smoke`. Three
-lumberjack popups, nine pear popups, 39 service/password popups and nine world
-popups are compared between variants. For the popups, the check compares their VRAM patterns, colors and placement while
+lumberjack popups, one signboard, nine pear popups, 39 service/password popups,
+twelve world popups and three monster-house stages are compared between
+variants. For the popups, the check compares their VRAM patterns, colors and placement while
 allowing the surrounding world to keep animating.
 The ordinary build contains neither the scenario driver nor scripted input.
 

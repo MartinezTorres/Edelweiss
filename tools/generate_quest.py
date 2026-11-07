@@ -13,7 +13,7 @@ ROOT = Path(__file__).resolve().parents[1]
 SOURCE = ROOT / "gameplay/quests.vx"
 OUTPUT = ROOT / "generated/quests"
 FILES = ("vexel.h", "vx_bridges.c", "source-plan.json")
-PARTS = ("vx_quests.inc", "vx_services.inc", "vx_password.inc", "vx_password_encode.inc", "vx_world.inc", "vx_drops.inc")
+PARTS = ("vx_quests.inc", "vx_services.inc", "vx_password.inc", "vx_password_encode.inc", "vx_world.inc", "vx_drops.inc", "vx_town.inc", "vx_ghost.inc")
 
 
 def digest(path):
@@ -41,6 +41,8 @@ def main():
              "--source", "password_encode", "--source", "password_decode",
              "--source", "world_route", "--source", "world_rocks", "--source", "world_well",
              "--source", "drop_roll", "--source", "drop_collect",
+             "--source", "town_door", "--source", "town_house", "--source", "town_board", "--source", "town_monster",
+             "--source", "ghost_spawn", "--source", "ghost_tick", "--source", "ghost_axis", "--source", "ghost_frame",
              "--mode", "serial", "--emit-c", str(target)],
             cwd=ROOT, capture_output=True, text=True)
         if result.returncode:
@@ -54,31 +56,42 @@ def main():
         # assumptions stop matching a future solver emission.
         code = (target / "vx_bridges.c").read_text()
         functions = re.findall(r"^void vx_(\w+)\(", code, re.M)
-        if functions != ["flow_0", "flow_1", "flow_2", "flow_3", "flow_4", "flow_5", "flow_6", "flow_7", "lumberjack", "pear", "stew", "university", "shop_stock", "shop_trade", "password_encode", "password_decode", "world_route", "world_rocks", "world_well", "drop_roll", "drop_collect"] or len(plan["runtime_functions"]) != 8:
+        if functions != [*[f"flow_{i}" for i in range(9)], "lumberjack", "pear", "stew", "university", "shop_stock", "shop_trade", "password_encode", "password_decode", "world_route", "world_rocks", "world_well", "drop_roll", "drop_collect", "town_door", "town_house", "town_board", "town_monster", "ghost_spawn", "ghost_tick", "ghost_axis", "ghost_frame"] or len(plan["runtime_functions"]) != 9:
             raise SystemExit("Projection layout changed; review the Konami-5 module split")
-        # Helper 2 belongs only to encoding; the others only to decoding.
-        # Encoding stays with its page-C adapter, decoding runs in page B.
+        # Place materialized helpers with their source owner. Helper numbering
+        # may change when another source is added; ownership must not.
         frames = {f["name"]: f for f in plan["frame_planning"]["functions"]}
-        for i in range(8):
-            owner = "vx_password_encode" if i == 2 else "vx_password_decode"
-            if frames[f"vx_flow_{i}"]["source_occurrences"] != [owner]:
-                raise SystemExit("Password helper ownership changed; review bank placement")
         prelude, helper_marker, helpers_and_sources = code.partition("void vx_flow_0(")
         helpers, arena_marker, sources = helpers_and_sources.partition("uint8_t vx_payload[")
+        helpers = helper_marker + helpers
+        grouped = {"vx_password_encode": [], "vx_password_decode": [], "vx_ghost_axis": []}
+        chunks = re.split(r"(?=^void vx_flow_\d+\()", helpers, flags=re.M)
+        for chunk in chunks:
+            if not chunk.strip():
+                continue
+            name = re.match(r"void (vx_flow_\d+)\(", chunk)[1]
+            owners = frames[name]["source_occurrences"]
+            if len(owners) != 1 or owners[0] not in grouped:
+                raise SystemExit("Helper ownership changed; review bank placement")
+            grouped[owners[0]].append(chunk)
+        if [len(grouped[k]) for k in grouped] != [1, 7, 1]:
+            raise SystemExit("Helper layout changed; review bank placement")
         code = prelude + arena_marker + sources
         quests, marker, services = code.partition("void vx_stew(")
         services, password_marker, password = services.partition("void vx_password_encode(")
         password, world_marker, world = password.partition("void vx_world_route(")
         world, drops_marker, drops = world.partition("void vx_drop_roll(")
+        drops, town_marker, town = drops.partition("void vx_town_door(")
+        town, ghost_marker, ghost = town.partition("void vx_ghost_spawn(")
         (OUTPUT / PARTS[4]).write_text('#include "vexel.h"\n' + world_marker + world)
         (OUTPUT / PARTS[5]).write_text('#include "vexel.h"\n' + drops_marker + drops)
+        (OUTPUT / PARTS[6]).write_text('#include "vexel.h"\n' + town_marker + town)
+        (OUTPUT / PARTS[7]).write_text('#include "vexel.h"\n' + "".join(grouped["vx_ghost_axis"]) + ghost_marker + ghost)
         (OUTPUT / PARTS[0]).write_text(quests)
         (OUTPUT / PARTS[1]).write_text('#include "vexel.h"\n' + marker + services)
-        before_encode_helper, encode_helper_marker, after_encode_helper = helpers.partition("void vx_flow_2(")
-        encode_helper, next_helper_marker, decode_helpers = after_encode_helper.partition("void vx_flow_3(")
         encode, decode_marker, decode = password.partition("void vx_password_decode(")
-        (OUTPUT / PARTS[2]).write_text('#include "vexel.h"\n' + helper_marker + before_encode_helper + next_helper_marker + decode_helpers + decode_marker + decode)
-        (OUTPUT / PARTS[3]).write_text('#include "vexel.h"\n' + encode_helper_marker + encode_helper + password_marker + encode)
+        (OUTPUT / PARTS[2]).write_text('#include "vexel.h"\n' + "".join(grouped["vx_password_decode"]) + decode_marker + decode)
+        (OUTPUT / PARTS[3]).write_text('#include "vexel.h"\n' + "".join(grouped["vx_password_encode"]) + password_marker + encode)
         (OUTPUT / "resolution.json").write_text(json.dumps(plan, indent=2) + "\n")
     paths = [Path(item["path"]) for item in plan["source_inputs"]]
     paths += [OUTPUT / name for name in (*FILES, *PARTS)]

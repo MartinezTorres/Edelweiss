@@ -1,0 +1,32 @@
+// All persistent entity state remains in the engine. Coordinates wrap at
+// 16 bits and velocities at 8 bits, matching the original MSX arithmetic.
+#GhostSpawn(i:#u16,j:#u16,vi:#i8,vj:#i8);
+&^ghost_spawn(ai:#u16,aj:#u16,random:#u8) {
+    vi:#i8=(random&1)!=0 ? -1 : 1;
+    vj:#i8=(random&2)!=0 ? -2 : 2;
+    (#GhostSpawn(ai-256,aj-512,
+        (random&4)!=0 ? vi+vi : vi,(random&8)!=0 ? vj+vj : vj))
+}
+#GhostTick(run:#u8,life:#u8);
+&^ghost_tick(cycle:#u8,slot:#u8,life:#u8,maximum:#u8) {
+    ((cycle+slot)&3)==0 ? #GhostTick(1,maximum) : #GhostTick(0,life)
+}
+// Materialize the velocity calculation once for both position and velocity.
+// Bias before an arithmetic shift implements division by 512 towards zero,
+// including negative deltas, without a general division runtime on Z80.
+&~ghost_velocity(position:#u16,anchor:#u16,velocity:#i8,player:#u16)->#i8 {
+    delta:#i16=(#i16)(anchor-position);
+    bias:#i16=delta<0 ? 511 : 0;
+    anchored:#i8=velocity+(#i8)((delta+bias)>>9);
+    anchored+(player<position ? (#i8)-1 : (#i8)1)
+}
+#GhostMotion(position:#u16,velocity:#i8);
+&^ghost_axis(position:#u16,anchor:#u16,velocity:#i8,player:#u16) {
+    next=ghost_velocity(position,anchor,velocity,player);
+    (#GhostMotion(position+(#u16)next+(#u16)next,next))
+}
+&^ghost_frame(slot:#u8,velocity:#i8)->#u8 {
+    variant:#u8=(slot&7)==0 ? 0 : ((slot&7)==1 ? 2 : (
+        (slot&7)==3 ? 6 : ((slot&7)<6 ? 4 : 10)));
+    variant+(velocity>0 ? 0 : 1)
+}

@@ -1,10 +1,30 @@
 #include <common.h>
+#if EDW_VEXEL
+#include <gameplay/quest.h>
+#include "vexel.h"
+USING_MODULE(town_rules, PAGE_B);
+USING_MODULE(quest_text, PAGE_D);
+#endif
 
 static uint8_t last_checked_board;
 void wolfi_reads_info_boards() {
 	
 	uint8_t tj = (state.entities[0].pos.j+0x100)>>9;
 	
+#if EDW_VEXEL
+    uint8_t text, next, copied;
+    IN_MODULE(town_rules, PAGE_B,
+        vx_town_board(tj,last_checked_board);
+        text=(uint8_t)vx_town_board_read(0);next=(uint8_t)vx_town_board_read(1);
+    );
+    last_checked_board=next;
+    if(!text)return;
+    IN_MODULE(quest_text, PAGE_D,
+        copied=quest_text_copy(text,quest_dialogue,sizeof(quest_dialogue));
+    );
+    if(!copied)vx_trap(36);
+    large_message(quest_dialogue);
+#else
 	if (last_checked_board == tj) return;
 	last_checked_board = tj;
 	if        (tj==39) { // Graveyard
@@ -65,5 +85,6 @@ void wolfi_reads_info_boards() {
 			"  If you can reach it!"
 		);
 	}
+#endif
 }
 	

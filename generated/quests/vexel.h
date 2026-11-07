@@ -13,14 +13,15 @@
 #define VX_SNAPSHOT16(x) (x)
 #define VX_SNAPSHOT32(x) (x)
 #endif
-void vx_flow_0(uint32_t *vxo, VX_STABLE uint8_t vxa_0) VX_ABI VX_RESIDENT;
-void vx_flow_1(uint32_t *vxo, VX_STABLE uint8_t vxa_0, VX_STABLE uint8_t vxa_1) VX_ABI VX_RESIDENT;
-void vx_flow_2(uint32_t *vxo, VX_STABLE uint8_t vxa_0, VX_STABLE uint8_t vxa_1, VX_STABLE uint8_t vxa_2, VX_STABLE uint8_t vxa_3, VX_STABLE uint8_t vxa_4, VX_STABLE uint8_t vxa_5, VX_STABLE uint8_t vxa_6) VX_ABI VX_RESIDENT;
-void vx_flow_3(uint32_t *vxo, VX_STABLE uint8_t vxa_0, VX_STABLE uint8_t vxa_1) VX_ABI VX_RESIDENT;
+void vx_flow_0(uint32_t *vxo, VX_STABLE uint16_t vxa_0, VX_STABLE uint16_t vxa_1, VX_STABLE int8_t vxa_2, VX_STABLE uint16_t vxa_3) VX_ABI VX_RESIDENT;
+void vx_flow_1(uint32_t *vxo, VX_STABLE uint8_t vxa_0) VX_ABI VX_RESIDENT;
+void vx_flow_2(uint32_t *vxo, VX_STABLE uint8_t vxa_0, VX_STABLE uint8_t vxa_1) VX_ABI VX_RESIDENT;
+void vx_flow_3(uint32_t *vxo, VX_STABLE uint8_t vxa_0, VX_STABLE uint8_t vxa_1, VX_STABLE uint8_t vxa_2, VX_STABLE uint8_t vxa_3, VX_STABLE uint8_t vxa_4, VX_STABLE uint8_t vxa_5, VX_STABLE uint8_t vxa_6) VX_ABI VX_RESIDENT;
 void vx_flow_4(uint32_t *vxo, VX_STABLE uint8_t vxa_0, VX_STABLE uint8_t vxa_1) VX_ABI VX_RESIDENT;
 void vx_flow_5(uint32_t *vxo, VX_STABLE uint8_t vxa_0, VX_STABLE uint8_t vxa_1) VX_ABI VX_RESIDENT;
-void vx_flow_6(uint32_t *vxo, VX_STABLE uint8_t vxa_0, VX_STABLE uint8_t vxa_1, VX_STABLE uint8_t vxa_2, VX_STABLE uint8_t vxa_3, VX_STABLE uint8_t vxa_4, VX_STABLE uint8_t vxa_5, VX_STABLE uint8_t vxa_6, VX_STABLE uint8_t vxa_7, VX_STABLE uint8_t vxa_8, VX_STABLE uint8_t vxa_9, VX_STABLE uint8_t vxa_10, VX_STABLE uint8_t vxa_11, VX_STABLE uint8_t vxa_12, VX_STABLE uint8_t vxa_13, VX_STABLE uint8_t vxa_14) VX_ABI VX_RESIDENT;
-void vx_flow_7(uint32_t *vxo, VX_STABLE uint8_t vxa_0, VX_STABLE uint8_t vxa_1, VX_STABLE uint8_t vxa_2, VX_STABLE uint8_t vxa_3, VX_STABLE uint8_t vxa_4, VX_STABLE uint8_t vxa_5, VX_STABLE uint8_t vxa_6, VX_STABLE uint8_t vxa_7, VX_STABLE uint8_t vxa_8, VX_STABLE uint8_t vxa_9) VX_ABI VX_RESIDENT;
+void vx_flow_6(uint32_t *vxo, VX_STABLE uint8_t vxa_0, VX_STABLE uint8_t vxa_1) VX_ABI VX_RESIDENT;
+void vx_flow_7(uint32_t *vxo, VX_STABLE uint8_t vxa_0, VX_STABLE uint8_t vxa_1, VX_STABLE uint8_t vxa_2, VX_STABLE uint8_t vxa_3, VX_STABLE uint8_t vxa_4, VX_STABLE uint8_t vxa_5, VX_STABLE uint8_t vxa_6, VX_STABLE uint8_t vxa_7, VX_STABLE uint8_t vxa_8, VX_STABLE uint8_t vxa_9, VX_STABLE uint8_t vxa_10, VX_STABLE uint8_t vxa_11, VX_STABLE uint8_t vxa_12, VX_STABLE uint8_t vxa_13, VX_STABLE uint8_t vxa_14) VX_ABI VX_RESIDENT;
+void vx_flow_8(uint32_t *vxo, VX_STABLE uint8_t vxa_0, VX_STABLE uint8_t vxa_1, VX_STABLE uint8_t vxa_2, VX_STABLE uint8_t vxa_3, VX_STABLE uint8_t vxa_4, VX_STABLE uint8_t vxa_5, VX_STABLE uint8_t vxa_6, VX_STABLE uint8_t vxa_7, VX_STABLE uint8_t vxa_8, VX_STABLE uint8_t vxa_9) VX_ABI VX_RESIDENT;
 extern uint8_t vx_payload[20];
 void vx_lumberjack(uint8_t vxp_a0,uint8_t vxp_a1) VX_ABI VX_RESIDENT;
 uint32_t vx_lumberjack_read(uint16_t index) VX_ABI VX_RESIDENT;
@@ -48,4 +49,20 @@ void vx_drop_roll(uint8_t vxp_a0,uint8_t vxp_a1,uint16_t vxp_a2) VX_ABI VX_RESID
 uint32_t vx_drop_roll_read(uint16_t index) VX_ABI VX_RESIDENT;
 void vx_drop_collect(uint8_t vxp_a0,uint8_t vxp_a1,uint8_t vxp_a2) VX_ABI VX_RESIDENT;
 uint32_t vx_drop_collect_read(uint16_t index) VX_ABI VX_RESIDENT;
+void vx_town_door(uint8_t vxp_a0,uint8_t vxp_a1) VX_ABI VX_RESIDENT;
+uint32_t vx_town_door_read(uint16_t index) VX_ABI VX_RESIDENT;
+void vx_town_house(uint8_t vxp_a0,uint8_t vxp_a1,uint8_t vxp_a2,uint8_t vxp_a3) VX_ABI VX_RESIDENT;
+uint32_t vx_town_house_read(uint16_t index) VX_ABI VX_RESIDENT;
+void vx_town_board(uint8_t vxp_a0,uint8_t vxp_a1) VX_ABI VX_RESIDENT;
+uint32_t vx_town_board_read(uint16_t index) VX_ABI VX_RESIDENT;
+void vx_town_monster(uint8_t vxp_a0,uint8_t vxp_a1) VX_ABI VX_RESIDENT;
+uint32_t vx_town_monster_read(uint16_t index) VX_ABI VX_RESIDENT;
+void vx_ghost_spawn(uint16_t vxp_a0,uint16_t vxp_a1,uint8_t vxp_a2) VX_ABI VX_RESIDENT;
+uint32_t vx_ghost_spawn_read(uint16_t index) VX_ABI VX_RESIDENT;
+void vx_ghost_tick(uint8_t vxp_a0,uint8_t vxp_a1,uint8_t vxp_a2,uint8_t vxp_a3) VX_ABI VX_RESIDENT;
+uint32_t vx_ghost_tick_read(uint16_t index) VX_ABI VX_RESIDENT;
+void vx_ghost_axis(uint16_t vxp_a0,uint16_t vxp_a1,int8_t vxp_a2,uint16_t vxp_a3) VX_ABI VX_RESIDENT;
+uint32_t vx_ghost_axis_read(uint16_t index) VX_ABI VX_RESIDENT;
+void vx_ghost_frame(uint8_t vxp_a0,int8_t vxp_a1) VX_ABI VX_RESIDENT;
+uint32_t vx_ghost_frame_read(uint16_t index) VX_ABI VX_RESIDENT;
 #endif

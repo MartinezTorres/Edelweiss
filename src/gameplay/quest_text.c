@@ -69,6 +69,20 @@ uint8_t quest_text_copy(uint8_t id, char *destination, uint8_t capacity) {
     case QUEST_TEXT_WELL_RATS: text = "THERE WERE\nRATS!"; break;
     case QUEST_TEXT_WELL_NOT_FUN: text = "THIS ISN'T\nFUN!"; break;
     case QUEST_TEXT_ROCKS: text = "THESE ROCKS\nHURT MY FEET!"; break;
+    case QUEST_TEXT_TUNNEL_EN: text = "THERE IS A\nLARGE TUNNEL"; break;
+    case QUEST_TEXT_TUNNEL_ES: text = "HAY UN TUNNEL\nLARGO!"; break;
+    case QUEST_TEXT_BOARD_GRAVEYARD: text = "WEST: GRAVEYARD\n  Beware of ghosts!\nNORTH-WEST: ISLANDS\n  Home of rare birds."; break;
+    case QUEST_TEXT_BOARD_HILL: text = "NORTH: ROCKY HILL\n  Proceed with care!\nNORTH-EAST: TEMPLE\n  Do not disturb!"; break;
+    case QUEST_TEXT_BOARD_FISH: text = "  FISH'N'CHIPS\nBest fish in town.\nGood for your body\nand your mind!"; break;
+    case QUEST_TEXT_BOARD_HALL: text = "TOWN HALL"; break;
+    case QUEST_TEXT_BOARD_TOWN: text = "Welcome to\nKARAKIKO TOWN\nPopulation: 38"; break;
+    case QUEST_TEXT_BOARD_SHOP: text = "  FOOD'N'STUFF\nAll sots of food\nand items to buy\nfor the right price"; break;
+    case QUEST_TEXT_BOARD_UNIVERSITY: text = "KARAKIKO\nUNIVERSITY\n  Home of knowledge."; break;
+    case QUEST_TEXT_BOARD_HOUSE: text = "NOT A HOUSE!\n   Do not disturb!"; break;
+    case QUEST_TEXT_BOARD_FOREST: text = "EAST: FOREST\n  Bring equipment!\nSOUTH-WEST: ICELAND\n  If you can reach it!"; break;
+    case QUEST_TEXT_BITE_1: text = "NOM!\n"; break;
+    case QUEST_TEXT_BITE_2: text = "    NOM!\n"; break;
+    case QUEST_TEXT_BITE_3: text = "        NOM!"; break;
     default: return 0;
     }
     for (i = 0; i < capacity; ++i) {
