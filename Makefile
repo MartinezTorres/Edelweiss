@@ -20,7 +20,7 @@ endif
 rwildcard = $(foreach d,$(wildcard $(addsuffix *,$1)),$(call rwildcard,$d/,$2) $(filter $(subst *,%,$2),$d))
 SOURCES := $(sort $(call rwildcard,src/ vendor/sdcc_msx/src/,*.c))
 ifeq ($(SMOKE),1)
-SOURCES += tests/quest_smoke.c tests/quest_smoke_input.c
+SOURCES += tests/quest_smoke.c tests/quest_smoke_input.c tests/world_smoke.c
 CPPFLAGS += -DEDW_SMOKE=1
 endif
 ASSEMBLY := $(sort $(call rwildcard,src/ vendor/sdcc_msx/src/,*.s))
@@ -94,6 +94,8 @@ $(BUILD)/linux/src/gameplay/quest.o $(BUILD)/msx/src/gameplay/quest.rel: generat
 $(BUILD)/linux/src/gameplay/quest_services.o $(BUILD)/msx/src/gameplay/quest_services.rel: generated/quests/vx_services.inc generated/quests/vexel.h
 $(BUILD)/linux/src/gameplay/password.o $(BUILD)/msx/src/gameplay/password.rel: generated/quests/vx_password_encode.inc generated/quests/vexel.h
 $(BUILD)/linux/src/gameplay/password_rules.o $(BUILD)/msx/src/gameplay/password_rules.rel: generated/quests/vx_password.inc generated/quests/vexel.h
+$(BUILD)/linux/src/gameplay/world_rules.o $(BUILD)/msx/src/gameplay/world_rules.rel: generated/quests/vx_world.inc generated/quests/vexel.h
+$(BUILD)/linux/src/gameplay/drop_rules.o $(BUILD)/msx/src/gameplay/drop_rules.rel: generated/quests/vx_drops.inc generated/quests/vexel.h
 endif
 
 -include $(LINUX_OBJECTS:.o=.d)

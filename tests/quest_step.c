@@ -62,7 +62,7 @@ int main(void) {
     vx_shop_trade(255, 65535, 1, 1, 1, 1, 1, 0);
     assert(vx_shop_trade_read(0) == 0 && vx_shop_trade_read(1) == 0);
     assert(sizeof(vx_payload) == 20);
-    for (phase = 1; phase <= QUEST_TEXT_PASSWORD_MONEY; ++phase) {
+    for (phase = 1; phase <= QUEST_TEXT_ROCKS; ++phase) {
         assert(quest_text_copy(phase, text, sizeof(text)));
         assert(strlen(text) < sizeof(text));
         assert(!quest_text_copy(phase, text, 1) && text[0] == 0);

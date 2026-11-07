@@ -3,8 +3,9 @@
 This migration starts from Edelweiss `fecb997` and the supplied `sdcc_msx`
 checkout. The playable lumberjack milestone is committed as `f2b5fdc`.
 The integration now implements the lumberjack conversation, following decision,
-axe reward, pear exchange, Fish'n'Ships, university, Food'n'Stuff and saloon passwords while
-keeping the C branches for comparison.
+axe reward, pear exchange, Fish'n'Ships, university, Food'n'Stuff, saloon
+passwords, world interactions and pickup/drop rules while keeping the C
+branches for comparison.
 The original local library edit and untracked files are left untouched.
 
 ## Boundary and ownership
@@ -53,7 +54,7 @@ confirm ordering is preserved, including simultaneous clicks. A second visit
 cannot earn a second reward without another pear. No persistent exchange state
 or generic command interpreter is needed.
 
-`gameplay/quests.vx` imports all eight sources with an explicit 20-byte payload
+`gameplay/quests.vx` imports all thirteen source entry points with an explicit 20-byte payload
 budget. Their serial projections share offset zero. The current projection
 uses 16-bit slots to accommodate 500-rupee purchases; the largest result has
 ten logical byte fields (the password). The engine finishes consuming one invocation before starting
@@ -123,6 +124,30 @@ response now separates its last two lines, avoiding a write beyond the popup.
 The corrected C reference uses explicit bytes too: no uninitialized decode
 accumulator or compiler-dependent bitfield union remains in production.
 
+`gameplay/world.vx` receives tile classes, tile coordinates and the relevant
+equipment flags. It owns route destinations, the upward-facing requirement,
+lamp gating, well dialogue/counter progression and boots warnings. Tile IDs
+are translated from renderer assets in C; movement, scrolling and the existing
+entry/exit animations stay in the engine. Route results are copied before any
+animation. Feet are sampled after travel, preserving the original ordering.
+The well counter commits after the arrival message, and remains unchanged
+once it reaches five. The unfinished cave at `(6,50)` still does nothing and
+rocks still warn without damage; this migration does not invent those mechanics.
+
+`gameplay/drops.vx` owns probability thresholds and collection rewards. A
+`drop_roll` query with the sentinel 256 asks whether randomness is needed;
+skip or unknown probability modes retain the supplied item without drawing.
+Other modes request exactly one draw. The adapter supplies the low byte of
+the existing `rand16`, then consumes the result before selecting a sprite.
+Low/medium/high distributions are unchanged. `drop_collect` returns health
+and rupee credit; collision, delay, blinking, expiry and entity removal stay
+in C. Currency uses the existing unsigned arithmetic and ISR's 999 cap.
+
+Collection marks the item consumed immediately in both profiles. The existing
+spawn helper invokes the update callback but ignores its removal result;
+without this mark, an item collected on spawn could pay again on the next
+update. The next normal engine update now removes it without another reward.
+
 Text IDs are resolved in `quest_text`, a page-D module. That module copies the
 selected, bounded string into a 96-byte RAM buffer. Its caller restores page D
 before drawing or waiting. The font renderer and ISR may freely replace that
@@ -154,9 +179,16 @@ throughout a decode. The shared `vx_trap` entry is resident
 because either page-C adapter can call it. Text remains page D. The ordinary
 runtime helper and fault handler do not depend on a NEO-8 mapper.
 
+World rules and drop rules occupy separate page-B modules. Their existing
+page-C callbacks map the rule bank, read all output fields and restore page B
+before an effect. Tile queries explicitly map the overworld bank. World
+dialogue uses the same page-D copier and owned text buffer as the town quests.
+These five new entry points reuse the existing 20-byte result arena; no new
+production global state or text buffer is needed.
+
 The generator retains the complete portable `vx_bridges.c` and also packages
 its unchanged function bodies into `vx_quests.inc`, `vx_services.inc` and
-`vx_password.inc` and `vx_password_encode.inc`.
+`vx_password.inc`, `vx_password_encode.inc`, `vx_world.inc` and `vx_drops.inc`.
 It checks the expected source order and eight materialized helper specializations
 before splitting; changed emission assumptions fail generation for review.
 The four explicit `&~` helpers in `password.vx` keep normalization, byte decoding,
@@ -257,7 +289,7 @@ observed from scenario entry is 182 bytes for C and 192 for Vexel; these remain
 measurements of the exercised paths, including interrupts, rather than a
 whole-game bound.
 
-With saloon passwords migrated, production costs are:
+At the saloon-password milestone (`1b91580`), production costs were:
 
 | Measurement | Corrected C reference | Vexel gameplay |
 |---|---:|---:|
@@ -284,6 +316,28 @@ results use automatic storage. The 24-visit run observes 204 additional stack
 bytes for C and 268 for Vexel, from scenario entry and including interrupts.
 Elapsed emulated times are 70.6478 and 71.2755 seconds, including all display
 waits. These are exercised-path measurements, not whole-game bounds.
+
+With world interactions and drops migrated, production costs are:
+
+| Measurement | Corrected C reference | Vexel gameplay |
+|---|---:|---:|
+| Cartridge size | 434,176 bytes | 450,560 bytes |
+| Occupied ROM, excluding bank padding | 426,016 bytes | 448,521 bytes |
+| Ordinary global RAM | 3,774 bytes | 3,795 bytes |
+| Space before fixed map at `0xD000` | 322 bytes | 301 bytes |
+| Resident ROM end (exclusive) | `0x5EBD` | `0x5ECB` |
+
+The new world-rule bank uses 5,743 bytes and the drop-rule bank 1,375 bytes.
+The shared text bank grows to 2,120 bytes. Production global RAM and resident
+ROM are unchanged; the existing bank padding accommodates the added code
+without growing the cartridge image. The connected smoke driver uses 38
+additional RAM bytes per profile, including its input queue and reports.
+The full connected run takes 111.3616 emulated seconds for C and 112.1960 for
+Vexel, including the existing town visits, real scrolling and fixed waits.
+Additional stack usage observed from scenario entry is 240 bytes for C and
+285 for Vexel, including interrupts. These remain exercised-path measurements,
+not a whole-game stack bound. All 60 captured popups match between profiles;
+the 24 building exits and the world warning restore both map buffers.
 
 Popup comparisons read VRAM patterns, colors and placement in both name tables
 for every dialogue, including the lumberjack. Comparing the entire screenshot
@@ -343,6 +397,26 @@ obsolete hearts after restoring six health over forty. Ten saloon popup
 captures join the 29 service captures, and all 24 building exits must restore
 the map without scrolling. These checks remain separate from production.
 
+World checks compare every implemented mountain route and every secret-passage
+pair, including left/right entrance tiles, with the retained C trigger callback.
+They cover lamp refusal, direction gating, the unfinished cave, well counters
+0/1/2/4/5/255, exact dialogue and boots warnings on each rock class. Frame waits
+and dialogue sinks overwrite the shared result arena to exercise ownership.
+Drop checks use the real spawn/despawn helper and callbacks. They test both
+sides of all twelve probability thresholds, upper-byte truncation, draw counts,
+all four rewards, health caps, one-time collection and animation/expiry boundaries.
+
+The full-engine world scenario runs after the town visits. It positions the
+player on real map tiles, then uses the actual trigger callbacks, collision,
+scrolling, renderer and ISR. It collects a coin to fund a lamp, travels through
+the mountain, saves equipment at the saloon, loses it and is refused entry,
+then restores the password and travels again. Well visits cover first/repeat/
+last/silent dialogue; the route continues through a secret passage both ways
+and verifies boots warnings. Pickups also exercise heart healing and the ISR's
+money cap. The random source and repositioning are smoke-only. Nine small-popup
+captures compare text and placement, and both complete map name tables must
+be restored after the rock warning without scrolling.
+
 ## Small baseline repairs
 
 - Use the installed tools and pinned local library instead of missing private
@@ -375,6 +449,8 @@ the map without scrolling. These checks remain separate from production.
   infobar. Previously ownership and the icon changed but attack entities could
   retain the previous weapon's initialization. Both implementations receive
   this repair.
+- Consume a collected drop before returning from its callback, preventing a
+  second payout when the spawn helper has already invoked that callback.
 
 The optimized renderer, audio and assembly implementations are unchanged.
 
@@ -384,9 +460,10 @@ This is a working route for moving decisions into Vexel while retaining the
 engine and both targets. It provides a concrete resource-lifetime boundary
 where banked text can no longer escape into gameplay as a raw address.
 
-Most gameplay outside these town services is still C. Relevant state and small
-typed results now cover choice-dependent inventory effects, multi-stage offers
-and explicit randomness with the same adapter and owned text storage.
+Combat, enemy behaviour, town/board content and other gameplay remain C.
+Relevant state and small typed results now cover choice-dependent inventory
+effects, multi-stage offers, world travel, well progression and explicit
+randomness with the same adapter and owned text storage.
 Suspending scenes across ordinary gameplay
 frames would still require an explicit continuation design.
 Asset IDs do not yet cover all sprite/audio/map consumers, and the legacy

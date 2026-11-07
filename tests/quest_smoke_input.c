@@ -36,3 +36,8 @@ uint8_t quest_smoke_getch(void) {
     }
     return edw_smoke_keys[edw_smoke_key_index++];
 }
+
+volatile uint8_t edw_smoke_small_messages;
+uint16_t edw_smoke_drop_roll;
+uint8_t edw_smoke_drop_calls;
+uint16_t quest_smoke_drop_random(void) { ++edw_smoke_drop_calls; return edw_smoke_drop_roll; }

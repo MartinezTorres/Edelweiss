@@ -1,0 +1,16 @@
+// Probability: skip=0, low=1, medium=2, high=3. Item: none=0, heart=1,
+// one rupee=2, five rupees=3, twenty rupees=4. A roll of 256 requests a draw.
+#Drop(item:#u8,draw:#u8);
+&^drop_roll(probability:#u8,existing:#u8,roll:#u16) {
+    probability<1 || probability>3 ? #Drop(existing,0) : (
+    roll>255 ? #Drop(0,1) : (
+    probability==1 ? #Drop(roll<8 ? 4 : (roll<24 ? 3 : (roll<56 ? 2 : (roll<72 ? 1 : 0))),0) : (
+    probability==2 ? #Drop(roll<32 ? 4 : (roll<64 ? 3 : (roll<96 ? 2 : (roll<128 ? 1 : 0))),0) :
+    #Drop(roll<64 ? 4 : (roll<128 ? 3 : (roll<160 ? 2 : (roll<192 ? 1 : 0))),0))))
+}
+#Pickup(life:#u8,credit:#u8);
+&^drop_collect(item:#u8,life:#u8,maximum:#u8) {
+    healed:#u8=life+2;
+    (#Pickup(item==1 ? (healed>maximum ? maximum : healed) : life,
+             item==2 ? 1 : (item==3 ? 5 : (item==4 ? 20 : 0))))
+}

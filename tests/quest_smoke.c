@@ -2,6 +2,7 @@
  * real rendering, callbacks, mapper switches and the ordinary game ISR. */
 #include <common.h>
 #include "quest_smoke_input.h"
+USING_MODULE(world_smoke, PAGE_C);
 #ifndef MSX
 #include <stdlib.h>
 #endif
@@ -226,11 +227,14 @@ void quest_smoke(void) {
     if (edw_smoke_status == 128 || CURRENT_SEGMENT(PAGE_B) != old_b ||
         CURRENT_SEGMENT(PAGE_C) != old_c || CURRENT_SEGMENT(PAGE_D) != old_d)
         goto failed;
+    trampoline_page_c(MODULE_SEGMENT(world_smoke, PAGE_C), world_smoke);
+    if (edw_smoke_status == 128 || CURRENT_SEGMENT(PAGE_B) != old_b ||
+        CURRENT_SEGMENT(PAGE_C) != old_c || CURRENT_SEGMENT(PAGE_D) != old_d) goto failed;
     edw_smoke_status = 3;
 #ifdef MSX
     for (;;) wait_frame();
 #else
-    puts("EDW_SMOKE_OK: quests, all town services, equipment, passwords, random draw, mapper restored");
+    puts("EDW_SMOKE_OK: quests, all town services, equipment, passwords, world interactions, drops, mapper restored");
     exit(0);
 #endif
 failed:

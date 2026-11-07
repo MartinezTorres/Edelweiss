@@ -13,7 +13,7 @@ ROOT = Path(__file__).resolve().parents[1]
 SOURCE = ROOT / "gameplay/quests.vx"
 OUTPUT = ROOT / "generated/quests"
 FILES = ("vexel.h", "vx_bridges.c", "source-plan.json")
-PARTS = ("vx_quests.inc", "vx_services.inc", "vx_password.inc", "vx_password_encode.inc")
+PARTS = ("vx_quests.inc", "vx_services.inc", "vx_password.inc", "vx_password_encode.inc", "vx_world.inc", "vx_drops.inc")
 
 
 def digest(path):
@@ -39,6 +39,8 @@ def main():
             [str(solver), str(SOURCE), "--source", "lumberjack", "--source", "pear",
              "--source", "stew", "--source", "university", "--source", "shop_stock", "--source", "shop_trade",
              "--source", "password_encode", "--source", "password_decode",
+             "--source", "world_route", "--source", "world_rocks", "--source", "world_well",
+             "--source", "drop_roll", "--source", "drop_collect",
              "--mode", "serial", "--emit-c", str(target)],
             cwd=ROOT, capture_output=True, text=True)
         if result.returncode:
@@ -52,7 +54,7 @@ def main():
         # assumptions stop matching a future solver emission.
         code = (target / "vx_bridges.c").read_text()
         functions = re.findall(r"^void vx_(\w+)\(", code, re.M)
-        if functions != ["flow_0", "flow_1", "flow_2", "flow_3", "flow_4", "flow_5", "flow_6", "flow_7", "lumberjack", "pear", "stew", "university", "shop_stock", "shop_trade", "password_encode", "password_decode"] or len(plan["runtime_functions"]) != 8:
+        if functions != ["flow_0", "flow_1", "flow_2", "flow_3", "flow_4", "flow_5", "flow_6", "flow_7", "lumberjack", "pear", "stew", "university", "shop_stock", "shop_trade", "password_encode", "password_decode", "world_route", "world_rocks", "world_well", "drop_roll", "drop_collect"] or len(plan["runtime_functions"]) != 8:
             raise SystemExit("Projection layout changed; review the Konami-5 module split")
         # Helper 2 belongs only to encoding; the others only to decoding.
         # Encoding stays with its page-C adapter, decoding runs in page B.
@@ -66,6 +68,10 @@ def main():
         code = prelude + arena_marker + sources
         quests, marker, services = code.partition("void vx_stew(")
         services, password_marker, password = services.partition("void vx_password_encode(")
+        password, world_marker, world = password.partition("void vx_world_route(")
+        world, drops_marker, drops = world.partition("void vx_drop_roll(")
+        (OUTPUT / PARTS[4]).write_text('#include "vexel.h"\n' + world_marker + world)
+        (OUTPUT / PARTS[5]).write_text('#include "vexel.h"\n' + drops_marker + drops)
         (OUTPUT / PARTS[0]).write_text(quests)
         (OUTPUT / PARTS[1]).write_text('#include "vexel.h"\n' + marker + services)
         before_encode_helper, encode_helper_marker, after_encode_helper = helpers.partition("void vx_flow_2(")

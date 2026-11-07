@@ -2,7 +2,7 @@
   "format": "vexel-relational-source-1",
   "status": "resolved",
   "stats": {
-    "work": 448068,
+    "work": 566584,
     "decisions": 0,
     "models": 1,
     "unfinished": 0
@@ -13,7 +13,7 @@
   "source_inputs": [
     {
       "path": "/opt/repos/manel/vexel_lang/ext/edelweiss/gameplay/quests.vx",
-      "fnv1a": "4ba7150d655a52d6"
+      "fnv1a": "f4c7107e597fec1a"
     },
     {
       "path": "/opt/repos/manel/vexel_lang/ext/edelweiss/gameplay/lumberjack.vx",
@@ -38,21 +38,35 @@
     {
       "path": "/opt/repos/manel/vexel_lang/ext/edelweiss/gameplay/password.vx",
       "fnv1a": "a4e0625d9280b78d"
+    },
+    {
+      "path": "/opt/repos/manel/vexel_lang/ext/edelweiss/gameplay/world.vx",
+      "fnv1a": "d40d3c740ab9e722"
+    },
+    {
+      "path": "/opt/repos/manel/vexel_lang/ext/edelweiss/gameplay/drops.vx",
+      "fnv1a": "cd28e5c4ceb25337"
     }
   ],
   "resource_inputs": [],
   "directory_inputs": [],
   "process_inputs": [],
   "input_dependencies": [
+    "/opt/repos/manel/vexel_lang/ext/edelweiss/gameplay/drops.vx",
     "/opt/repos/manel/vexel_lang/ext/edelweiss/gameplay/lumberjack.vx",
     "/opt/repos/manel/vexel_lang/ext/edelweiss/gameplay/password.vx",
     "/opt/repos/manel/vexel_lang/ext/edelweiss/gameplay/pear.vx",
     "/opt/repos/manel/vexel_lang/ext/edelweiss/gameplay/quests.vx",
     "/opt/repos/manel/vexel_lang/ext/edelweiss/gameplay/shop.vx",
     "/opt/repos/manel/vexel_lang/ext/edelweiss/gameplay/stew.vx",
-    "/opt/repos/manel/vexel_lang/ext/edelweiss/gameplay/university.vx"
+    "/opt/repos/manel/vexel_lang/ext/edelweiss/gameplay/university.vx",
+    "/opt/repos/manel/vexel_lang/ext/edelweiss/gameplay/world.vx"
   ],
   "input_selections": [
+    {
+      "key": "path-exists:/opt/repos/manel/vexel_lang/ext/edelweiss/gameplay/drops.vx",
+      "value": "true"
+    },
     {
       "key": "path-exists:/opt/repos/manel/vexel_lang/ext/edelweiss/gameplay/lumberjack.vx",
       "value": "true"
@@ -76,6 +90,14 @@
     {
       "key": "path-exists:/opt/repos/manel/vexel_lang/ext/edelweiss/gameplay/university.vx",
       "value": "true"
+    },
+    {
+      "key": "path-exists:/opt/repos/manel/vexel_lang/ext/edelweiss/gameplay/world.vx",
+      "value": "true"
+    },
+    {
+      "key": "path-target:/opt/repos/manel/vexel_lang/ext/edelweiss/gameplay/drops.vx",
+      "value": "/opt/repos/manel/vexel_lang/ext/edelweiss/gameplay/drops.vx"
     },
     {
       "key": "path-target:/opt/repos/manel/vexel_lang/ext/edelweiss/gameplay/lumberjack.vx",
@@ -106,6 +128,14 @@
       "value": "/opt/repos/manel/vexel_lang/ext/edelweiss/gameplay/university.vx"
     },
     {
+      "key": "path-target:/opt/repos/manel/vexel_lang/ext/edelweiss/gameplay/world.vx",
+      "value": "/opt/repos/manel/vexel_lang/ext/edelweiss/gameplay/world.vx"
+    },
+    {
+      "key": "source-kind:/opt/repos/manel/vexel_lang/ext/edelweiss/gameplay/drops.vx",
+      "value": "file"
+    },
+    {
       "key": "source-kind:/opt/repos/manel/vexel_lang/ext/edelweiss/gameplay/lumberjack.vx",
       "value": "file"
     },
@@ -127,6 +157,10 @@
     },
     {
       "key": "source-kind:/opt/repos/manel/vexel_lang/ext/edelweiss/gameplay/university.vx",
+      "value": "file"
+    },
+    {
+      "key": "source-kind:/opt/repos/manel/vexel_lang/ext/edelweiss/gameplay/world.vx",
       "value": "file"
     }
   ],
@@ -1152,6 +1186,357 @@
           "value": "Runtime(After(Sequence(Sequence(Invoke(0,0,Values(Runtime(Input(a1_0),0,255)),Values,1),Sequence(Invoke(1,0,Values(Runtime(Input(a1_1),0,255)),Values,1),Sequence(Invoke(2,0,Values(Runtime(Input(a1_2),0,255)),Values,1),Sequence(Invoke(3,0,Values(Runtime(Input(a1_3),0,255)),Values,1),Sequence(Invoke(4,0,Values(Runtime(Input(a1_4),0,255)),Values,1),Sequence(Invoke(5,0,Values(Runtime(Input(a1_5),0,255)),Values,1),Sequence(Invoke(6,0,Values(Runtime(Input(a1_6),0,255)),Values,1),Sequence(Invoke(7,0,Values(Runtime(Input(a1_7),0,255)),Values,1),Sequence(Invoke(8,0,Values(Runtime(Input(a1_8),0,255)),Values,1),Invoke(9,0,Values(Runtime(Input(a1_9),0,255)),Values,1)))))))))),Sequence(Sequence(Invoke(10,1,Values(Runtime(CallValue(0,0),0,255),Runtime(CallValue(1,0),0,255)),Values,1),Sequence(Invoke(12,3,Values(Runtime(CallValue(2,0),0,255),Runtime(CallValue(3,0),0,255)),Values,1),Sequence(Invoke(13,4,Values(Runtime(CallValue(4,0),0,255),Runtime(CallValue(5,0),0,255)),Values,1),Invoke(14,5,Values(Runtime(CallValue(6,0),0,255),Runtime(CallValue(7,0),0,255)),Values,1)))),Sequence(Invoke(15,6,Values(Runtime(Input(a0),0,255),Runtime(CallValue(0,0),0,255),Runtime(CallValue(1,0),0,255),Runtime(CallValue(2,0),0,255),Runtime(CallValue(3,0),0,255),Runtime(CallValue(4,0),0,255),Runtime(CallValue(5,0),0,255),Runtime(CallValue(6,0),0,255),Runtime(CallValue(7,0),0,255),Runtime(CallValue(8,0),0,255),Runtime(CallValue(9,0),0,255),Runtime(CallValue(10,0),0,255),Runtime(CallValue(12,0),0,255),Runtime(CallValue(13,0),0,255),Runtime(CallValue(14,0),0,255)),Values,1),Sequence(If(Runtime(Compare(<,Runtime(Input(a2),0,255),8),0,1),Evaluate(Runtime(Arithmetic(<<,8,1,Runtime(Arithmetic(&,8,Runtime(Input(a2),0,255),7),0,255)),0,255)),Done),Sequence(If(Runtime(Compare(>=,Runtime(CallValue(15,0),0,255),2),0,1),Done,Evaluate(Runtime(Arithmetic(<<,16,Runtime(Cast(16,Runtime(CallValue(13,0),0,255)),0,255),4),0,65535))),If(Runtime(Compare(==,Runtime(CallValue(15,0),0,255),2),0,1),Done,Evaluate(Runtime(Arithmetic(<<,8,Runtime(CallValue(14,0),0,255),1),0,255)))))))),Runtime(Arithmetic(+,8,37,Runtime(CallValue(15,0),0,255)),0,255)),0,255)"
         }
       ]
+    },
+    {
+      "name": "world_route",
+      "source": "world_route",
+      "logical_type": "#Route(action:#u8,i:#u8,j:#u8)",
+      "element_bits": 16,
+      "bytes": 6,
+      "offset": 0,
+      "parameters": [
+        {
+          "name": "tile",
+          "logical_type": "#u8",
+          "min": 0,
+          "max": 255,
+          "leaves": [
+            {
+              "parameter": "vxp_a0",
+              "path": "tile",
+              "logical_type": "#u8",
+              "min": 0,
+              "max": 255
+            }
+          ]
+        },
+        {
+          "name": "i",
+          "logical_type": "#u8",
+          "min": 0,
+          "max": 255,
+          "leaves": [
+            {
+              "parameter": "vxp_a1",
+              "path": "i",
+              "logical_type": "#u8",
+              "min": 0,
+              "max": 255
+            }
+          ]
+        },
+        {
+          "name": "j",
+          "logical_type": "#u8",
+          "min": 0,
+          "max": 255,
+          "leaves": [
+            {
+              "parameter": "vxp_a2",
+              "path": "j",
+              "logical_type": "#u8",
+              "min": 0,
+              "max": 255
+            }
+          ]
+        },
+        {
+          "name": "up",
+          "logical_type": "#u8",
+          "min": 0,
+          "max": 255,
+          "leaves": [
+            {
+              "parameter": "vxp_a3",
+              "path": "up",
+              "logical_type": "#u8",
+              "min": 0,
+              "max": 255
+            }
+          ]
+        },
+        {
+          "name": "lamp",
+          "logical_type": "#u8",
+          "min": 0,
+          "max": 255,
+          "leaves": [
+            {
+              "parameter": "vxp_a4",
+              "path": "lamp",
+              "logical_type": "#u8",
+              "min": 0,
+              "max": 255
+            }
+          ]
+        }
+      ],
+      "leaves": [
+        {
+          "path": "world_route.action",
+          "logical_type": "#u8",
+          "stored": true,
+          "value": "Runtime(Select(Runtime(Compare(==,Runtime(Input(a3),0,255),0),0,1),0,Runtime(Select(Runtime(Compare(==,Runtime(Input(a0),0,255),1),0,1),Runtime(Select(Runtime(Compare(==,Runtime(Input(a4),0,255),0),0,1),1,Runtime(Select(Runtime(Select(Runtime(Compare(==,Runtime(Input(a1),0,255),17),0,1),Runtime(Compare(==,Runtime(Input(a2),0,255),89),0,1),0),0,1),2,Runtime(Select(Runtime(Select(Runtime(Compare(==,Runtime(Input(a1),0,255),11),0,1),Runtime(Compare(==,Runtime(Input(a2),0,255),89),0,1),0),0,1),2,Runtime(Select(Runtime(Select(Runtime(Compare(==,Runtime(Input(a1),0,255),6),0,1),Runtime(Compare(==,Runtime(Input(a2),0,255),63),0,1),0),0,1),2,Runtime(Select(Runtime(Select(Runtime(Compare(==,Runtime(Input(a1),0,255),6),0,1),Runtime(Compare(==,Runtime(Input(a2),0,255),56),0,1),0),0,1),2,Runtime(Select(Runtime(Select(Runtime(Compare(==,Runtime(Input(a1),0,255),11),0,1),Runtime(Compare(==,Runtime(Input(a2),0,255),53),0,1),0),0,1),2,Runtime(Select(Runtime(Select(Runtime(Compare(==,Runtime(Input(a1),0,255),2),0,1),Runtime(Compare(==,Runtime(Input(a2),0,255),53),0,1),0),0,1),2,Runtime(Select(Runtime(Select(Runtime(Compare(==,Runtime(Input(a1),0,255),2),0,1),Runtime(Compare(==,Runtime(Input(a2),0,255),88),0,1),0),0,1),2,Runtime(Select(Runtime(Select(Runtime(Compare(==,Runtime(Input(a1),0,255),6),0,1),Runtime(Compare(==,Runtime(Input(a2),0,255),88),0,1),0),0,1),2,0),0,2)),0,2)),0,2)),0,2)),0,2)),0,2)),0,2)),0,2)),0,2),Runtime(Select(Runtime(Compare(==,Runtime(Input(a0),0,255),2),0,1),Runtime(Select(Runtime(Select(Runtime(Compare(==,Runtime(Input(a1),0,255),56),0,1),Runtime(Compare(==,Runtime(Input(a2),0,255),4),0,1),0),0,1),3,Runtime(Select(Runtime(Select(Runtime(Compare(==,Runtime(Input(a1),0,255),55),0,1),Runtime(Compare(==,Runtime(Input(a2),0,255),8),0,1),0),0,1),3,0),0,3)),0,3),Runtime(Select(Runtime(Compare(==,Runtime(Input(a0),0,255),3),0,1),Runtime(Select(Runtime(Select(Runtime(Compare(==,Runtime(Input(a1),0,255),32),0,1),Runtime(Select(Runtime(Compare(==,Runtime(Input(a2),0,255),78),0,1),1,Runtime(Compare(==,Runtime(Input(a2),0,255),79),0,1)),0,1),0),0,1),4,0),0,4),Runtime(Select(Runtime(Compare(==,Runtime(Input(a0),0,255),4),0,1),Runtime(Select(Runtime(Select(Runtime(Compare(==,Runtime(Input(a1),0,255),39),0,1),Runtime(Select(Runtime(Compare(==,Runtime(Input(a2),0,255),114),0,1),1,Runtime(Compare(==,Runtime(Input(a2),0,255),115),0,1)),0,1),0),0,1),4,Runtime(Select(Runtime(Select(Runtime(Compare(==,Runtime(Input(a1),0,255),28),0,1),Runtime(Select(Runtime(Compare(==,Runtime(Input(a2),0,255),2),0,1),1,Runtime(Compare(==,Runtime(Input(a2),0,255),3),0,1)),0,1),0),0,1),4,Runtime(Select(Runtime(Select(Runtime(Compare(==,Runtime(Input(a1),0,255),15),0,1),Runtime(Select(Runtime(Compare(==,Runtime(Input(a2),0,255),2),0,1),1,Runtime(Compare(==,Runtime(Input(a2),0,255),3),0,1)),0,1),0),0,1),4,Runtime(Select(Runtime(Select(Runtime(Compare(==,Runtime(Input(a1),0,255),23),0,1),Runtime(Select(Runtime(Compare(==,Runtime(Input(a2),0,255),12),0,1),1,Runtime(Compare(==,Runtime(Input(a2),0,255),13),0,1)),0,1),0),0,1),4,Runtime(Select(Runtime(Select(Runtime(Compare(==,Runtime(Input(a1),0,255),16),0,1),Runtime(Select(Runtime(Compare(==,Runtime(Input(a2),0,255),28),0,1),1,Runtime(Compare(==,Runtime(Input(a2),0,255),29),0,1)),0,1),0),0,1),4,0),0,4)),0,4)),0,4)),0,4)),0,4),Runtime(Select(Runtime(Compare(==,Runtime(Input(a0),0,255),5),0,1),5,Runtime(Select(Runtime(Compare(==,Runtime(Input(a0),0,255),6),0,1),6,0),0,6)),0,6)),0,6)),0,6)),0,6)),0,6)),0,6)"
+        },
+        {
+          "path": "world_route.i",
+          "logical_type": "#u8",
+          "stored": true,
+          "value": "Runtime(Select(Runtime(Compare(==,Runtime(Input(a3),0,255),0),0,1),0,Runtime(Select(Runtime(Compare(==,Runtime(Input(a0),0,255),1),0,1),Runtime(Select(Runtime(Compare(==,Runtime(Input(a4),0,255),0),0,1),0,Runtime(Select(Runtime(Select(Runtime(Compare(==,Runtime(Input(a1),0,255),17),0,1),Runtime(Compare(==,Runtime(Input(a2),0,255),89),0,1),0),0,1),11,Runtime(Select(Runtime(Select(Runtime(Compare(==,Runtime(Input(a1),0,255),11),0,1),Runtime(Compare(==,Runtime(Input(a2),0,255),89),0,1),0),0,1),17,Runtime(Select(Runtime(Select(Runtime(Compare(==,Runtime(Input(a1),0,255),6),0,1),Runtime(Compare(==,Runtime(Input(a2),0,255),63),0,1),0),0,1),6,Runtime(Select(Runtime(Select(Runtime(Compare(==,Runtime(Input(a1),0,255),6),0,1),Runtime(Compare(==,Runtime(Input(a2),0,255),56),0,1),0),0,1),6,Runtime(Select(Runtime(Select(Runtime(Compare(==,Runtime(Input(a1),0,255),11),0,1),Runtime(Compare(==,Runtime(Input(a2),0,255),53),0,1),0),0,1),2,Runtime(Select(Runtime(Select(Runtime(Compare(==,Runtime(Input(a1),0,255),2),0,1),Runtime(Compare(==,Runtime(Input(a2),0,255),53),0,1),0),0,1),11,Runtime(Select(Runtime(Select(Runtime(Compare(==,Runtime(Input(a1),0,255),2),0,1),Runtime(Compare(==,Runtime(Input(a2),0,255),88),0,1),0),0,1),6,Runtime(Select(Runtime(Select(Runtime(Compare(==,Runtime(Input(a1),0,255),6),0,1),Runtime(Compare(==,Runtime(Input(a2),0,255),88),0,1),0),0,1),2,0),0,2)),0,6)),0,11)),0,11)),0,11)),0,11)),0,17)),0,17)),0,17),Runtime(Select(Runtime(Compare(==,Runtime(Input(a0),0,255),2),0,1),Runtime(Select(Runtime(Select(Runtime(Compare(==,Runtime(Input(a1),0,255),56),0,1),Runtime(Compare(==,Runtime(Input(a2),0,255),4),0,1),0),0,1),55,Runtime(Select(Runtime(Select(Runtime(Compare(==,Runtime(Input(a1),0,255),55),0,1),Runtime(Compare(==,Runtime(Input(a2),0,255),8),0,1),0),0,1),56,0),0,56)),0,56),Runtime(Select(Runtime(Compare(==,Runtime(Input(a0),0,255),3),0,1),Runtime(Select(Runtime(Select(Runtime(Compare(==,Runtime(Input(a1),0,255),32),0,1),Runtime(Select(Runtime(Compare(==,Runtime(Input(a2),0,255),78),0,1),1,Runtime(Compare(==,Runtime(Input(a2),0,255),79),0,1)),0,1),0),0,1),39,0),0,39),Runtime(Select(Runtime(Compare(==,Runtime(Input(a0),0,255),4),0,1),Runtime(Select(Runtime(Select(Runtime(Compare(==,Runtime(Input(a1),0,255),39),0,1),Runtime(Select(Runtime(Compare(==,Runtime(Input(a2),0,255),114),0,1),1,Runtime(Compare(==,Runtime(Input(a2),0,255),115),0,1)),0,1),0),0,1),32,Runtime(Select(Runtime(Select(Runtime(Compare(==,Runtime(Input(a1),0,255),28),0,1),Runtime(Select(Runtime(Compare(==,Runtime(Input(a2),0,255),2),0,1),1,Runtime(Compare(==,Runtime(Input(a2),0,255),3),0,1)),0,1),0),0,1),15,Runtime(Select(Runtime(Select(Runtime(Compare(==,Runtime(Input(a1),0,255),15),0,1),Runtime(Select(Runtime(Compare(==,Runtime(Input(a2),0,255),2),0,1),1,Runtime(Compare(==,Runtime(Input(a2),0,255),3),0,1)),0,1),0),0,1),28,Runtime(Select(Runtime(Select(Runtime(Compare(==,Runtime(Input(a1),0,255),23),0,1),Runtime(Select(Runtime(Compare(==,Runtime(Input(a2),0,255),12),0,1),1,Runtime(Compare(==,Runtime(Input(a2),0,255),13),0,1)),0,1),0),0,1),16,Runtime(Select(Runtime(Select(Runtime(Compare(==,Runtime(Input(a1),0,255),16),0,1),Runtime(Select(Runtime(Compare(==,Runtime(Input(a2),0,255),28),0,1),1,Runtime(Compare(==,Runtime(Input(a2),0,255),29),0,1)),0,1),0),0,1),23,0),0,23)),0,23)),0,28)),0,28)),0,32),0),0,32)),0,39)),0,56)),0,56)),0,56)"
+        },
+        {
+          "path": "world_route.j",
+          "logical_type": "#u8",
+          "stored": true,
+          "value": "Runtime(Select(Runtime(Compare(==,Runtime(Input(a3),0,255),0),0,1),0,Runtime(Select(Runtime(Compare(==,Runtime(Input(a0),0,255),1),0,1),Runtime(Select(Runtime(Compare(==,Runtime(Input(a4),0,255),0),0,1),0,Runtime(Select(Runtime(Select(Runtime(Compare(==,Runtime(Input(a1),0,255),17),0,1),Runtime(Compare(==,Runtime(Input(a2),0,255),89),0,1),0),0,1),89,Runtime(Select(Runtime(Select(Runtime(Compare(==,Runtime(Input(a1),0,255),11),0,1),Runtime(Compare(==,Runtime(Input(a2),0,255),89),0,1),0),0,1),89,Runtime(Select(Runtime(Select(Runtime(Compare(==,Runtime(Input(a1),0,255),6),0,1),Runtime(Compare(==,Runtime(Input(a2),0,255),63),0,1),0),0,1),56,Runtime(Select(Runtime(Select(Runtime(Compare(==,Runtime(Input(a1),0,255),6),0,1),Runtime(Compare(==,Runtime(Input(a2),0,255),56),0,1),0),0,1),63,Runtime(Select(Runtime(Select(Runtime(Compare(==,Runtime(Input(a1),0,255),11),0,1),Runtime(Compare(==,Runtime(Input(a2),0,255),53),0,1),0),0,1),53,Runtime(Select(Runtime(Select(Runtime(Compare(==,Runtime(Input(a1),0,255),2),0,1),Runtime(Compare(==,Runtime(Input(a2),0,255),53),0,1),0),0,1),53,Runtime(Select(Runtime(Select(Runtime(Compare(==,Runtime(Input(a1),0,255),2),0,1),Runtime(Compare(==,Runtime(Input(a2),0,255),88),0,1),0),0,1),88,Runtime(Select(Runtime(Select(Runtime(Compare(==,Runtime(Input(a1),0,255),6),0,1),Runtime(Compare(==,Runtime(Input(a2),0,255),88),0,1),0),0,1),88,0),0,88)),0,88)),0,88)),0,88)),0,88)),0,88)),0,89)),0,89)),0,89),Runtime(Select(Runtime(Compare(==,Runtime(Input(a0),0,255),2),0,1),Runtime(Select(Runtime(Select(Runtime(Compare(==,Runtime(Input(a1),0,255),56),0,1),Runtime(Compare(==,Runtime(Input(a2),0,255),4),0,1),0),0,1),8,Runtime(Select(Runtime(Select(Runtime(Compare(==,Runtime(Input(a1),0,255),55),0,1),Runtime(Compare(==,Runtime(Input(a2),0,255),8),0,1),0),0,1),4,0),0,4)),0,8),Runtime(Select(Runtime(Compare(==,Runtime(Input(a0),0,255),3),0,1),Runtime(Select(Runtime(Select(Runtime(Compare(==,Runtime(Input(a1),0,255),32),0,1),Runtime(Select(Runtime(Compare(==,Runtime(Input(a2),0,255),78),0,1),1,Runtime(Compare(==,Runtime(Input(a2),0,255),79),0,1)),0,1),0),0,1),114,0),0,114),Runtime(Select(Runtime(Compare(==,Runtime(Input(a0),0,255),4),0,1),Runtime(Select(Runtime(Select(Runtime(Compare(==,Runtime(Input(a1),0,255),39),0,1),Runtime(Select(Runtime(Compare(==,Runtime(Input(a2),0,255),114),0,1),1,Runtime(Compare(==,Runtime(Input(a2),0,255),115),0,1)),0,1),0),0,1),78,Runtime(Select(Runtime(Select(Runtime(Compare(==,Runtime(Input(a1),0,255),28),0,1),Runtime(Select(Runtime(Compare(==,Runtime(Input(a2),0,255),2),0,1),1,Runtime(Compare(==,Runtime(Input(a2),0,255),3),0,1)),0,1),0),0,1),2,Runtime(Select(Runtime(Select(Runtime(Compare(==,Runtime(Input(a1),0,255),15),0,1),Runtime(Select(Runtime(Compare(==,Runtime(Input(a2),0,255),2),0,1),1,Runtime(Compare(==,Runtime(Input(a2),0,255),3),0,1)),0,1),0),0,1),2,Runtime(Select(Runtime(Select(Runtime(Compare(==,Runtime(Input(a1),0,255),23),0,1),Runtime(Select(Runtime(Compare(==,Runtime(Input(a2),0,255),12),0,1),1,Runtime(Compare(==,Runtime(Input(a2),0,255),13),0,1)),0,1),0),0,1),28,Runtime(Select(Runtime(Select(Runtime(Compare(==,Runtime(Input(a1),0,255),16),0,1),Runtime(Select(Runtime(Compare(==,Runtime(Input(a2),0,255),28),0,1),1,Runtime(Compare(==,Runtime(Input(a2),0,255),29),0,1)),0,1),0),0,1),12,0),0,12)),0,28)),0,28)),0,28)),0,78),0),0,78)),0,114)),0,114)),0,114)),0,114)"
+        }
+      ]
+    },
+    {
+      "name": "world_rocks",
+      "source": "world_rocks",
+      "logical_type": "#u8",
+      "element_bits": 16,
+      "bytes": 2,
+      "offset": 0,
+      "parameters": [
+        {
+          "name": "left",
+          "logical_type": "#u8",
+          "min": 0,
+          "max": 255,
+          "leaves": [
+            {
+              "parameter": "vxp_a0",
+              "path": "left",
+              "logical_type": "#u8",
+              "min": 0,
+              "max": 255
+            }
+          ]
+        },
+        {
+          "name": "right",
+          "logical_type": "#u8",
+          "min": 0,
+          "max": 255,
+          "leaves": [
+            {
+              "parameter": "vxp_a1",
+              "path": "right",
+              "logical_type": "#u8",
+              "min": 0,
+              "max": 255
+            }
+          ]
+        },
+        {
+          "name": "boots",
+          "logical_type": "#u8",
+          "min": 0,
+          "max": 255,
+          "leaves": [
+            {
+              "parameter": "vxp_a2",
+              "path": "boots",
+              "logical_type": "#u8",
+              "min": 0,
+              "max": 255
+            }
+          ]
+        }
+      ],
+      "leaves": [
+        {
+          "path": "world_rocks",
+          "logical_type": "#u8",
+          "stored": true,
+          "value": "Runtime(Select(Runtime(Select(Runtime(Compare(==,Runtime(Input(a2),0,255),0),0,1),Runtime(Select(Runtime(Compare(!=,Runtime(Input(a0),0,255),0),0,1),1,Runtime(Compare(!=,Runtime(Input(a1),0,255),0),0,1)),0,1),0),0,1),47,0),0,47)"
+        }
+      ]
+    },
+    {
+      "name": "world_well",
+      "source": "world_well",
+      "logical_type": "#Well(before:#u8,after:#u8,next:#u8)",
+      "element_bits": 16,
+      "bytes": 6,
+      "offset": 0,
+      "parameters": [
+        {
+          "name": "visits",
+          "logical_type": "#u8",
+          "min": 0,
+          "max": 255,
+          "leaves": [
+            {
+              "parameter": "vxp_a0",
+              "path": "visits",
+              "logical_type": "#u8",
+              "min": 0,
+              "max": 255
+            }
+          ]
+        }
+      ],
+      "leaves": [
+        {
+          "path": "world_well.before",
+          "logical_type": "#u8",
+          "stored": true,
+          "value": "Runtime(Select(Runtime(Compare(==,Runtime(Input(a0),0,255),0),0,1),42,Runtime(Select(Runtime(Compare(==,Runtime(Input(a0),0,255),1),0,1),43,Runtime(Select(Runtime(Compare(<,Runtime(Input(a0),0,255),5),0,1),44,0),0,44)),0,44)),0,44)"
+        },
+        {
+          "path": "world_well.after",
+          "logical_type": "#u8",
+          "stored": true,
+          "value": "Runtime(Select(Runtime(Compare(==,Runtime(Input(a0),0,255),0),0,1),45,Runtime(Select(Runtime(Compare(==,Runtime(Input(a0),0,255),1),0,1),46,Runtime(Select(Runtime(Compare(<,Runtime(Input(a0),0,255),5),0,1),46,0),0,46)),0,46)),0,46)"
+        },
+        {
+          "path": "world_well.next",
+          "logical_type": "#u8",
+          "stored": true,
+          "value": "Runtime(Select(Runtime(Compare(==,Runtime(Input(a0),0,255),0),0,1),1,Runtime(Select(Runtime(Compare(==,Runtime(Input(a0),0,255),1),0,1),2,Runtime(Select(Runtime(Compare(<,Runtime(Input(a0),0,255),5),0,1),Runtime(Arithmetic(+,8,Runtime(Input(a0),0,255),1),0,255),Runtime(Input(a0),0,255)),0,255)),0,255)),0,255)"
+        }
+      ]
+    },
+    {
+      "name": "drop_roll",
+      "source": "drop_roll",
+      "logical_type": "#Drop(item:#u8,draw:#u8)",
+      "element_bits": 16,
+      "bytes": 4,
+      "offset": 0,
+      "parameters": [
+        {
+          "name": "probability",
+          "logical_type": "#u8",
+          "min": 0,
+          "max": 255,
+          "leaves": [
+            {
+              "parameter": "vxp_a0",
+              "path": "probability",
+              "logical_type": "#u8",
+              "min": 0,
+              "max": 255
+            }
+          ]
+        },
+        {
+          "name": "existing",
+          "logical_type": "#u8",
+          "min": 0,
+          "max": 255,
+          "leaves": [
+            {
+              "parameter": "vxp_a1",
+              "path": "existing",
+              "logical_type": "#u8",
+              "min": 0,
+              "max": 255
+            }
+          ]
+        },
+        {
+          "name": "roll",
+          "logical_type": "#u16",
+          "min": 0,
+          "max": 65535,
+          "leaves": [
+            {
+              "parameter": "vxp_a2",
+              "path": "roll",
+              "logical_type": "#u16",
+              "min": 0,
+              "max": 65535
+            }
+          ]
+        }
+      ],
+      "leaves": [
+        {
+          "path": "drop_roll.item",
+          "logical_type": "#u8",
+          "stored": true,
+          "value": "Runtime(Select(Runtime(Select(Runtime(Compare(<,Runtime(Input(a0),0,255),1),0,1),1,Runtime(Compare(>,Runtime(Input(a0),0,255),3),0,1)),0,1),Runtime(Input(a1),0,255),Runtime(Select(Runtime(Compare(>,Runtime(Input(a2),0,65535),255),0,1),0,Runtime(Select(Runtime(Compare(==,Runtime(Input(a0),0,255),1),0,1),Runtime(Select(Runtime(Compare(<,Runtime(Input(a2),0,65535),8),0,1),4,Runtime(Select(Runtime(Compare(<,Runtime(Input(a2),0,65535),24),0,1),3,Runtime(Select(Runtime(Compare(<,Runtime(Input(a2),0,65535),56),0,1),2,Runtime(Select(Runtime(Compare(<,Runtime(Input(a2),0,65535),72),0,1),1,0),0,1)),0,2)),0,3)),0,4),Runtime(Select(Runtime(Compare(==,Runtime(Input(a0),0,255),2),0,1),Runtime(Select(Runtime(Compare(<,Runtime(Input(a2),0,65535),32),0,1),4,Runtime(Select(Runtime(Compare(<,Runtime(Input(a2),0,65535),64),0,1),3,Runtime(Select(Runtime(Compare(<,Runtime(Input(a2),0,65535),96),0,1),2,Runtime(Select(Runtime(Compare(<,Runtime(Input(a2),0,65535),128),0,1),1,0),0,1)),0,2)),0,3)),0,4),Runtime(Select(Runtime(Compare(<,Runtime(Input(a2),0,65535),64),0,1),4,Runtime(Select(Runtime(Compare(<,Runtime(Input(a2),0,65535),128),0,1),3,Runtime(Select(Runtime(Compare(<,Runtime(Input(a2),0,65535),160),0,1),2,Runtime(Select(Runtime(Compare(<,Runtime(Input(a2),0,65535),192),0,1),1,0),0,1)),0,2)),0,3)),0,4)),0,4)),0,4)),0,4)),0,255)"
+        },
+        {
+          "path": "drop_roll.draw",
+          "logical_type": "#u8",
+          "stored": true,
+          "value": "Runtime(Select(Runtime(Select(Runtime(Compare(<,Runtime(Input(a0),0,255),1),0,1),1,Runtime(Compare(>,Runtime(Input(a0),0,255),3),0,1)),0,1),0,Runtime(Select(Runtime(Compare(>,Runtime(Input(a2),0,65535),255),0,1),1,0),0,1)),0,1)"
+        }
+      ]
+    },
+    {
+      "name": "drop_collect",
+      "source": "drop_collect",
+      "logical_type": "#Pickup(life:#u8,credit:#u8)",
+      "element_bits": 16,
+      "bytes": 4,
+      "offset": 0,
+      "parameters": [
+        {
+          "name": "item",
+          "logical_type": "#u8",
+          "min": 0,
+          "max": 255,
+          "leaves": [
+            {
+              "parameter": "vxp_a0",
+              "path": "item",
+              "logical_type": "#u8",
+              "min": 0,
+              "max": 255
+            }
+          ]
+        },
+        {
+          "name": "life",
+          "logical_type": "#u8",
+          "min": 0,
+          "max": 255,
+          "leaves": [
+            {
+              "parameter": "vxp_a1",
+              "path": "life",
+              "logical_type": "#u8",
+              "min": 0,
+              "max": 255
+            }
+          ]
+        },
+        {
+          "name": "maximum",
+          "logical_type": "#u8",
+          "min": 0,
+          "max": 255,
+          "leaves": [
+            {
+              "parameter": "vxp_a2",
+              "path": "maximum",
+              "logical_type": "#u8",
+              "min": 0,
+              "max": 255
+            }
+          ]
+        }
+      ],
+      "leaves": [
+        {
+          "path": "drop_collect.life",
+          "logical_type": "#u8",
+          "stored": true,
+          "value": "Runtime(Select(Runtime(Compare(==,Runtime(Input(a0),0,255),1),0,1),Runtime(Select(Runtime(Compare(>,Runtime(Arithmetic(+,8,Runtime(Input(a1),0,255),2),0,255),Runtime(Input(a2),0,255)),0,1),Runtime(Input(a2),0,255),Runtime(Arithmetic(+,8,Runtime(Input(a1),0,255),2),0,255)),0,255),Runtime(Input(a1),0,255)),0,255)"
+        },
+        {
+          "path": "drop_collect.credit",
+          "logical_type": "#u8",
+          "stored": true,
+          "value": "Runtime(Select(Runtime(Compare(==,Runtime(Input(a0),0,255),2),0,1),1,Runtime(Select(Runtime(Compare(==,Runtime(Input(a0),0,255),3),0,1),5,Runtime(Select(Runtime(Compare(==,Runtime(Input(a0),0,255),4),0,1),20,0),0,20)),0,20)),0,20)"
+        }
+      ]
     }
   ],
   "runtime_functions": [
@@ -1229,7 +1614,12 @@
     "shop_stock": [],
     "shop_trade": [],
     "password_encode": [],
-    "password_decode": []
+    "password_decode": [],
+    "world_route": [],
+    "world_rocks": [],
+    "world_well": [],
+    "drop_roll": [],
+    "drop_collect": []
   },
   "mapper_storage": {
     "bytes": 0,
@@ -1332,6 +1722,36 @@
       "module": "vxp_source_password_decode",
       "window": "B",
       "frame_policy": "automatic"
+    },
+    {
+      "name": "vx_world_route",
+      "module": "vxp_source_world_route",
+      "window": "B",
+      "frame_policy": "automatic"
+    },
+    {
+      "name": "vx_world_rocks",
+      "module": "vxp_source_world_rocks",
+      "window": "B",
+      "frame_policy": "automatic"
+    },
+    {
+      "name": "vx_world_well",
+      "module": "vxp_source_world_well",
+      "window": "B",
+      "frame_policy": "automatic"
+    },
+    {
+      "name": "vx_drop_roll",
+      "module": "vxp_source_drop_roll",
+      "window": "B",
+      "frame_policy": "automatic"
+    },
+    {
+      "name": "vx_drop_collect",
+      "module": "vxp_source_drop_collect",
+      "window": "B",
+      "frame_policy": "automatic"
     }
   ],
   "frame_planning": {
@@ -1340,6 +1760,32 @@
     "policy": "largest eligible buffers first",
     "stack_bound": null,
     "functions": [
+      {
+        "name": "vx_drop_collect",
+        "frame_policy": "automatic",
+        "projected_local_bytes": 8,
+        "recursive": false,
+        "open_boundary": false,
+        "overlapping_occurrences": false,
+        "reason": "static RAM budget",
+        "source_occurrences": [
+          "vx_drop_collect"
+        ],
+        "calls": []
+      },
+      {
+        "name": "vx_drop_roll",
+        "frame_policy": "automatic",
+        "projected_local_bytes": 8,
+        "recursive": false,
+        "open_boundary": false,
+        "overlapping_occurrences": false,
+        "reason": "static RAM budget",
+        "source_occurrences": [
+          "vx_drop_roll"
+        ],
+        "calls": []
+      },
       {
         "name": "vx_flow_0",
         "frame_policy": "automatic",
@@ -1558,6 +2004,45 @@
           "vx_university"
         ],
         "calls": []
+      },
+      {
+        "name": "vx_world_rocks",
+        "frame_policy": "automatic",
+        "projected_local_bytes": 4,
+        "recursive": false,
+        "open_boundary": false,
+        "overlapping_occurrences": false,
+        "reason": "static RAM budget",
+        "source_occurrences": [
+          "vx_world_rocks"
+        ],
+        "calls": []
+      },
+      {
+        "name": "vx_world_route",
+        "frame_policy": "automatic",
+        "projected_local_bytes": 12,
+        "recursive": false,
+        "open_boundary": false,
+        "overlapping_occurrences": false,
+        "reason": "static RAM budget",
+        "source_occurrences": [
+          "vx_world_route"
+        ],
+        "calls": []
+      },
+      {
+        "name": "vx_world_well",
+        "frame_policy": "automatic",
+        "projected_local_bytes": 12,
+        "recursive": false,
+        "open_boundary": false,
+        "overlapping_occurrences": false,
+        "reason": "static RAM budget",
+        "source_occurrences": [
+          "vx_world_well"
+        ],
+        "calls": []
       }
     ]
   },
@@ -1590,7 +2075,22 @@
       "password_encode.release",
       "password_decode.begin",
       "password_decode.produce",
-      "password_decode.release"
+      "password_decode.release",
+      "world_route.begin",
+      "world_route.produce",
+      "world_route.release",
+      "world_rocks.begin",
+      "world_rocks.produce",
+      "world_rocks.release",
+      "world_well.begin",
+      "world_well.produce",
+      "world_well.release",
+      "drop_roll.begin",
+      "drop_roll.produce",
+      "drop_roll.release",
+      "drop_collect.begin",
+      "drop_collect.produce",
+      "drop_collect.release"
     ],
     "before": [
       [
@@ -1684,6 +2184,66 @@
       [
         "password_decode.produce",
         "password_decode.release"
+      ],
+      [
+        "password_decode.release",
+        "world_route.begin"
+      ],
+      [
+        "world_route.begin",
+        "world_route.produce"
+      ],
+      [
+        "world_route.produce",
+        "world_route.release"
+      ],
+      [
+        "world_route.release",
+        "world_rocks.begin"
+      ],
+      [
+        "world_rocks.begin",
+        "world_rocks.produce"
+      ],
+      [
+        "world_rocks.produce",
+        "world_rocks.release"
+      ],
+      [
+        "world_rocks.release",
+        "world_well.begin"
+      ],
+      [
+        "world_well.begin",
+        "world_well.produce"
+      ],
+      [
+        "world_well.produce",
+        "world_well.release"
+      ],
+      [
+        "world_well.release",
+        "drop_roll.begin"
+      ],
+      [
+        "drop_roll.begin",
+        "drop_roll.produce"
+      ],
+      [
+        "drop_roll.produce",
+        "drop_roll.release"
+      ],
+      [
+        "drop_roll.release",
+        "drop_collect.begin"
+      ],
+      [
+        "drop_collect.begin",
+        "drop_collect.produce"
+      ],
+      [
+        "drop_collect.produce",
+        "drop_collect.release"
       ]
     ]
   },

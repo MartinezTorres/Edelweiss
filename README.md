@@ -1,8 +1,9 @@
 # Edelweiss
 
 An MSX1 game with a Linux/SDL development build. The lumberjack rescue, axe
-reward, town-hall pear exchange, Fish'n'Ships, university, Food'n'Stuff and saloon passwords now
-run from Vexel. The renderer, audio, collision system, entity storage and
+reward, town-hall pear exchange, Fish'n'Ships, university, Food'n'Stuff,
+saloon passwords, world routes and pickup/drop rules now run from Vexel.
+The renderer, audio, collision system, entity storage and
 optimized assembly remain in the engine.
 
 The corrected C reference quests are available with `GAMEPLAY=reference`. Both variants use
@@ -58,6 +59,10 @@ The entry file [gameplay/quests.vx](gameplay/quests.vx) imports the gameplay rul
   effects. Ordinary books request an explicit random draw before committing.
 - [password.vx](gameplay/password.vx) encodes the original MSX password layout,
   validates input and selects restore or cheat effects.
+- [world.vx](gameplay/world.vx) selects mountain and secret-passage destinations,
+  lamp refusals, well dialogue/progression and boots warnings.
+- [drops.vx](gameplay/drops.vx) selects drop probabilities and collection rewards.
+  Randomness is an explicit input, requested only when the rule needs a draw.
 
 The rules share a 20-byte result arena and receive only relevant state.
 The C adapter handles input and rendering, copies results before applying
@@ -104,11 +109,13 @@ to the player. It uses real entity callbacks, drawing, mapper changes and the
 game ISR; dialogue is acknowledged automatically after its usual display delay.
 It checks the quests, town-service menus, payments, healing, acquired weapons,
 random book selection, password save/reset/restore, dialogue removal on exit and mapper restoration. This does
-not automate walking the complete route or replace a full playthrough.
+not automate walking the complete route or replace a full playthrough. A connected
+world scenario collects money, buys a lamp, travels, saves/restores equipment,
+uses wells and secret passages, and checks boots, healing and one-time pickups.
 
 Screenshots and observed stack/timing reports are in `build/smoke`. Three
-lumberjack popups, nine pear popups and 39 service/password popups are compared between
-variants. For the popups, the check compares their VRAM patterns, colors and placement while
+lumberjack popups, nine pear popups, 39 service/password popups and nine world
+popups are compared between variants. For the popups, the check compares their VRAM patterns, colors and placement while
 allowing the surrounding world to keep animating.
 The ordinary build contains neither the scenario driver nor scripted input.
 

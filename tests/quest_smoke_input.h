@@ -9,3 +9,10 @@ void quest_smoke_checkpoint(uint8_t id);
 extern char edw_smoke_password[11];
 extern uint8_t edw_smoke_save_password;
 uint8_t quest_smoke_getch(void);
+
+extern volatile uint8_t edw_smoke_small_messages, edw_smoke_world_stage;
+extern uint16_t edw_smoke_drop_roll;
+extern uint8_t edw_smoke_drop_calls;
+uint16_t quest_smoke_drop_random(void);
+void drop_smoke_update(void);
+void world_smoke(void);

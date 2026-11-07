@@ -38,4 +38,14 @@ void vx_password_encode(uint8_t vxp_a0,uint8_t vxp_a1,uint16_t vxp_a2,uint8_t vx
 uint32_t vx_password_encode_read(uint16_t index) VX_ABI VX_RESIDENT;
 void vx_password_decode(uint8_t vxp_a0,uint8_t vxp_a1_0,uint8_t vxp_a1_1,uint8_t vxp_a1_2,uint8_t vxp_a1_3,uint8_t vxp_a1_4,uint8_t vxp_a1_5,uint8_t vxp_a1_6,uint8_t vxp_a1_7,uint8_t vxp_a1_8,uint8_t vxp_a1_9,uint8_t vxp_a2) VX_ABI VX_RESIDENT;
 uint32_t vx_password_decode_read(uint16_t index) VX_ABI VX_RESIDENT;
+void vx_world_route(uint8_t vxp_a0,uint8_t vxp_a1,uint8_t vxp_a2,uint8_t vxp_a3,uint8_t vxp_a4) VX_ABI VX_RESIDENT;
+uint32_t vx_world_route_read(uint16_t index) VX_ABI VX_RESIDENT;
+void vx_world_rocks(uint8_t vxp_a0,uint8_t vxp_a1,uint8_t vxp_a2) VX_ABI VX_RESIDENT;
+uint32_t vx_world_rocks_read(uint16_t index) VX_ABI VX_RESIDENT;
+void vx_world_well(uint8_t vxp_a0) VX_ABI VX_RESIDENT;
+uint32_t vx_world_well_read(uint16_t index) VX_ABI VX_RESIDENT;
+void vx_drop_roll(uint8_t vxp_a0,uint8_t vxp_a1,uint16_t vxp_a2) VX_ABI VX_RESIDENT;
+uint32_t vx_drop_roll_read(uint16_t index) VX_ABI VX_RESIDENT;
+void vx_drop_collect(uint8_t vxp_a0,uint8_t vxp_a1,uint8_t vxp_a2) VX_ABI VX_RESIDENT;
+uint32_t vx_drop_collect_read(uint16_t index) VX_ABI VX_RESIDENT;
 #endif

@@ -1,19 +1,23 @@
 {
   "solver_sha256": "f3afe9c2734005c623c80214d91410a1611286a0d10d9949bd515dc8a73ec39d",
   "files": {
-    "gameplay/quests.vx": "6f37292e042fe27000197bab3164d4b2c0cb791fc407e14b0640a960edd6ad95",
+    "gameplay/quests.vx": "c091028117f677d23b87a669e878ae05dd79dccb1eefb0227134d2fb587c2e86",
     "gameplay/lumberjack.vx": "44f5cd1329c722e33a16be855709f35d3ae72e59919fa3757112b5674552eaf2",
     "gameplay/pear.vx": "da4aee86a7a40d897f764dd0ca95992c45aa08792928403550b3ed4abdf84611",
     "gameplay/stew.vx": "f1bdd746f1202598c9f816572d8bd347062464cbb05a979a7ad798915ffaa7f8",
     "gameplay/university.vx": "1cbbfd3634696ebcf72286961afd690b9959fbdf1841e4778c83ba036a6e9417",
     "gameplay/shop.vx": "da1313d98fb4119917a7d13be55cbfefa93988434ec5405365407deba51662b8",
     "gameplay/password.vx": "8b47adca4c36c0a5fe38ca043a2488eef93f6e8c5c2923892a0163ec0fa7ffd5",
-    "generated/quests/vexel.h": "8ca1c82353e792c6fb94247714bb3a5daca312fadaa90c73651c61fee034e2bc",
-    "generated/quests/vx_bridges.c": "4243a4058fed9c3c42f48be737c2ea6a51b011f53434d571cd6da4b6ae775dc2",
-    "generated/quests/source-plan.json": "5105ac3434dbfc14eb5dae49a4c6c86e2dadbb2afd11b6bbc1fefbec8e34eca6",
+    "gameplay/world.vx": "0a195dc6a6bb7934932fd237c6b5398a3a715dee4cc0ede793b98dc0b4f179ce",
+    "gameplay/drops.vx": "38608ec498a89e751f65b6c229a58ec8f10f9d73df60e709741c7b4207c68588",
+    "generated/quests/vexel.h": "5243c39e7b86886be2726259dd38f70e76d8af052ba21f2ae7bd05c1b17fc7e6",
+    "generated/quests/vx_bridges.c": "ee30f2f46df92d95c2787691325c4de94fb911c90c1ae9011465b864b9a05fae",
+    "generated/quests/source-plan.json": "c1560a40d23578f6b27a5c46d958f0381359b4d945d310fddabe725c71433224",
     "generated/quests/vx_quests.inc": "c104db24d564043de82c889ef08ae690cfde29d271c5f895e3d6d1fccdbd25dd",
     "generated/quests/vx_services.inc": "aee958448a9c27dfbfb6a39186cb3408123569078403af6e6260422e7b3dcea8",
     "generated/quests/vx_password.inc": "3bbdcf25fc096458bcc9ac3c86035dc08bf4ee49f4e731ed21b0dd91f28921de",
-    "generated/quests/vx_password_encode.inc": "48e7813eef74845d3c128014bc48e423024b2fd0db126113e41cb1f02c4465b7"
+    "generated/quests/vx_password_encode.inc": "48e7813eef74845d3c128014bc48e423024b2fd0db126113e41cb1f02c4465b7",
+    "generated/quests/vx_world.inc": "27518170717ef24f72a50800738c975f2bf3a407baeac530ebd2729cb2cd4454",
+    "generated/quests/vx_drops.inc": "173be63c1e4b67f8cc5a6b18bd3a027dd3a042ad519bffe6c1fdfee397775ebd"
   }
 }

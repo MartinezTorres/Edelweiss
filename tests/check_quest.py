@@ -47,3 +47,18 @@ reference = build_run("password-reference", passwords, ["-DEDW_VEXEL=0"])
 vexel = build_run("password-vexel", passwords, ["-DEDW_VEXEL=1"])
 assert reference == vexel, "C and Vexel password traces differ"
 print("Passwords: fixed MSX vectors, bad input, atomic restores, equipment and UI agree (UBSan)")
+
+world = ["tests/world_integration.c", "src/entities/wolfi/wolfi_triggers.c",
+         "src/entities/wolfi/wolfi_door_warp_enter.c", "src/entities/wolfi/wolfi_door_warp_exit.c",
+         "src/gameplay/world_rules.c", "src/gameplay/quest_text.c"]
+reference = build_run("world-reference", world, ["-DEDW_VEXEL=0"])
+vexel = build_run("world-vexel", world, ["-DEDW_VEXEL=1"])
+assert reference == vexel, "C and Vexel world interaction traces differ"
+print("World: routes, lamp gate, wells, boots warnings and dispatch agree (UBSan)")
+
+drops = ["tests/drops_integration.c", "src/common.c", "src/entities/drop_item/entity_drop_item.c",
+         "src/gameplay/drop_rules.c"]
+reference = build_run("drops-reference", drops, ["-DEDW_VEXEL=0"])
+vexel = build_run("drops-vexel", drops, ["-DEDW_VEXEL=1"])
+assert reference == vexel, "C and Vexel pickup/drop traces differ"
+print("Drops: probability boundaries, draw counts, one-time rewards and lifetime agree (UBSan)")

@@ -46,11 +46,16 @@ void small_message(const char *msg) {
 	);	
 	for (uint8_t i=0; i<12; i++) wait_frame();
 	
+#ifdef EDW_SMOKE
+    { extern volatile uint8_t edw_smoke_small_messages; ++edw_smoke_small_messages; }
+#else
 	update_keyboard_and_joystick();
 	do {
 		update_keyboard_and_joystick();
 		wait_frame();
 	} while (keyboard[8] == 255);
+
+#endif
 
 	state.request_pattern_name_transfer = 3;
 }

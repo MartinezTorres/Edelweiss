@@ -1,0 +1,40 @@
+// Tile classes: other, mountain, well, sand stairs, grass stairs, town, board.
+// Actions: none, dark refusal, door, well, hole, town service, information.
+#Route(action:#u8,i:#u8,j:#u8);
+&^world_route(tile:#u8,i:#u8,j:#u8,up:#u8,lamp:#u8) {
+    up==0 ? #Route(0,0,0) : (
+    tile==1 ? (
+        lamp==0 ? #Route(1,0,0) : (
+        i==17 && j==89 ? #Route(2,11,89) : (
+        i==11 && j==89 ? #Route(2,17,89) : (
+        i==6 && j==63 ? #Route(2,6,56) : (
+        i==6 && j==56 ? #Route(2,6,63) : (
+        i==11 && j==53 ? #Route(2,2,53) : (
+        i==2 && j==53 ? #Route(2,11,53) : (
+        i==2 && j==88 ? #Route(2,6,88) : (
+        i==6 && j==88 ? #Route(2,2,88) : #Route(0,0,0)))))))))
+    ) : (
+    tile==2 ? (
+        i==56 && j==4 ? #Route(3,55,8) : (
+        i==55 && j==8 ? #Route(3,56,4) : #Route(0,0,0))
+    ) : (
+    tile==3 ? (i==32 && (j==78 || j==79) ? #Route(4,39,114) : #Route(0,0,0)) : (
+    tile==4 ? (
+        i==39 && (j==114 || j==115) ? #Route(4,32,78) : (
+        i==28 && (j==2 || j==3) ? #Route(4,15,2) : (
+        i==15 && (j==2 || j==3) ? #Route(4,28,2) : (
+        i==23 && (j==12 || j==13) ? #Route(4,16,28) : (
+        i==16 && (j==28 || j==29) ? #Route(4,23,12) : #Route(0,0,0)))))
+    ) : (
+    tile==5 ? #Route(5,0,0) : (tile==6 ? #Route(6,0,0) : #Route(0,0,0)))))))
+}
+// The cave at (6,50) remains a no-op. Rocks retain their warning-only behaviour.
+&^world_rocks(left:#u8,right:#u8,boots:#u8)->#u8 {
+    boots==0 && (left!=0 || right!=0) ? 47 : 0
+}
+#Well(before:#u8,after:#u8,next:#u8);
+&^world_well(visits:#u8) {
+    visits==0 ? #Well(42,45,1) : (
+    visits==1 ? #Well(43,46,2) : (
+    visits<5 ? #Well(44,46,visits+1) : #Well(0,0,visits)))
+}

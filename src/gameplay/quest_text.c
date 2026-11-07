@@ -62,6 +62,13 @@ uint8_t quest_text_copy(uint8_t id, char *destination, uint8_t capacity) {
     case QUEST_TEXT_PASSWORD_RESTORE: text = "\nTHE DRUNKEN WIZARD\nSTARTS TO CHANT!\nYOU FEEL DIZZY!"; break;
     case QUEST_TEXT_PASSWORD_NISHI: text = "THE DRUNKEN WIZARD\nJUMPS AND SINGS WITH\nGREAT JOY!\nYOU FEEL EMPOWERED!"; break;
     case QUEST_TEXT_PASSWORD_MONEY: text = "THE DRUNKEN WIZARD\nASSERTS AND STARTS\nTO CHANT!\nYOU FEEL EMPOWERED!"; break;
+    case QUEST_TEXT_DARK: text = "IT'S TOO DARK!"; break;
+    case QUEST_TEXT_WELL_FIRST: text = "AAAAARGH!"; break;
+    case QUEST_TEXT_WELL_SECOND: text = "AGAIN?\nREALLY?\nAAAAARGH!"; break;
+    case QUEST_TEXT_WELL_AGAIN: text = "HERE WE GO\nAGAIN!\nAAAAARGH!"; break;
+    case QUEST_TEXT_WELL_RATS: text = "THERE WERE\nRATS!"; break;
+    case QUEST_TEXT_WELL_NOT_FUN: text = "THIS ISN'T\nFUN!"; break;
+    case QUEST_TEXT_ROCKS: text = "THESE ROCKS\nHURT MY FEET!"; break;
     default: return 0;
     }
     for (i = 0; i < capacity; ++i) {
