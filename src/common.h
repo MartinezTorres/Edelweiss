@@ -131,7 +131,7 @@ bool spawn_entity(uint8_t entity_idx);
 void despawn_entity(uint8_t entity_idx);
 
 void init_weapon();
-bool generic_entity_invulnerable_frames_and_pushing(uint8_t spawn_idx);
+#include <gameplay/combat.h>
 
 
 ////////////////////////////////////////////////////////////////////////

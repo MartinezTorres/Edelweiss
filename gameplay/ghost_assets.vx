@@ -1,0 +1,8 @@
+// Stable logical order; physical addresses and the bank come from the linker.
+// These ordinary compile-time values are consumed by the embedding backend.
+ghost_sprite_module="entity_ghosti_sprite";
+ghost_sprite_frames=(
+    "ghosti_0_0","ghosti_0_1","ghosti_1_0","ghosti_1_1",
+    "ghosti_2_0","ghosti_2_1","ghosti_3_0","ghosti_3_1",
+    "ghosti_4_0","ghosti_4_1","ghosti_5_0","ghosti_5_1"
+);

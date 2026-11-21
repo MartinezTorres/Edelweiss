@@ -1,0 +1,43 @@
+// One movement occurrence owns its continuation across synchronous map queries.
+// Query results include a fresh engine snapshot, including callback mutations.
+#Motion(i:#u16,j:#u16,keys:#u8,elapsed:#u8,skip:#u8,counter:#u8,facing:#u8);
+#Observed(m:#Motion,flags:#u8);
+[[reads(player)]] [[writes(player)]]
+&!motion_query(m:#Motion,qi:#u16,qj:#u16)->#Observed;
+#MotionResult(m:#Motion,flags:#u8,frame:#u8,view:#u8);
+[[c_binding(player_motion,region,60,exclusive)]]
+&^player_motion(input:#Motion) {
+ m:#Motion=input;
+ m.keys=(m.keys&96)==0 ? m.keys|96 : m.keys;
+ m.keys=(m.keys&144)==0 ? m.keys|144 : m.keys;
+ flags:#u8=0;
+ m.keys==255 ? {m.counter=0; #MotionResult(m,0,255,0)} : {
+  n:#u8=0;
+  (n<m.elapsed)!@{
+   m.skip+=1;
+   m.skip>2 ? {m.skip=0;} : {
+    m.counter+=1;
+    k:#u8=0;
+    (k<2)!@{
+     ti:#u16=m.i+((m.keys&32)==0 ? (#u16)-32 : (#u16)0)+((m.keys&64)==0 ? (#u16)32 : (#u16)0);
+     tj:#u16=m.j+((m.keys&16)==0 ? (#u16)-32 : (#u16)0)+((m.keys&128)==0 ? (#u16)32 : (#u16)0);
+     stage:#u8=0;more:#u8=1;
+     (more!=0)!@{
+      qi:#u16=stage==1 ? m.i : ti; qj:#u16=stage==2 ? m.j : tj;
+      obs=motion_query(m,qi,qj);m=obs.m;flags=obs.flags;
+      (flags&1)==0 ? {
+       stage!=1 ? {m.i=ti;};stage!=2 ? {m.j=tj;};more=0;
+      } : {
+       stage==0 && ti!=m.i && tj!=m.j ? {stage=1;} : (stage==1 ? {stage=2;} : {more=0;});
+      };
+     };
+     k+=1;
+    };
+   };
+   n+=1;
+  };
+  m.facing=(m.keys&16)==0 ? (#u8)1 : ((m.keys&128)==0 ? (#u8)2 : ((m.keys&64)==0 ? (#u8)4 : ((m.keys&32)==0 ? (#u8)3 : m.facing)));
+  frame:#u8=(m.keys&240)==240 ? (#u8)255 : (m.facing==1 ? (#u8)8 : (m.facing==2 ? (#u8)6 : (m.facing==3 ? (#u8)2 : (#u8)4)))+((m.counter&4)!=0 ? 0 : 1);
+  #MotionResult(m,flags,frame,1)
+ }
+}

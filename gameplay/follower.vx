@@ -1,0 +1,9 @@
+// Left=1, right=2. Vertical/rest movement retains the previous horizontal
+// facing. Unknown facing values preserve the pending frame (255).
+#FollowerDraw(facing:#u8,frame:#u8);
+[[c_binding(lumber_draw,full,8,exclusive)]]
+&^lumber_draw(direction:#u8,previous:#u8,counter:#u8) {
+    facing:#u8=direction==1 || direction==2 ? direction : previous;
+    (#FollowerDraw(facing,facing==1 || facing==2 ?
+        (facing==1 ? (#u8)0 : (#u8)2)+((counter&4)!=0 ? (#u8)0 : (#u8)1) : (#u8)255))
+}

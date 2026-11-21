@@ -6,7 +6,8 @@ USING_MODULE(entity_weapon_slash_small_sprite, PAGE_D);
 USING_MODULE(entity_weapon_slash_large_sprite, PAGE_D);
 
 
-//enum    { E_REST, E_LEFT, E_RIGHT,  E_UP, E_DOWN };
+#if !EDW_VEXEL
+// Independent C reference retained for host and MSX comparisons.
 static const TSpriteInterlaced * const sprite_table[5][5] = {
 { &weapon_slash_large_1_3, &weapon_slash_large_2_3, &weapon_slash_large_3_3, &weapon_slash_large_3_2, &weapon_slash_large_3_1},
 { &weapon_slash_large_3_2, &weapon_slash_large_3_1, &weapon_slash_large_3_0, &weapon_slash_large_2_0, &weapon_slash_large_1_0},
@@ -252,3 +253,99 @@ void init_weapon_slash(uint8_t idx, uint8_t weapon_type) {
 	entity->segment = MODULE_SEGMENT(entity_weapon_slash, PAGE_C);
 	entity->callbacks = &callbacks;
 }
+
+#else
+#include "vx_bind_melee_style.h"
+#include "vx_bind_melee_hit.h"
+#include "vx_bind_melee_axe.h"
+#include "vx_bind_melee_cut.h"
+#include "vx_bind_melee_update.h"
+#include "vx_sprite_assets.h"
+
+static void on_spawn(Entity *entity) {
+    uint8_t slot=entity->spawn_idx,axe;
+    Entity *player=&state.entities[0];
+    TSpriteStatus *sprite=&sprites[slot];
+    VX_BIND_melee_style_LOCAL;
+    entity->orientation=player->orientation;entity->animation_counter=0;
+    sprite->enabled=true;sprite->patternBlackRequired=true;sprite->patternColorRequired=true;
+    sprite->resourceRequest=0;sprite->spriteInfo=nullptr;
+    vx_bind_melee_style_frame.a0=entity->weapon_type;vx_bind_melee_style_run();
+    sprite->overrideColors=vx_bind_melee_style_frame.result.v1;
+    if(sprite->overrideColors) {
+        sprite->pattern0Color=vx_bind_melee_style_frame.result.v2;
+        sprite->pattern1Color=vx_bind_melee_style_frame.result.v3;
+    }
+    axe=vx_bind_melee_style_frame.result.v4;
+    if(axe) {
+        uint16_t i,j;
+        uint8_t tile;
+        VX_BIND_melee_axe_LOCAL;VX_BIND_melee_cut_LOCAL;
+        vx_bind_melee_axe_frame.a0=entity->orientation;
+        vx_bind_melee_axe_frame.a1=player->pos.i;vx_bind_melee_axe_frame.a2=player->pos.j;
+        vx_bind_melee_axe_run();
+        i=vx_bind_melee_axe_frame.result.v0;j=vx_bind_melee_axe_frame.result.v1;
+        /* Coordinates survive map calls; the shared frame is released. */
+        tile=overworld_get_tile16(i,j);
+        vx_bind_melee_cut_frame.a0=tile==TILE_WOOD_FENCE?1:(tile==TILE_BUSH?2:0);
+        vx_bind_melee_cut_run();
+        if(vx_bind_melee_cut_frame.result.v0) {
+            uint8_t row0,col0,ii,jj;
+            overworld_set_map_index(i,j,1);
+            row0=((i>>10)<<2)-map.pos.i;col0=((j>>10)<<2)-map.pos.j;
+            for(ii=0;ii<4;++ii)for(jj=0;jj<4;++jj) {
+                uint8_t row=row0+ii,col=col0+jj;
+                if(row<24 && col<32)overworld_draw_tile8(row,col);
+            }
+            overworld_free();state.request_pattern_name_transfer=true;
+        }
+    }
+    {
+        VX_BIND_melee_hit_LOCAL;
+        /* Refresh player facts after map effects, before collision effects. */
+        vx_bind_melee_hit_frame.a0=entity->weapon_type;vx_bind_melee_hit_frame.a1=entity->orientation;
+        vx_bind_melee_hit_frame.a2=player->pos.i;vx_bind_melee_hit_frame.a3=player->pos.j;
+        vx_bind_melee_hit_run();
+        entity->pos.i=vx_bind_melee_hit_frame.result.v0;entity->pos.j=vx_bind_melee_hit_frame.result.v1;
+        weapon_collision_detection(slot,vx_bind_melee_hit_frame.result.v2,vx_bind_melee_hit_frame.result.v3);
+    }
+}
+
+static void on_despawn(Entity *entity) {
+    entity->spawn_auto=false;
+    sprites[entity->spawn_idx].enabled=false;
+    sprites[entity->spawn_idx].resourceRequest=0;sprites[entity->spawn_idx].spriteInfo=nullptr;
+}
+
+static uint8_t on_update(Entity *entity) {
+    uint8_t slot=entity->spawn_idx,live;
+    VX_BIND_melee_update_LOCAL;
+    vx_bind_melee_update_frame.a0=entity->weapon_type;vx_bind_melee_update_frame.a1=entity->orientation;
+    vx_bind_melee_update_frame.a2=entity->animation_counter;vx_bind_melee_update_frame.a3=state.isr_count_delta;
+    vx_bind_melee_update_frame.a4=state.entities[0].pos.i;vx_bind_melee_update_frame.a5=state.entities[0].pos.j;
+    vx_bind_melee_update_run();
+    live=vx_bind_melee_update_frame.result.v0;
+    entity->animation_counter=vx_bind_melee_update_frame.result.v2;
+    if(vx_bind_melee_update_frame.result.v1) {
+        entity->pos.i=vx_bind_melee_update_frame.result.v3;entity->pos.j=vx_bind_melee_update_frame.result.v4;
+        sprites[slot].resourceRequest=vx_bind_melee_update_frame.result.v6?
+            edw_melee_small_sprite(vx_bind_melee_update_frame.result.v5):edw_melee_large_sprite(vx_bind_melee_update_frame.result.v5);
+    }
+    if(!live)return false;
+    sprites[slot].pos=entity->pos;
+    return true;
+}
+static const struct T_Entity_Callbacks callbacks={on_spawn,on_despawn,on_update,on_hit_null};
+void init_weapon_slash(uint8_t idx,uint8_t weapon_type) {
+    Entity *entity=&state.entities[idx];
+    VX_BIND_melee_style_LOCAL;
+    entity->spawn_auto=true;entity->spawn_idx=-1;entity->spawn_priority=0;entity->weapon_type=weapon_type;
+    vx_bind_melee_style_frame.a0=weapon_type;vx_bind_melee_style_run();
+    entity->damage=vx_bind_melee_style_frame.result.v0;
+    entity->segment=MODULE_SEGMENT(entity_weapon_slash,PAGE_C);entity->callbacks=&callbacks;
+}
+#endif
+
+#ifdef EDW_ENCOUNTER
+#include "../../../tests/melee_encounter.h"
+#endif

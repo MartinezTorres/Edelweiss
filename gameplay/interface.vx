@@ -1,0 +1,24 @@
+// Physical input and glyph drawing are engine capabilities. Selection, input
+// acceptance, cursor geometry and completion belong to the portable rules.
+#Menu(option:#u8,confirm:#u8);
+[[c_binding(ui_menu,full,4,exclusive)]]
+&^ui_menu(option:#u8,choices:#u8,vertical:#u8,clicks:#u8) {
+    previous:#u8=vertical!=0 ? 32 : 16;
+    forward_mask:#u8=vertical!=0 ? 64 : 128;
+    left:#u8=(clicks&previous)!=0 && option!=0 ? option-1 : option;
+    next:#u8=(clicks&forward_mask)!=0 && (#u16)left+1<(#u16)choices ? left+1 : left;
+    #Menu(next,clicks&1)
+}
+#Cursor(x:#u8,y:#u8);
+[[c_binding(ui_cursor,full,2,exclusive)]]
+&^ui_cursor(option:#u8,vertical:#u8) {
+    #Cursor(vertical!=0 || option==0 ? 5 : 35,2+(vertical!=0 ? option : (#u8)3)*7)
+}
+#Editor(length:#u8,character:#u8,accept:#u8,done:#u8,cursor:#u8);
+[[c_binding(ui_editor,full,2,exclusive)]]
+&^ui_editor(length:#u8,character:#u8,clock:#u8) {
+    accepted:#u8=length<10 && character>32 && character<127 ? 1 : 0;
+    next:#u8=length+accepted;
+    #Editor(next,character>=97 && character<=122 ? character-32 : character,
+        accepted,length>=10 || character==13 || next==10 ? 1 : 0,(clock&16)!=0 ? 1 : 0)
+}

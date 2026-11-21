@@ -9,12 +9,11 @@ USING_MODULE(entity_ghosti_sprite, PAGE_D);
 #define ghost_random rand16
 #endif
 #if EDW_VEXEL
-/* Keep the hot rules here and fold their known arithmetic widths/counts. */
-#include "vexel.h"
-#include "vx_ghost_math.h"
-#include "vx_ghost.inc"
-#undef vx_shift
-#undef vx_signed
+/* Embed the solver's pure value graph in the callback's existing bank. */
+#include "vx_value_ghost_update_cases.h"
+#include "vx_bind_ghost_spawn.h"
+#include "vx_bind_ghost_move.h"
+#include "vx_sprite_assets.h"
 #endif
 
 static void on_spawn(Entity *entity) {
@@ -23,18 +22,24 @@ static void on_spawn(Entity *entity) {
     sprites[spawn_idx].enabled = true;
     sprites[spawn_idx].patternBlackRequired = true;
     sprites[spawn_idx].patternColorRequired = true;
-    sprites[spawn_idx].spriteInfoSegment = MODULE_SEGMENT(entity_ghosti_sprite, PAGE_D);	
+#if EDW_VEXEL
+    sprites[spawn_idx].resourceRequest=0;
+    sprites[spawn_idx].spriteInfo=nullptr;
+#else
+    sprites[spawn_idx].spriteInfoSegment = MODULE_SEGMENT(entity_ghosti_sprite, PAGE_D);
+#endif
 
 #if EDW_VEXEL
     uint8_t random=0, k;
-    uint16_t i,j;
-    int8_t vi,vj;
+    VX_BIND_ghost_spawn_LOCAL;
     /* Keep all six legacy draws, including the two redundant position draws. */
     for(k=0;k<6;++k)random|=(uint8_t)(ghost_random()&1)<<k;
-    vx_ghost_spawn((uint16_t)entity->anchor8.i<<8,(uint16_t)entity->anchor8.j<<8,random);
-    i=(uint16_t)vx_ghost_spawn_read(0);j=(uint16_t)vx_ghost_spawn_read(1);
-    vi=(int8_t)vx_ghost_spawn_read(2);vj=(int8_t)vx_ghost_spawn_read(3);
-    entity->pos.i=i;entity->pos.j=j;entity->vel.i=vi;entity->vel.j=vj;
+    vx_bind_ghost_spawn_frame.a0=(uint16_t)entity->anchor8.i<<8;
+    vx_bind_ghost_spawn_frame.a1=(uint16_t)entity->anchor8.j<<8;
+    vx_bind_ghost_spawn_frame.a2=random;
+    vx_bind_ghost_spawn_run();
+    entity->pos.i=vx_bind_ghost_spawn_frame.result.v0;entity->pos.j=vx_bind_ghost_spawn_frame.result.v1;
+    entity->vel.i=vx_bind_ghost_spawn_frame.result.v2;entity->vel.j=vx_bind_ghost_spawn_frame.result.v3;
 #else
 	entity->vel.i = (ghost_random()&1)?-1:1;
 	entity->vel.j = (ghost_random()&1)?-2:2;
@@ -57,6 +62,7 @@ static void on_spawn(Entity *entity) {
 	sprites[spawn_idx].pos.j = entity->pos.j;
 
 	entity->invulnerable_frames = 0;
+	entity->push_frames = 0;
 
 //    debug_printf("spawn ghosti %d %d\n", spawn_idx, state.spawns[spawn_idx]);
 
@@ -66,6 +72,10 @@ static void on_despawn(Entity *entity) {
 	
 	uint8_t spawn_idx = entity->spawn_idx;
     sprites[spawn_idx].enabled = false;
+#if EDW_VEXEL
+    sprites[spawn_idx].resourceRequest=0;
+    sprites[spawn_idx].spriteInfo=nullptr;
+#endif
     
 //    debug_printf("despawn ghosti %d %d\n", spawn_idx, state.spawns[spawn_idx]);
     
@@ -77,30 +87,29 @@ static uint8_t on_update(Entity *entity) {
 	Entity *wolfi = &state.entities[0];
 	uint8_t spawn_idx = entity->spawn_idx;
 	
-	if (!generic_entity_invulnerable_frames_and_pushing(spawn_idx)) return false;
+	uint8_t reaction=combat_update(spawn_idx);
+	if (reaction!=COMBAT_READY) return reaction!=COMBAT_DEAD;
 	
 #if EDW_VEXEL
-    uint8_t run, life, frame;
-    uint16_t i,j;
-    int8_t vi,vj;
-    vx_ghost_tick(state.game_cycles,spawn_idx,entity->life,entity->maximum_life);
-    run=(uint8_t)vx_ghost_tick_read(0);life=(uint8_t)vx_ghost_tick_read(1);
-    if(!run)return true;
-    vx_ghost_axis(entity->pos.i,(uint16_t)entity->anchor8.i<<8,entity->vel.i,wolfi->pos.i);
-    i=(uint16_t)vx_ghost_axis_read(0);vi=(int8_t)vx_ghost_axis_read(1);
-    vx_ghost_axis(entity->pos.j,(uint16_t)entity->anchor8.j<<8,entity->vel.j,wolfi->pos.j);
-    j=(uint16_t)vx_ghost_axis_read(0);vj=(int8_t)vx_ghost_axis_read(1);
-    vx_ghost_frame(spawn_idx,vj);frame=(uint8_t)vx_ghost_frame_read(0);
-    entity->life=life;entity->pos.i=i;entity->pos.j=j;entity->vel.i=vi;entity->vel.j=vj;
+    VX_BIND_ghost_move_LOCAL;
+    /* The generated dependency split needs only cycle/slot on a skipped tick.
+     * No effects or changes to the input state intervene before the body. */
+    if(!vx_ghost_update_branch(state.game_cycles,spawn_idx))return true;
+    vx_bind_ghost_move_frame.a1=spawn_idx;
+    vx_bind_ghost_move_frame.a2=entity->maximum_life;
+    vx_bind_ghost_move_frame.a3=entity->pos.i;
+    vx_bind_ghost_move_frame.a4=entity->pos.j;
+    vx_bind_ghost_move_frame.a5=(uint16_t)entity->anchor8.i<<8;
+    vx_bind_ghost_move_frame.a6=(uint16_t)entity->anchor8.j<<8;
+    vx_bind_ghost_move_frame.a7=entity->vel.i;
+    vx_bind_ghost_move_frame.a8=entity->vel.j;
+    vx_bind_ghost_move_frame.a9=wolfi->pos.i;
+    vx_bind_ghost_move_frame.a10=wolfi->pos.j;
+    vx_bind_ghost_move_run();
+    entity->life=vx_bind_ghost_move_frame.result.v1;entity->pos.i=vx_bind_ghost_move_frame.result.v2;entity->pos.j=vx_bind_ghost_move_frame.result.v3;
+    entity->vel.i=vx_bind_ghost_move_frame.result.v4;entity->vel.j=vx_bind_ghost_move_frame.result.v5;
     sprites[spawn_idx].pos=entity->pos;
-    {
-        static const TSpriteInterlaced * const frames[]={
-            &ghosti_0_0,&ghosti_0_1,&ghosti_1_0,&ghosti_1_1,
-            &ghosti_2_0,&ghosti_2_1,&ghosti_3_0,&ghosti_3_1,
-            &ghosti_4_0,&ghosti_4_1,&ghosti_5_0,&ghosti_5_1
-        };
-        sprites[spawn_idx].spriteInfo=frames[frame];
-    }
+    sprites[spawn_idx].resourceRequest=edw_ghost_sprite(vx_bind_ghost_move_frame.result.v6);
 #else
 	if (((state.game_cycles+spawn_idx)&3) != 0) return true;
 	
@@ -185,6 +194,7 @@ void init_ghosti(uint8_t spawn_idx, uint8_t i, uint8_t j) {
 	entity->life = 16;
 	entity->maximum_life = 16;
 	entity->invulnerable_frames = 0;
+	entity->push_frames = 0;
 
 	entity->damage = 1;
 
@@ -197,5 +207,16 @@ void init_ghosti(uint8_t spawn_idx, uint8_t i, uint8_t j) {
 void ghost_smoke_update(void) {
     Entity *e=&state.entities[ENTITY_GHOSTI_0];
     if(!on_update(e))despawn_entity(ENTITY_GHOSTI_0);
+}
+#endif
+
+#ifdef EDW_ENCOUNTER
+void encounter_ghosts(void) {
+    uint8_t k;
+    for(k=0;k<4;++k) {
+        uint8_t id=ENTITY_GHOSTI_0+k;
+        init_ghosti(id,100+3*k,22+2*k);
+        state.entities[id].spawn_auto=false;spawn_entity(id);
+    }
 }
 #endif

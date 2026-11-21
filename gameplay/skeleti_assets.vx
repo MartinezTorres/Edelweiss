@@ -1,0 +1,7 @@
+// Frame order used by the skeleton's pure animation decisions.
+skeleti_sprite_module="entity_skeleti_sprite";
+skeleti_sprite_frames=(
+    "skeleti_0_0","skeleti_0_1","skeleti_1_0","skeleti_1_1",
+    "skeleti_2_0","skeleti_2_1","skeleti_3_0","skeleti_3_1",
+    "skeleti_4_0","skeleti_4_1"
+);

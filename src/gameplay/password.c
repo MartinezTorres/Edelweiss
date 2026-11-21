@@ -4,6 +4,7 @@
 #if EDW_VEXEL
 #include "vx_shift.h"
 #include "vx_password_encode.inc"
+#include "vx_bind_ui_editor.h"
 USING_MODULE(password_rules, PAGE_B);
 #endif
 USING_MODULE(quest_text, PAGE_D);
@@ -166,27 +167,56 @@ void quest_saloon(void) {
         largePopupWriteText("YOU ANSWER: \n  ");
         x = largePopupTextProperties.x;
         enable_keyboard_routine = true;
-        while (length < 10) {
+        for (;;) {
             char cursor[2];
             cursor[0] = '|'; cursor[1] = 0;
             uint8_t ch;
+#if EDW_VEXEL
+            uint8_t accepted;
+            uint8_t done;
+            uint8_t next_length;
+#endif
+#if EDW_VEXEL
+            { VX_BIND_ui_editor_LOCAL;
+              vx_bind_ui_editor_frame.a0=length;vx_bind_ui_editor_frame.a1=0;
+              vx_bind_ui_editor_frame.a2=state.isr_count;vx_bind_ui_editor_run();
+              done=vx_bind_ui_editor_frame.result.v3;
+              largePopupTextProperties.value=vx_bind_ui_editor_frame.result.v4; }
+            if(done)break;
+#else
+            if(length>=10)break;
+            largePopupTextProperties.value = !!(state.isr_count & 0x10);
+#endif
 #ifdef EDW_SMOKE
             /* Stable capture; the ordinary editor retains its blinking cursor. */
             largePopupTextProperties.value = 1;
-#else
-            largePopupTextProperties.value = !!(state.isr_count & 0x10);
 #endif
             largePopupWriteText(cursor);
             largePopupTextProperties.x = x;
             ch = password_getch();
+#if EDW_VEXEL
+            { VX_BIND_ui_editor_LOCAL;
+              vx_bind_ui_editor_frame.a0=length;vx_bind_ui_editor_frame.a1=ch;
+              vx_bind_ui_editor_frame.a2=state.isr_count;vx_bind_ui_editor_run();
+              next_length=vx_bind_ui_editor_frame.result.v0;ch=vx_bind_ui_editor_frame.result.v1;
+              accepted=vx_bind_ui_editor_frame.result.v2;done=vx_bind_ui_editor_frame.result.v3; }
+            if(done && !accepted)break;
+            if(accepted) {
+#else
             if (ch == 13) break;
             if (ch > 32 && ch < 127) {
                 if (ch >= 'a' && ch <= 'z') ch -= 'a' - 'A';
+#endif
                 largePopupTextProperties.value = 0;
                 largePopupWriteText(cursor);
                 largePopupTextProperties.x = x;
                 cursor[0] = ch;
-                code[length++] = ch;
+                code[length] = ch;
+#if EDW_VEXEL
+                length=next_length;
+#else
+                ++length;
+#endif
                 largePopupTextProperties.value = 1;
                 largePopupWriteText(cursor);
                 x = largePopupTextProperties.x;

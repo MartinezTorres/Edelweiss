@@ -1,0 +1,15 @@
+// Sparks and explosions share the same timeline, including byte wrap and
+// the distinction between arriving at tick 24 and attempting tick 24.
+#EffectStep(live:#u8,counter:#u8,frame:#u8);
+[[c_binding(effect_step,full,32,exclusive)]]
+&^effect_step(counter:#u8,elapsed:#u8) {
+    room:#u8=24-counter;
+    spent:#u8=elapsed<room ? elapsed : room;
+    (#EffectStep(elapsed<=room ? 1 : 0,counter+spent,
+        spent>(#u8)(18-counter) ? 3 : (spent>(#u8)(12-counter) ? 2 :
+        (spent>(#u8)(6-counter) ? 1 : 255))))
+}
+[[c_binding(spark_frame,full,8,exclusive)]]
+&^spark_frame(stage:#u8,kind:#u8)->#u8 {
+    stage+(stage<<1)+(kind==0 ? (#u8)0 : (kind==1 ? (#u8)1 : (#u8)2))
+}

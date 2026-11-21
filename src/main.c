@@ -1,7 +1,18 @@
 #include <common.h>
+#include <gameplay/world_orchestration.h>
+#include <gameplay/title_sequence.h>
+#if EDW_VEXEL
+#include "vx_bind_title_attract.h"
+#include "vx_bind_world_start.h"
+#endif
+
 #ifdef EDW_SMOKE
 USING_MODULE(quest_smoke, PAGE_C);
 void quest_smoke(void);
+#endif
+#ifdef EDW_ENCOUNTER
+#include "../tests/encounter.h"
+USING_MODULE(encounter, PAGE_C);
 #endif
 
 
@@ -35,30 +46,10 @@ static void main_isr(void) {
 		state.request_pattern_name_transfer = false;
     
         if (state.request_scroll_update) {
-            if        (state.target_map_pos.j<map.pos.j) {
-				
-                map.pos.j--;
-                overworld_draw_col(0);
-				request_pattern_name_transfer_internal = true;
-            } else if (state.target_map_pos.j>map.pos.j) {
-				
-                map.pos.j++;
-                overworld_draw_col(31);
-				request_pattern_name_transfer_internal = true;
-            }
-            if        (state.target_map_pos.i<map.pos.i) {
-				
-                map.pos.i--;
-                overworld_draw_row(0);
-                update_scroll_step2 = 255;
-				request_pattern_name_transfer_internal = true;
-            } else if (state.target_map_pos.i>map.pos.i) {
-				
-                map.pos.i++;
-                overworld_draw_row(7);
-                update_scroll_step2 = 1;
-				request_pattern_name_transfer_internal = true;
-            }
+            { uint16_t result;
+              IN_MODULE(world_orchestration,PAGE_C,result=world_scroll(request_pattern_name_transfer_internal));
+              update_scroll_step2=(uint8_t)result;
+              request_pattern_name_transfer_internal=(uint8_t)(result>>8); }
             state.request_scroll_update = false;
         } else {
 			
@@ -126,40 +117,9 @@ static void main_isr(void) {
         break;
     }
 
-	if (state.follower_entity_spawn_idx != 0) {
-		if ((state.isr_state_machine&1) == 0) {
-			
-			uint16_tp old_pos, current_pos;
-			old_pos = state.history_wolfi_pos[state.history_wolfi_pos_count & 0x07];
-			current_pos = state.entities[0].pos;
-			
-			uint8_t old_visibility = state.history_wolfi_visibility[state.history_wolfi_pos_count & 0x07];
-			uint8_t current_visibility = sprites[0].enabled;
-			
-			uint8_t spawn_idx = state.follower_entity_spawn_idx;
-			Entity *entity = &state.entities[state.spawns[spawn_idx]];
-			
-			if (old_pos.i != current_pos.i ||
-				old_pos.j != current_pos.j ||
-				old_visibility != current_visibility ||
-				!current_visibility
-				) {
-
-				state.history_wolfi_pos_count++;
-				
-				uint8_t idx = state.history_wolfi_pos_count & 0x07;
-
-				entity->pos = state.history_wolfi_pos[idx];
-				entity->orientation = state.history_wolfi_orientation[idx];
-				sprites[spawn_idx].pos = entity->pos;
-				sprites[spawn_idx].enabled = state.history_wolfi_visibility[idx];
-					
-				state.history_wolfi_pos[idx] = current_pos;
-				state.history_wolfi_visibility[idx] = current_visibility;
-				state.history_wolfi_orientation[idx] = state.entities[0].orientation;	
-			}
-		}
-	}
+    /* Avoid paging the policy bank for the common empty trail. */
+    if(state.follower_entity_spawn_idx && !(state.isr_state_machine&1))
+        IN_MODULE(world_orchestration,PAGE_C,world_follow());
 
 
 //	debugBorder(0x5);
@@ -170,6 +130,22 @@ static void main_isr(void) {
 		TMS99X8_writeSpriteAttributes(0, SA1);
 	}
 	
+#if EDW_VEXEL
+    { VX_BIND_title_attract_LOCAL;
+      uint8_t poll;
+      vx_bind_title_attract_frame.a0=configuration.attract_mode;
+      vx_bind_title_attract_frame.a1=state.isr_count;vx_bind_title_attract_frame.a2=255;
+      vx_bind_title_attract_run();poll=vx_bind_title_attract_frame.result.v1;
+      if(poll) {
+          update_keyboard_and_joystick();
+          vx_bind_title_attract_frame.a0=configuration.attract_mode;
+          vx_bind_title_attract_frame.a1=state.isr_count;vx_bind_title_attract_frame.a2=keyboard[8];
+          vx_bind_title_attract_run();configuration.attract_mode=vx_bind_title_attract_frame.result.v0;
+          keyboard[8]=vx_bind_title_attract_frame.result.v2;
+          if(vx_bind_title_attract_frame.result.v3)state.return_to_menu=true;
+      }
+    }
+#else
 	if (configuration.attract_mode && state.isr_count==0) {
 
 		configuration.attract_mode--;
@@ -184,6 +160,7 @@ static void main_isr(void) {
 			state.return_to_menu = true;
 		}
 	}
+#endif
 
 
 //	debugBorder(0x0);
@@ -193,55 +170,13 @@ static void main_isr(void) {
     mapper_load_segment(oldSegmentPageD, PAGE_D);
 }
 
-static void init_overworld_entities() {
-
-
-	// WOLFI
-	IN_MODULE(entity_wolfi, PAGE_C, init_wolfi(ENTITY_WOLFI, 60*2, 63*2));
-
-	state.weapon = E_PAW;
-	init_weapon();
-
-	// EXPLOSIONS
-	IN_MODULE(entity_explosion, PAGE_C, init_explosion(ENTITY_EXPLOSION_0));
-	IN_MODULE(entity_explosion, PAGE_C, init_explosion(ENTITY_EXPLOSION_1));
-
-	// DROP ITEMS
-	IN_MODULE(entity_drop_item, PAGE_C, init_drop_item(ENTITY_DROP_ITEM_0));
-	IN_MODULE(entity_drop_item, PAGE_C, init_drop_item(ENTITY_DROP_ITEM_1));
-	
-	
-	// GHOSTS
-	IN_MODULE(entity_ghosti, PAGE_C, init_ghosti(ENTITY_GHOSTI_0, 0x68, 0x18));
-	IN_MODULE(entity_ghosti, PAGE_C, init_ghosti(ENTITY_GHOSTI_1, 0x6A, 0x28));
-	IN_MODULE(entity_ghosti, PAGE_C, init_ghosti(ENTITY_GHOSTI_2, 0x67, 0x38));
-	IN_MODULE(entity_ghosti, PAGE_C, init_ghosti(ENTITY_GHOSTI_3, 0x6C, 0x14));
-
-	// SKELETONS 1
-	IN_MODULE(entity_skeleti, PAGE_C, init_skeleti(ENTITY_SKELETI_0, 0x56, 0x16));
-	IN_MODULE(entity_skeleti, PAGE_C, init_skeleti(ENTITY_SKELETI_1, 0x58, 0x1A));
-
-
-	// BALLS NEAR LUMBERJACK
-	IN_MODULE(enemy_ball, PAGE_C, init_enemy_ball(ENTITY_LUMBERJACK_BALL_0, 60*2, 4*2));
-	IN_MODULE(enemy_ball, PAGE_C, init_enemy_ball(ENTITY_LUMBERJACK_BALL_1, 62*2, 15*2));
-	IN_MODULE(enemy_ball, PAGE_C, init_enemy_ball(ENTITY_LUMBERJACK_BALL_2, 61*2, 23*2));
-	IN_MODULE(enemy_ball, PAGE_C, init_enemy_ball(ENTITY_LUMBERJACK_BALL_3, 60*2, 32*2));
-
-
-	// NPCS
-	IN_MODULE(entity_lumberjack, PAGE_C, init_lumberjack(ENTITY_LUMBERJACK, 59*2, 44*2));
-	
-
-	// FAIRY
-	//IN_MODULE(entity_fairy, PAGE_C, init_fairy(ENTITY_BOSS_TOP_LEFT, ENTITY_BOSS_BOTTOM_LEFT, 49*2-1, 68*2));
-
-	
-	
+static void init_overworld_entities(void) {
+    world_init_entities();
 	debug_printf("nº entities: %d\n", LAST_ENTITY);
 	debug_printf("Entity size: %d\n", (int)sizeof(Entity));
 
 }
+
 
 static void main_game_routine() {
 	
@@ -271,15 +206,33 @@ static void main_game_routine() {
 		
 	init_overworld_entities();
 
+#if EDW_VEXEL
+    { VX_BIND_world_start_LOCAL;
+      vx_bind_world_start_frame.a0=state.entities[0].pos.i;vx_bind_world_start_frame.a1=state.entities[0].pos.j;
+      vx_bind_world_start_run();state.rupees=vx_bind_world_start_frame.result.v0;
+      state.has_weapon[vx_bind_world_start_frame.result.v1]=true;
+      state.next_flower.i=vx_bind_world_start_frame.result.v2;state.next_flower.j=vx_bind_world_start_frame.result.v3; }
+#else
 	state.rupees = 0;
 	state.has_weapon[0]=true;
 
 	state.next_flower.i = 49*2+1;
 	state.next_flower.j = 68*2+1;
+#endif
 	
 	// SPAWN wolfi
 	spawn_entity(ENTITY_WOLFI);
 
+#if EDW_VEXEL
+    { uint16_t i,next_i,j;uint8_t value;
+      VX_BIND_world_start_LOCAL;
+      vx_bind_world_start_frame.a0=state.entities[0].pos.i;vx_bind_world_start_frame.a1=state.entities[0].pos.j;
+      vx_bind_world_start_run();map.pos.i=vx_bind_world_start_frame.result.v4;map.pos.j=vx_bind_world_start_frame.result.v5;
+      state.target_map_pos=map.pos;
+      i=vx_bind_world_start_frame.result.v6;next_i=vx_bind_world_start_frame.result.v7;
+      j=vx_bind_world_start_frame.result.v8;value=vx_bind_world_start_frame.result.v9;
+      overworld_set_map_index(i,j,value);overworld_set_map_index(next_i,j,value); }
+#else
 	map.pos.j = ( (state.entities[0].pos.j + 0x80) >> 8)-16;
 	map.pos.i = ( (state.entities[0].pos.i + 0x80) >> 8)-11;
 	if (map.pos.i > 128-22) map.pos.i = 128-22;
@@ -288,32 +241,11 @@ static void main_game_routine() {
 	
 	overworld_set_map_index(49*2*256, 68*2*256, 1);
 	overworld_set_map_index(50*2*256, 68*2*256, 1);
+#endif
 
 	sprites[0].enabled = false;
 
-    {
-
-        overworld_draw_row(0);
-        overworld_draw_row(1);
-        for (uint8_t i=0; i<11; i++) {
-
-			overworld_draw_row(2+i);
-			overworld_draw_row(23-i);
-			wait_frame();
-			overworld_draw_col(31-i);
-			overworld_draw_col(i);
-//			state.request_pattern_name_transfer = true;
-//			wait_frame();
-//			wait_frame();
-//			wait_frame();
-//			wait_frame();
-			wait_frame();
-			titlemap_copyPN1();
-			titlemap_copyPN0();
-			titlemap_free();
-			wait_frame();
-        }
-    }
+    IN_MODULE(world_orchestration,PAGE_C,world_reveal());
 
 	sprites[0].enabled = true;
     
@@ -322,84 +254,45 @@ static void main_game_routine() {
 #ifdef EDW_SMOKE
     TRAMPOLINE_PAGE_C(quest_smoke);
 #endif
+#ifdef EDW_ENCOUNTER
+    trampoline_page_c(MODULE_SEGMENT(encounter,PAGE_C),encounter_setup);
+#endif
     
     {
 		static uint8_t previous_isr_count;
 		state.game_cycles = 0;
+#ifdef EDW_ENCOUNTER
+        previous_isr_count=state.isr_count;
+#endif
         while (!state.return_to_menu) {
+#ifdef EDW_ENCOUNTER
+            edw_encounter_marker=1;
+#endif
 
 			// WAIT FOR FRAME
 			wait_frame();
 			// UPDATE JOYSTICK
 			update_keyboard_and_joystick();
+#ifdef EDW_ENCOUNTER
+            edw_encounter_marker=2;
+#endif
 
 
-            state.isr_count_delta = state.isr_count - previous_isr_count;    
-            if (state.isr_count_delta>3) state.isr_count_delta = 1;        
-			previous_isr_count = state.isr_count;
-
-            state.game_cycles++;
+            IN_MODULE(world_orchestration,PAGE_C,world_begin_frame(previous_isr_count));
+            previous_isr_count=state.isr_count;
 
 //			_putchar("0123456789"[state.isr_count_delta]);			
 
-			// UPDATE SPAWNED ENTITIES
-			for (uint8_t i=0; i<12; i++) {
-				
-				yield();
-
-				int8_t idx = state.spawns[i];
-
-				if (idx<0) continue;
-				Entity *entity = &state.entities[idx];
-
-				IN_SEGMENT(
-					entity->segment, 
-					PAGE_C,         
-					if ((*entity->callbacks->on_update)(entity) == false) {
-						
-						despawn_entity(idx);
-					};
-
-					// Check out of bounds
-					if ((i > 0) && // We don't want to despawn wolfi
-						(((uint8_t)((entity->pos.i >> 8) + 3 - map.pos.i) >= 24+6) ||
-						((uint8_t)((entity->pos.j >> 8) + 3 - map.pos.j) >= 32+6))) {
-							
-						despawn_entity(idx);
-					}
-				);
-			}
-			
-			// CHECK IF WE CAN ACTIVATE OTHER ENTITIES 
-			{
-				uint8_t i = (state.game_cycles<<3)&127;
-				if (i<96) for (uint8_t j=0; j<8; j++) {
-
-					yield();
-					
-					Entity *entity = &state.entities[i+j];
-					
-					if (!entity->spawn_auto) continue;
-					if (entity->spawn_idx >= 0) continue;
-
-					
-					// Check out of bounds
-					if ((uint8_t)((entity->pos.i >> 8) + 3 - map.pos.i) >= 24+6) continue; 
-					if ((uint8_t)((entity->pos.j >> 8) + 3 - map.pos.j) >= 32+6) continue;
-
-					if (((uint8_t)((entity->pos.i >> 8) - map.pos.i) < 24) &&
-						((uint8_t)((entity->pos.j >> 8) - map.pos.j) < 32)) continue;
-										
-					
-					// Entity 0 is wolfie, Entity 1 is wolfie's weapon
-					spawn_entity(i+j);
-				}
-			}
+            IN_MODULE(world_orchestration,PAGE_C,world_update_entities());
+#ifdef EDW_ENCOUNTER
+            edw_encounter_marker=3;
+            trampoline_page_c(MODULE_SEGMENT(encounter,PAGE_C),encounter_after);
+#endif
         }
     }
 }
 
-static void title_isr(void) {
+void title_isr(void) {
 	
 	state.isr_count++;
     state.current_em2_buffer = state.isr_count & 0x01;
@@ -412,204 +305,6 @@ static void title_isr(void) {
 		TMS99X8_writeSpriteAttributes(0, SA1);
 	}
 }
-
-static bool title_wait_frame() {
-	
-	wait_frame(); 
-
-	state.isr_count_delta = 1;
-
-	// UPDATE SPAWNED ENTITIES
-	for (uint8_t i=0; i<12; i++) {
-		
-		int8_t idx = state.spawns[i];
-		
-		if (idx<0) continue;
-		Entity *entity = &state.entities[idx];
-
-		IN_SEGMENT(
-			entity->segment, 
-			PAGE_C,         
-			if ((*entity->callbacks->on_update)(entity) == false) {
-				
-				despawn_entity(idx);
-			};
-		);
-	}
-	
-	// UPDATE SPRITES
-	{
-		uint8_t old_map_j = map.pos.j;
-		map.pos.j = 0;
-
-		CALL_PAGE(sprites, PAGE_B, updateSpriteISR());
-		map.pos.j = old_map_j;
-	}
-
-	if (state.isr_count == 16*12) state.isr_count=0;
-	if ((state.isr_count&15) == 0) {
-		if (state.entities[state.isr_count>>4].spawn_auto) {
-			spawn_entity(state.isr_count>>4);
-		}
-	}
-
-	
-	update_keyboard_and_joystick(); 
-	if (keyboard[8] != 255) return true;
-	return false;
-}
-
-static void title_routine() {
-	
-
-    msxhal_install_isr(nullptr);
-    wait_frame();
-    
-    mapper_load_module(titlemap, PAGE_B);
-    titlemap_init();
-    CALL_PAGE(sprites, PAGE_B, sprites_init());
-
-    TMS99X8.sprites16 = true;
-    TMS99X8_syncFlags();
-    
-
-    msxhal_install_isr(title_isr);
-
-    memset(&state,0,sizeof(state));    
-	for (uint8_t i=0; i<12; i++)
-		state.spawns[i] = -1;
-	state.num_spawns=0;	
-
-	for (uint8_t i=0; i<96; i++)
-		state.entities[i].spawn_idx = -1;
-
-	for (uint8_t i=0; i<12; i++) {
-		trampoline_page_c_uint8_t(MODULE_SEGMENT(entity_spark, PAGE_C), init_spark, i);
-		state.entities[i].spark_type = 1+(i%2);
-		state.entities[i].spawn_auto = false;
-		state.entities[i].spawn_priority = 0;
-		do {
-			state.entities[i].pos.j = rand16()&255;
-		} while (state.entities[i].pos.j>224);
-		state.entities[i].pos.j += 16;
-		state.entities[i].pos.j <<= 5;
-
-		do {
-			state.entities[i].pos.i = rand16()&255;
-		} while (state.entities[i].pos.i>80);
-		state.entities[i].pos.i += 40;
-		state.entities[i].pos.i <<= 5;
-		
-		//spawn_entity(i);
-	}
-	
-	
-
-	//init_overworld_entities();
-
-	map.pos.j = 0;
-	map.pos.i = 24;
-	
-	TMS99X8.blankScreen = false;
-	TMS99X8_syncAllRegisters();
-		
-	if (title_wait_frame()) return;
-    {
-
-        for (uint8_t i=0; i<12; i++) {
-
-			titlemap_draw_row(i);
-			titlemap_draw_row(23-i);
-			if (title_wait_frame()) return;
-			titlemap_draw_col(31-i);
-			titlemap_draw_col(i);
-			if (title_wait_frame()) return;
-			titlemap_copyPN1full();
-			titlemap_copyPN0full();
-			titlemap_free();
-			if (title_wait_frame()) return;
-        }
-    }
-    
-	TMS99X8.blankScreen = true;
-	TMS99X8_syncAllRegisters();
-    //debugBorder(5);
-    
-    for (uint8_t i=0; i<32; i+=1) {
-		
-		map.pos.j = (i&7)*32;
-		map.pos.i = 24+(i/8)*24;
-		if (title_wait_frame()) return;
-		titlemap_free2();
-		titlemap_draw_col(1);
-		titlemap_draw_col(2);
-		if (title_wait_frame()) return;
-		titlemap_draw_col(3);
-		titlemap_draw_col(4);
-		if (title_wait_frame()) return;
-		titlemap_draw_col(5);
-		titlemap_draw_col(6);
-		titlemap_free0();
-		if (title_wait_frame()) return;
-		titlemap_copyPN1full();
-		titlemap_copyPN0full();
-		titlemap_free1();
-		
-		if (i==30) TMS99X8_setBorderColor(BGray);
-	}
-	if (title_wait_frame()) return;
-	titlemap_free();
-	TMS99X8_setBorderColor(BWhite);
-    //debugBorder(0);
-
-	for (uint8_t i=0; i<12; i++) {
-		state.entities[i].spawn_auto = true;
-	}
-
-
-    {
-		map.pos.j = 32;
-		map.pos.i = 0;
-        for (uint8_t i=0; i<48; i++) {
-
-			if (map.pos.j==0) {
-				map.pos.j = 32;
-			} else {
-				map.pos.j = 0;
-			}
-			for (uint8_t j=1; j<31; j+=2) {
-				if (title_wait_frame()) return;
-				titlemap_draw_col(j);
-				titlemap_draw_col(j+1);
-
-				//debug_printf("C %d %d %d %d\n", j, map.bank[0].numUsedPatterns, map.bank[1].numUsedPatterns, map.bank[2].numUsedPatterns);
-				//debug_printf("D %d %d %d %d\n", j, map.bank[0].numTilesToReleaseL, map.bank[1].numTilesToReleaseL, map.bank[2].numTilesToReleaseL);
-
-			}
-			if (title_wait_frame()) return;
-			titlemap_draw_tile8(22,31);
-			titlemap_draw_tile8(16,31);
-			titlemap_draw_tile8(23,31);
-			if (title_wait_frame()) return;
-			titlemap_copyPN1full();
-			titlemap_copyPN0full();
-			TMS99X8_setBorderColor(BBlack);
-			if (title_wait_frame()) return;
-			titlemap_free0();
-			if (title_wait_frame()) return;
-			titlemap_free1();
-			if (title_wait_frame()) return;
-			titlemap_free2();
-			for (uint8_t j=1; j<33; j+=2) {
-				if (title_wait_frame()) return;
-			}			
-        }
-        
-        configuration.attract_mode = 9;
-        return;
-    }
-}
-
 
 static void clean_init() {
 
@@ -672,8 +367,8 @@ int main(void) {
     configuration.language = E_ENGLISH;  
     
     while (true) {
-#ifndef EDW_SMOKE
-		title_routine();
+#if !defined(EDW_SMOKE) && !defined(EDW_ENCOUNTER)
+        IN_MODULE(title_sequence,PAGE_C,title_routine());
 #endif
 		main_game_routine();
 	}

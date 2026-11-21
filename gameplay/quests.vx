@@ -1,6 +1,22 @@
 // Foreground sources release their results before another invocation.
 // All services share one result arena; the engine owns text separately.
-[[require(payload_bytes, 20)]] quest_payload_bytes=20;
+[[require(payload_bytes,quest_payload_bytes)]] quest_payload_bytes=20;
+// The complete image includes ordinary alternatives replaced by typed bindings.
+// Keep proved exclusive foreground locals fixed; linked RAM measurements count
+// only the units actually embedded by the game.
+[[prefer(frame_ram_bytes,quest_local_frame_bytes)]] quest_local_frame_bytes=256;
+// Relative binding frequencies are cost hints. Exclusive contracts cover
+// preparation through consumption; engine effects happen outside that interval.
+// Every pair below has disjoint input-preparation through result-consumption
+// intervals. No frame remains live across random/map/spawn callbacks.
+[[c_disjoint(combat_death,combat_hit,combat_idle,combat_tick,drop_collect,drop_roll,drop_spawn,drop_step,fairy_move,lumber_draw,
+             ghost_move,ghost_spawn,skeleti_draws,skeleti_move,skeleti_tick,skeleti_wait,
+             melee_style,melee_hit,melee_axe,melee_cut,melee_update,
+             projectile_spawn,projectile_move,bomb_step,bomb_cut,
+             effect_step,spark_frame,ball_tick,ball_leg,ball_reply,ball_home,player_keys,player_weapon,player_attack,player_tick,player_move,player_slide,player_draw,player_view,
+             scene_intro,scene_spark,scene_wipe,scene_revive,scene_door,scene_camera,world_frame,world_keep,world_spawn,world_follow,world_scroll,world_seed,world_start,weapon_setup,scene_brief,contact_box,contact_player,ui_menu,ui_cursor,ui_editor,title_step,title_seed,title_frame,title_attract)]]
+[[prefer(value_frame_bytes,quest_value_frame_bytes)]] quest_value_frame_bytes=128;
+::sprite_assets;
 ::lumberjack;
 ::pear;
 ::stew;
@@ -11,3 +27,26 @@
 ::drops;
 ::town;
 ::ghost;
+::skeleti;
+::combat;
+::melee;
+::projectiles;
+::bomb;
+::effects;
+::fairy;
+::follower;
+::ball;
+::player;
+
+// The motion region is deliberately outside c_disjoint above: its map sink
+// may run any of those bindings while the motion workspace remains live.
+::player_motion;
+
+::scenes;
+::orchestration;
+
+::contact;
+::interface;
+::title;
+// This region stays live across callbacks, outside the shared pure slot.
+::world_flow;

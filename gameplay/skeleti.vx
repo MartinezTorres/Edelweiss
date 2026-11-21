@@ -1,0 +1,38 @@
+// The engine owns state, randomness, map access and sprite resources.
+// These pure decisions cross each effect boundary using ordinary values.
+::skeleti_assets;
+[[c_binding(skeleti_tick,full,64,exclusive)]]
+&^skeleti_tick(cycle:#u8,slot:#u8)->#u8 { ((cycle+slot)&3)==0 ? 1 : 0 }
+&skeleti_action(action:#u8,reset:#u8)->#u8 { (reset&63)==0 ? (#u8)0 : action }
+// Only a ready, unassigned skeleton requests the two selection draws.
+[[c_binding(skeleti_draws,full,16,exclusive)]]
+&^skeleti_draws(action:#u8,delay:#u8,reset:#u8)->#u8 {
+    delay==0 ? (skeleti_action(action,reset)==0 ? 1 : 0) : 0
+}
+#SkeletiUpdate(action:#u8,delay:#u8,i:#u16,j:#u16,frame:#u8);
+&skeleti_move(action:#u8,i:#u16,j:#u16,direction:#u8,clock:#u8) {
+    ni:#u16=direction==1 ? i+64 : (direction==2 ? i-64 : i);
+    nj:#u16=direction==3 ? j+64 : (direction==4 ? j-64 : j);
+    variant:#u8=direction==1 ? (#u8)2 : (direction==2 ? (#u8)1 : direction);
+    (#SkeletiUpdate(action,0,ni,nj,variant*2+((clock&8)!=0 ? 0 : 1)))
+}
+[[c_binding(skeleti_move,case0,8,exclusive)]]
+[[c_binding(skeleti_wait,case1,16,exclusive)]]
+&^skeleti_update(action:#u8,delay:#u8,reset:#u8,choice:#u8,wait:#u8,
+    i:#u16,j:#u16,ai:#u16,aj:#u16,pi:#u16,pj:#u16,clock:#u8) {
+    next=skeleti_action(action,reset);
+    // 255 means keep the pending sprite request, including an empty request.
+    idle=(#SkeletiUpdate(0,0,i,j,255));
+    delay!=0 ? #SkeletiUpdate(next,delay-1,i,j,255) : (
+    next==0 ? #SkeletiUpdate(choice&7,wait>>4,i,j,255) : (
+    next==1 ? (pi>i ? skeleti_move(next,i,j,1,clock) : idle) : (
+    next==2 ? (pi<i ? skeleti_move(next,i,j,2,clock) : idle) : (
+    next==3 ? (pj>j ? skeleti_move(next,i,j,3,clock) : idle) : (
+    next==4 ? (pj<j ? skeleti_move(next,i,j,4,clock) : idle) : (
+    // Explicit wrapping retains the MSX's 16-bit home-distance comparison.
+    next==5 ? (ai>(#u16)(i+512) ? skeleti_move(next,i,j,1,clock) : (
+               ai<(#u16)(i-512) ? skeleti_move(next,i,j,2,clock) : idle)) : (
+    next==6 ? (aj>(#u16)(j+512) ? skeleti_move(next,i,j,3,clock) : (
+               aj<(#u16)(j-512) ? skeleti_move(next,i,j,4,clock) : idle)) :
+    skeleti_move(0,i,j,0,clock))))))))
+}

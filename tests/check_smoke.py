@@ -10,8 +10,15 @@ import subprocess
 ROOT = Path(__file__).resolve().parents[1]
 parser = argparse.ArgumentParser(description=__doc__)
 parser.add_argument("--build-root", default="build")
-BUILD = ROOT / parser.parse_args().build_root
-OUTPUT = BUILD / "smoke"
+parser.add_argument("--msx-only", action="store_true", help="Skip the SDL run for target profiling")
+parser.add_argument("--speed", type=int, choices=(100, 1000), default=100,
+                    help="openMSX speed percentage; timings use emulated time")
+parser.add_argument("--report-dir", default="smoke")
+parser.add_argument("--stack-detail", action="store_true",
+                    help="Capture PC, physical banks, registers and stack bytes at the deepest write")
+args = parser.parse_args()
+BUILD = ROOT / args.build_root
+OUTPUT = BUILD / args.report_dir
 OUTPUT.mkdir(parents=True, exist_ok=True)
 results = {}
 
@@ -51,10 +58,11 @@ for variant in ("reference", "vexel"):
     profile = BUILD / (variant + "-smoke")
     env = dict(os.environ, SDL_VIDEODRIVER="dummy", SDL_AUDIODRIVER="dummy",
                OPENMSX_USER_DATA=str(OUTPUT / ("openmsx-" + variant)))
-    host = subprocess.run([str(profile / "linux/weiss")], cwd=ROOT, env=env,
-                          capture_output=True, text=True, timeout=180)
-    (OUTPUT / (variant + "-linux.log")).write_text(host.stdout + host.stderr)
-    assert host.returncode == 0 and "EDW_SMOKE_OK" in host.stdout, host.stdout + host.stderr
+    if not args.msx_only:
+        host = subprocess.run([str(profile / "linux/weiss")], cwd=ROOT, env=env,
+                              capture_output=True, text=True, timeout=180)
+        (OUTPUT / (variant + "-linux.log")).write_text(host.stdout + host.stderr)
+        assert host.returncode == 0 and "EDW_SMOKE_OK" in host.stdout, host.stdout + host.stderr
     rom = profile / "msx/weiss.rom"
     symbols = {name: int(address, 16) for name, address in re.findall(
         r"(\w+): equ ([0-9A-Fa-f]+)h", Path(str(rom) + ".sym").read_text())}
@@ -82,8 +90,31 @@ for variant in ("reference", "vexel"):
         (OUTPUT / f"{variant}-service-{i}.png").write_bytes(b"")
         (OUTPUT / f"{variant}-service-{i}.bin").write_bytes(b"")
     script = OUTPUT / (variant + "-quest.tcl")
+    stack_setup = ""
+    stack_capture = ""
+    stack_report = ""
+    if args.stack_detail:
+        stack_setup = '''set physical [dict create 0 0 1 1 2 2 3 3]
+set stack_detail {}
+foreach {address page} {0x5000 0 0x7000 1 0x9000 2 0xb000 3} {
+    debug set_watchpoint write_mem $address {} "dict set physical $page \\$::wp_last_value"
+}
+'''
+        # The watchpoint fires during the write, so include its pending byte.
+        stack_capture = f'''
+                set bytes [debug read_block memory $low [expr {{0xf380-$low}}]]
+                set bytes [string replace $bytes 0 0 [binary format c $::wp_last_value]]
+                set stack_detail [list [reg PC] [reg SP] [reg IX] [reg IY] \
+                    [list [dict get $physical 0] [dict get $physical 1] [dict get $physical 2] [dict get $physical 3]] \
+                    [debug read memory {capture}] [binary encode hex $bytes]]
+'''
+        stack_report = '''
+        foreach name {pc sp ix iy banks checkpoint bytes} value $stack_detail {
+            puts $f "stack_$name=$value"
+        }
+'''
     script.write_text(f"""set throttle on
-set speed 100
+set speed {args.speed}
 set maxframeskip 0
 set renderer SDL
 set low 65535
@@ -102,6 +133,7 @@ set world_restored 0
 set ghost_begin 0
 set ghost_active_us 0
 set ghost_skipped_us 0
+{stack_setup}
 proc check_background {{}} {{
     global background_ok
     if {{([debug read {{VDP regs}} 7] & 15) != 1 ||
@@ -138,7 +170,10 @@ debug set_watchpoint write_mem {status} {{}} {{
         set entry [reg SP]
         set low $entry
         debug set_watchpoint write_mem {{0xf104 0xf37f}} {{}} {{
-            if {{$::wp_last_address < $low}} {{set low $::wp_last_address}}
+            if {{$::wp_last_address < $low}} {{
+                set low $::wp_last_address
+                {stack_capture}
+            }}
         }}
     }}
     if {{$::wp_last_value == 3 || $::wp_last_value == 128}} {{
@@ -159,6 +194,7 @@ debug set_watchpoint write_mem {status} {{}} {{
         puts $f "entry_sp=$entry"
         puts $f "lowest_stack_write=$low"
         puts $f "additional_stack_bytes=[expr {{$entry - $low}}]"
+        {stack_report}
         close $f
         exit
     }}
@@ -238,6 +274,11 @@ after time 180 {{
     data = report.read_text()
     assert result.returncode == 0 and "status=3\n" in data, data + result.stderr
     values = dict(line.split("=", 1) for line in data.splitlines())
+    if args.stack_detail:
+        assert {"stack_pc", "stack_sp", "stack_ix", "stack_iy", "stack_banks",
+                "stack_checkpoint", "stack_bytes"} <= values.keys(), values
+        assert len(bytes.fromhex(values["stack_bytes"])) == 0xf380 - int(values["lowest_stack_write"])
+        assert len(values["stack_banks"].split()) == 4
     assert values["dialogues"] == "4", values
     assert values["pear_captures"] == "9", values
     assert values["menus_closed"] == "24" and values["map_restored"] == "1", \
@@ -247,7 +288,7 @@ after time 180 {{
     assert values["small_messages"] == "12" and values["world_stage"] == "13", values
     assert values["world_map_restored"] == "1", "Small dialogue must restore both map buffers: " + str(values)
     results[variant] = values
-    print(f"{variant}: SDL and MSX full-engine quest passed; "
+    print(f"{variant}: {'MSX' if args.msx_only else 'SDL and MSX'} full-engine quest passed; "
           f"{values['additional_stack_bytes']} additional stack bytes observed")
     print(f"  Ghost callback: {float(values['ghost_active_us']):.1f} us active, "
           f"{float(values['ghost_skipped_us']):.1f} us skipped (includes trampoline/ISR)")

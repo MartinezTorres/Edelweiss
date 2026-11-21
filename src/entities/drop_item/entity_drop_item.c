@@ -4,9 +4,13 @@
 USING_MODULE(entity_drop_item_sprite, PAGE_D);
 
 #if EDW_VEXEL
-#include "vexel.h"
-USING_MODULE(drop_rules, PAGE_B);
+#include "vx_bind_drop_roll.h"
+#include "vx_bind_drop_collect.h"
+#include "vx_bind_drop_spawn.h"
+#include "vx_bind_drop_step.h"
+#include "vx_sprite_assets.h"
 #endif
+
 #ifdef EDW_SMOKE
 #include "../../../tests/quest_smoke_input.h"
 #define drop_random quest_smoke_drop_random
@@ -22,23 +26,29 @@ static void on_spawn(Entity *entity) {
     sprites[spawn_idx].patternBlackRequired = true;
     sprites[spawn_idx].patternColorRequired = true;
 	sprites[spawn_idx].overrideColors = false;
-	sprites[spawn_idx].spriteInfoSegment = MODULE_SEGMENT(entity_drop_item_sprite, PAGE_D);	
+#if !EDW_VEXEL
+	sprites[spawn_idx].spriteInfoSegment = MODULE_SEGMENT(entity_drop_item_sprite, PAGE_D);
+#endif
 
 	sprites[spawn_idx].pos = entity->pos;
 
 #if EDW_VEXEL
     uint8_t item, draw;
-    IN_MODULE(drop_rules, PAGE_B,
-        vx_drop_roll(entity->drop_probability, entity->drop_item, 256);
-        item = (uint8_t)vx_drop_roll_read(0);
-        draw = (uint8_t)vx_drop_roll_read(1);
-    );
+    VX_BIND_drop_roll_LOCAL;
+    vx_bind_drop_roll_frame.a0=entity->drop_probability;
+    vx_bind_drop_roll_frame.a1=entity->drop_item;
+    vx_bind_drop_roll_frame.a2=256;
+    vx_bind_drop_roll_run();
+    item=vx_bind_drop_roll_frame.result.v0;draw=vx_bind_drop_roll_frame.result.v1;
     if (draw) {
         uint8_t roll = (uint8_t)drop_random();
-        IN_MODULE(drop_rules, PAGE_B,
-            vx_drop_roll(entity->drop_probability, entity->drop_item, roll);
-            item = (uint8_t)vx_drop_roll_read(0);
-        );
+        /* The random source is outside frame ownership. Refill every input
+         * afterwards, even if a nested activation reused this workspace. */
+        vx_bind_drop_roll_frame.a0=entity->drop_probability;
+        vx_bind_drop_roll_frame.a1=entity->drop_item;
+        vx_bind_drop_roll_frame.a2=roll;
+        vx_bind_drop_roll_run();
+        item=vx_bind_drop_roll_frame.result.v0;
     }
     entity->drop_item = item;
 #else
@@ -75,11 +85,19 @@ static void on_spawn(Entity *entity) {
 	
 #endif
 
+#if EDW_VEXEL
+    VX_BIND_drop_spawn_LOCAL;
+    vx_bind_drop_spawn_frame.a0=entity->drop_item;vx_bind_drop_spawn_run();
+    sprites[spawn_idx].enabled=(bool)vx_bind_drop_spawn_frame.result.v0;
+    sprites[spawn_idx].spriteInfo=nullptr;
+    sprites[spawn_idx].resourceRequest=edw_drop_sprite(vx_bind_drop_spawn_frame.result.v1);
+#else
 	if (entity->drop_item == E_DROP_NOTHING) sprites[spawn_idx].enabled = false;
 	if (entity->drop_item == E_DROP_HEART) sprites[spawn_idx].spriteInfo = &drop_items_0_0;
 	if (entity->drop_item == E_DROP_1_RUPEE) sprites[spawn_idx].spriteInfo = &drop_items_1_0;
 	if (entity->drop_item == E_DROP_5_RUPEES) sprites[spawn_idx].spriteInfo = &drop_items_2_0;
 	if (entity->drop_item == E_DROP_20_RUPEES) sprites[spawn_idx].spriteInfo = &drop_items_3_0;
+#endif
 	
 	entity->animation_counter = 0;
 }
@@ -88,12 +106,27 @@ static void on_despawn(Entity *entity) {
 
 	uint8_t spawn_idx = entity->spawn_idx;
     sprites[spawn_idx].enabled = false;
+#if EDW_VEXEL
+    sprites[spawn_idx].resourceRequest=0;sprites[spawn_idx].spriteInfo=nullptr;
+#endif
 }
 
 static uint8_t on_update(Entity *entity) {
 
 	uint8_t spawn_idx = entity->spawn_idx;
 
+#if EDW_VEXEL
+    VX_BIND_drop_step_LOCAL;
+    vx_bind_drop_step_frame.a0=entity->drop_item;
+    vx_bind_drop_step_frame.a1=entity->animation_counter;
+    vx_bind_drop_step_frame.a2=state.isr_count_delta;vx_bind_drop_step_run();
+    entity->animation_counter=vx_bind_drop_step_frame.result.v1;
+    if(vx_bind_drop_step_frame.result.v2!=255)
+        sprites[spawn_idx].enabled=(bool)vx_bind_drop_step_frame.result.v2;
+    if(!vx_bind_drop_step_frame.result.v0)return false;
+    /* All result fields are consumed before collision_wolfi can reuse the
+     * shared binding workspace. Collection reads fresh engine state. */
+#else
 	if (entity->drop_item == E_DROP_NOTHING) return false;
 	
 	for (uint8_t i=0; i<state.isr_count_delta; i++) {
@@ -109,19 +142,19 @@ static uint8_t on_update(Entity *entity) {
 		}
 		entity->animation_counter++;
 	}
+#endif
 	
 	if (collision_wolfi(spawn_idx)) {
 		Entity *wolfi = &state.entities[0];
 
 #if EDW_VEXEL
-        uint8_t life, credit;
-        IN_MODULE(drop_rules, PAGE_B,
-            vx_drop_collect(entity->drop_item, wolfi->life, wolfi->maximum_life);
-            life = (uint8_t)vx_drop_collect_read(0);
-            credit = (uint8_t)vx_drop_collect_read(1);
-        );
-        wolfi->life = life;
-        state.rupees += credit;
+        VX_BIND_drop_collect_LOCAL;
+        vx_bind_drop_collect_frame.a0=entity->drop_item;
+        vx_bind_drop_collect_frame.a1=wolfi->life;
+        vx_bind_drop_collect_frame.a2=wolfi->maximum_life;
+        vx_bind_drop_collect_run();
+        wolfi->life=vx_bind_drop_collect_frame.result.v0;
+        state.rupees+=vx_bind_drop_collect_frame.result.v1;
 #else
 		if (entity->drop_item == E_DROP_HEART) { 
 			wolfi->life +=2; 
@@ -165,4 +198,8 @@ void init_drop_item(uint8_t spawn_idx) {
 void drop_smoke_update(void) {
     if (!on_update(&state.entities[ENTITY_DROP_ITEM_0])) despawn_entity(ENTITY_DROP_ITEM_0);
 }
+#endif
+
+#ifdef EDW_ENCOUNTER
+#include "../../../tests/drops_encounter.h"
 #endif

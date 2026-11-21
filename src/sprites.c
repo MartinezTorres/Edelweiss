@@ -1,4 +1,8 @@
 #include <common.h>
+#if EDW_VEXEL
+#include "vx_sprite_assets.h"
+#include "vx_sprite_assets.inc"
+#endif
 
 TSpriteStatus sprites[12];
 
@@ -29,6 +33,18 @@ static void updateSprite(uint8_t i) {
 
     // Load / update sprite pattern
 
+#if EDW_VEXEL
+    if(ts->resourceRequest) {
+        /* Borrow the existing upload fields only inside this serialized sink.
+         * The common path below clears the address before restoring page D. */
+        EdwSprite request=ts->resourceRequest;
+        ts->resourceRequest=0;
+        if(request<=EDW_SPRITE_COUNT) {
+            const EdwSpriteBinding *binding=&edw_sprite_bindings[request-1];
+            ts->spriteInfo=binding->info;ts->spriteInfoSegment=binding->segment;
+        } else ts->spriteInfo=nullptr;
+    }
+#endif
     if (ts->spriteInfo != nullptr) {
 				
 		uint8_t oldSegmentPageD = mapper_load_segment(ts->spriteInfoSegment, PAGE_D);

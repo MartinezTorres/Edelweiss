@@ -1,0 +1,78 @@
+// Scene steps publish one command. The engine consumes the result before
+// calling any sink, then resumes with fresh world state. `again` means another
+// phase of the SAME active tick, preserving the original intro fall-through.
+#SceneIntro(action:#u8,movie:#u8,counter:#u8,i:#u16,j:#u16,facing:#u8,frame:#u8,again:#u8);
+[[c_binding(scene_intro,full,8,exclusive)]]
+&^scene_intro(movie:#u8,counter:#u8,i:#u16,j:#u16) {
+    next:#u8=counter+1;
+    // Quiet montage ticks only advance the continuation. They do not need an
+    // engine command, so no choreography binding or banked effect is invoked.
+    event_tick:#u8=counter>=72 ? counter-72 : counter;
+    due:#u8=counter<=138 && (event_tick==0 || event_tick==6 || event_tick==12 ||
+        event_tick==18 || event_tick==24 || event_tick==30 || event_tick==36 ||
+        event_tick==42 || event_tick==48 || event_tick==54 || event_tick==60 || event_tick==66) ? 1 : 0;
+    movie==0 ? #SceneIntro(1,1,counter,i,j,0,255,1) :
+    (movie==1 ? (i>26112 ? #SceneIntro(8,1,next,i-64,j,3,(next&8)!=0 ? 2 : 3,0) :
+        #SceneIntro(2,2,counter,i,j,0,255,1)) :
+    (movie==2 ? (j<34816 ? #SceneIntro(8,2,next,i,j+64,2,(next&8)!=0 ? 6 : 7,0) :
+        #SceneIntro(3,3,0,i,j,3,2,1)) :
+    (movie==3 ? #SceneIntro(due!=0 ? 4 : 0,counter==210 ? 4 : 3,next,i,j,0,255,counter==210 ? 1 : 0) :
+    (movie==4 ? #SceneIntro(5,5,0,i,j,0,255,1) :
+    (movie==5 ? #SceneIntro(due!=0 ? 6 : 0,counter==210 ? 6 : 5,next,i,j,0,255,counter==210 ? 1 : 0) :
+        #SceneIntro(movie==6 ? 7 : 0,movie,counter,i,j,0,255,0))))))
+}
+// A twelve-event choreography, repeated twice. Slots name engine resources,
+// not addresses; the adapter owns bank-safe dispatch and lifetime.
+#SceneSpark(slot:#u8,i:#u8,j:#u8,initialize:#u8,statue:#u8);
+[[c_binding(scene_spark,full,8,exclusive)]]
+&^scene_spark(counter:#u8,appear:#u8) {
+    t:#u8=counter>=72 ? counter-72 : counter;
+    slot:#u8=counter>138 ? 0 : (t==0 || t==42 ? 1 : (t==6 || t==36 ? 2 :
+        (t==12 || t==48 ? 3 : (t==18 || t==54 ? 4 : (t==24 || t==60 ? 5 : (t==30 || t==66 ? 6 : 0))))));
+    (#SceneSpark(slot,t==0 || t==24 ? 97 : (t==6 || t==42 ? 101 :
+        (t==12 || t==36 ? 98 : (t==18 || t==48 || t==60 ? 99 : 100))),
+        t==0 || t==18 || t==54 ? 135 : (t==6 || t==24 || t==36 || t==48 ? 137 : 136),
+        appear!=0 && counter==0 ? 1 : 0,counter==132 ? (appear!=0 ? 1 : 2) : 0))
+}
+// Radial world reveal / death erase / death redraw. Modes 0/1/2 share geometry;
+// the reveal copies both name tables, death synchronizes through ISR requests.
+#SceneWipe(op:#u8,arg:#u8,round:#u8,step:#u8);
+[[c_binding(scene_wipe,full,1,exclusive)]]
+&^scene_wipe(mode:#u8,round:#u8,step:#u8) {
+    last:#u8=mode==0 ? 11 : 12;
+    end:#u8=step==last ? 1 : 0;
+    op:#u8=step==255 ? (#u8)0 : (step<4 ? (#u8)1 : (step==5 || step==6 ? (#u8)2 :
+        (step==7 && mode!=0 ? (#u8)4 : (mode==0 && step>=8 && step<=10 ? step-3 : (#u8)3))));
+    arg:#u8=step<2 ? step : (step==2 ? 2+round : (step==3 ? 23-round : (step==5 ? 31-round : round)));
+    (#SceneWipe(op,arg,end!=0 ? round+1 : round,end!=0 ? (round==10 ? (#u8)255 : (#u8)2) : step+1))
+}
+[[c_binding(scene_revive,full,1,exclusive)]]
+&^scene_revive(maximum:#u8)->#u8 {
+    reduced:#u8=maximum-2;
+    reduced<6 ? (#u8)6 : reduced
+}
+#SceneDoor(op:#u8,i:#u16,j:#u16,facing:#u8,frame:#u8,waits:#u8);
+[[c_binding(scene_door,full,2,exclusive)]]
+&^scene_door(exit:#u8,step:#u8,i:#u16,j:#u16,counter:#u8) {
+    limit:#u8=exit!=0 ? 16 : 6;
+    (#SceneDoor(step==0 ? 1 : (step<=limit ? 2 : 0),step==0 ? i :
+        (exit!=0 ? i+16 : i-16),exit!=0 ? j : (j+256)&65024,
+        exit!=0 ? 4 : 3,(exit!=0 ? (#u8)4 : (#u8)2)+((counter&4)!=0 ? 0 : 1),exit!=0 ? 2 : 4))
+}
+// Door migration uses signed distances. Ordinary player/intro tracking uses
+// byte distances; sharing that rule would change behavior across world edges.
+#SceneCamera(i:#u8,j:#u8,request:#u8);
+[[c_binding(scene_camera,full,2,exclusive)]]
+&^scene_camera(i:#u16,j:#u16,mi:#u8,mj:#u8,ti:#u8,tj:#u8,request:#u8) {
+    di:#i16=(#i16)(i>>8)-(#i16)mi;dj:#i16=(#i16)(j>>8)-(#i16)mj;
+    ni:#u8=di<8 && ti>0 ? mi-1 : (di>13 && ti<106 ? mi+1 : ti);
+    nj:#u8=dj<10 && tj>0 ? mj-1 : (dj>20 && tj<224 ? mj+1 : tj);
+    (#SceneCamera(ni,nj,request | (mi!=ni ? 1 : 0) | (mj!=nj ? 1 : 0)))
+}
+
+// The fourth speech follows publication of the first flower's map marker.
+#SceneBrief(text:#u8,next:#u8,marker:#u8,i:#u8,j:#u8);
+[[c_binding(scene_brief,full,1,exclusive)]]
+&^scene_brief(step:#u8) {
+    (#SceneBrief(step<5 ? step+1 : (#u8)0,step+1,step==3 ? 1 : 0,29,235))
+}

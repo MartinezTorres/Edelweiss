@@ -1,0 +1,25 @@
+// Kind: 0/arrow, 1/fire, 2/bomb. Facing follows the engine's 0/rest,1/left,2/right,3/up,4/down.
+// Ordinary gameplay supplies 0..3 ticks. Expose those cheap cases to the
+// solver; retain the full u8 elapsed domain for larger explicit updates.
+&projectile_distance(v:#i8,elapsed:#u8)->#i16 {
+    w:#i16=(#i16)v;
+    elapsed==0 ? (#i16)0 : (elapsed==1 ? w : (elapsed==2 ? w<<1 :
+        (elapsed==3 ? w+(w<<1) : w*(#i16)elapsed)))
+}
+#ProjectileSpawn(i:#u16,j:#u16,vi:#i8,vj:#i8,frame:#u8,damage:#u8);
+[[c_binding(projectile_spawn,full,1,exclusive)]]
+&^projectile_spawn(kind:#u8,facing:#u8,i:#u16,j:#u16) {
+    speed:#i16=kind==2 ? 0 : (kind==1 ? 127 : 96);
+    vi:#i16=facing==3 ? -speed : (facing==1 || facing==2 ? (#i16)0 : speed);
+    vj:#i16=facing==1 ? -speed : (facing==2 ? speed : (#i16)0);
+    (#ProjectileSpawn(i+(#u16)projectile_distance((#i8)vi,3),j+(#u16)projectile_distance((#i8)vj,3),(#i8)vi,(#i8)vj,
+        (#u8)(kind!=0 ? 255 : (facing==3 ? 0 : (facing==2 ? 1 : (facing==1 ? 3 : 2)))),2))
+}
+#ProjectileMove(i:#u16,j:#u16,counter:#u8,frame:#u8);
+[[c_binding(projectile_move,full,16,exclusive)]]
+&^projectile_move(kind:#u8,i:#u16,j:#u16,vi:#i8,vj:#i8,counter:#u8,elapsed:#u8) {
+    // Widen before multiplying: every i8 velocity times a u8 duration fits i16.
+    next:#u8=counter+elapsed;
+    (#ProjectileMove(i+(#u16)projectile_distance(vi,elapsed),j+(#u16)projectile_distance(vj,elapsed),
+        kind==1 ? next : counter,kind==1 && elapsed!=0 ? ((#u8)(next-1)>>2)&3 : (#u8)255))
+}

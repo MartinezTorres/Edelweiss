@@ -3,6 +3,7 @@
 
 USING_MODULE(entity_weapon_arrow_sprite, PAGE_D);
 
+#if !EDW_VEXEL
 static void on_spawn(Entity *entity) {
 	
 	uint8_t idx = entity->spawn_idx;
@@ -89,3 +90,17 @@ void init_weapon_bow(uint8_t idx) {
 	entity->callbacks = &callbacks;
 }
 
+
+#else
+#define EDW_PROJECTILE_FIRE 0
+#define EDW_PROJECTILE_INIT init_weapon_bow
+#define EDW_PROJECTILE_MODULE entity_weapon_bow
+#include "projectile_vexel.inc"
+#endif
+
+#ifdef EDW_ENCOUNTER
+#define EDW_PROJECTILE_TEST_KIND 0
+#define EDW_PROJECTILE_TEST encounter_arrow
+#define EDW_PROJECTILE_TEST_INIT init_weapon_bow
+#include "../../../tests/projectile_encounter.h"
+#endif

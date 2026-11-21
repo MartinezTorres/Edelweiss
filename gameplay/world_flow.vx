@@ -1,0 +1,63 @@
+::orchestration;
+// One occurrence owns the entire scan. Every read follows the preceding sink;
+// callbacks may move/despawn actors, change the map, or reuse pure bindings.
+// These handles are entity/slot indices, never native pointers.
+#FlowActor(i:#u8,j:#u8,mi:#u8,mj:#u8);
+#FlowFlags(automatic:#u8,slot:#i8);
+[[reads(engine)]] [[writes(engine)]] &!flow_yield()->#u8;
+[[reads(engine)]] &!flow_slot(slot:#u8)->#i8;
+[[reads(engine)]] &!flow_actor(entity:#u8)->#FlowActor;
+[[reads(engine)]] &!flow_flags(entity:#u8)->#FlowFlags;
+[[reads(engine)]] [[writes(engine)]] &!flow_update(entity:#u8)->#u8;
+[[reads(engine)]] [[writes(engine)]] &!flow_despawn(entity:#u8)->#u8;
+[[reads(engine)]] [[writes(engine)]] &!flow_spawn(entity:#u8)->#u8;
+[[reads(engine)]] &!flow_cycle()->#u8;
+[[c_binding(world_flow,region,64,exclusive)]]
+&^world_flow() {
+    slot:#u8=0;
+    (slot<12)!@{
+        flow_yield();
+        index:#i8=flow_slot(slot);
+        index>=0 ? {
+            entity:#u8=(#u8)index;
+            live:#u8=flow_update(entity);
+            live==0 ? {flow_despawn(entity);};
+            slot!=0 ? {
+                actor=flow_actor(entity);
+                world_window(0,actor.i,actor.j,actor.mi,actor.mj)==0 ? {flow_despawn(entity);};
+            };
+        };
+        slot+=1;
+    };
+    first:#u8=(flow_cycle()<<3)&127;
+    first<96 ? {
+        offset:#u8=0;
+        (offset<8)!@{
+            flow_yield();
+            entity:#u8=first+offset;flags=flow_flags(entity);
+            // Most slots cannot spawn. Read coordinates and solve the window
+            // only after the cheap lifecycle facts establish that demand.
+            flags.automatic!=0 && flags.slot<0 ? {
+                actor=flow_actor(entity);
+                world_window(1,actor.i,actor.j,actor.mi,actor.mj)!=0 ? {flow_spawn(entity);};
+            };
+            offset+=1;
+        };
+    };
+    (#u8)0
+}
+// Title and world occurrences never nest; either may invoke actor bindings.
+[[c_disjoint(world_flow,title_flow)]] flow_lifetimes=0;
+[[c_binding(title_flow,region,8,exclusive)]]
+&^title_flow() {
+    slot:#u8=0;
+    (slot<12)!@{
+        index:#i8=flow_slot(slot);
+        index>=0 ? {
+            entity:#u8=(#u8)index;
+            flow_update(entity)==0 ? {flow_despawn(entity);};
+        };
+        slot+=1;
+    };
+    (#u8)0
+}

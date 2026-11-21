@@ -1,0 +1,12 @@
+melee_small_sprite_module="entity_weapon_slash_small_sprite";
+melee_small_sprite_frames=(
+    "weapon_slash_small_0_0","weapon_slash_small_0_1","weapon_slash_small_0_2","weapon_slash_small_0_3",
+    "weapon_slash_small_1_0","weapon_slash_small_1_3","weapon_slash_small_2_0","weapon_slash_small_2_3",
+    "weapon_slash_small_3_0","weapon_slash_small_3_1","weapon_slash_small_3_2","weapon_slash_small_3_3"
+);
+melee_large_sprite_module="entity_weapon_slash_large_sprite";
+melee_large_sprite_frames=(
+    "weapon_slash_large_0_0","weapon_slash_large_0_1","weapon_slash_large_0_2","weapon_slash_large_0_3",
+    "weapon_slash_large_1_0","weapon_slash_large_1_3","weapon_slash_large_2_0","weapon_slash_large_2_3",
+    "weapon_slash_large_3_0","weapon_slash_large_3_1","weapon_slash_large_3_2","weapon_slash_large_3_3"
+);

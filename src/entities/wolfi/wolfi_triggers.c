@@ -1,4 +1,5 @@
 #include <common.h>
+#include <gameplay/player_sprite.h>
 
 #include <entities/wolfi/entity_wolfi_sprite.h>
 
@@ -47,7 +48,7 @@ static void hole_warp_to(uint8_t i, uint8_t j) {
 	sprites[spawn_idx].pos.j = wolfi->pos.j;
 
 	wolfi->orientation = E_UP;
-	sprites[spawn_idx].spriteInfo = (wolfi->animation_counter & 0x04? &wolfi_1_0 : &wolfi_1_1) ;
+	player_sprite(spawn_idx,wolfi->animation_counter & 0x04 ? 2 : 3);
 	for (uint8_t k=0; k<6; k++) {
 		wolfi->pos.i -= 16;
 		sprites[spawn_idx].pos.i = wolfi->pos.i;
@@ -83,7 +84,7 @@ static void hole_warp_to(uint8_t i, uint8_t j) {
 	} while (state.request_scroll_update);
 
 	wolfi->orientation = E_DOWN;
-	sprites[spawn_idx].spriteInfo = (wolfi->animation_counter & 0x04? &wolfi_2_0 : &wolfi_2_1);
+	player_sprite(spawn_idx,wolfi->animation_counter & 0x04 ? 4 : 5);
 	sprites[spawn_idx].enabled = true;
 
 	for (uint8_t k=0; k<6; k++) {

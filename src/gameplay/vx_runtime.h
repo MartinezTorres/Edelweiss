@@ -13,7 +13,10 @@
 #define VX_RESIDENT
 #endif
 void vx_trap(uint8_t reason) VX_ABI VX_RESIDENT;
+uint32_t vx_mul(uint32_t a, uint32_t b) VX_ABI VX_RESIDENT;
 int32_t vx_signed(uint32_t value, uint8_t bits) VX_ABI VX_RESIDENT;
+uint32_t vx_divmod(uint32_t a, uint32_t b, uint8_t bits,
+                   uint8_t is_signed, uint8_t remainder) VX_ABI VX_RESIDENT;
 uint32_t vx_shift(uint32_t a, uint32_t count, uint8_t bits,
                   uint8_t right, uint8_t is_signed) VX_ABI VX_RESIDENT;
 #endif

@@ -1,0 +1,70 @@
+// Whole-world scheduling facts. Entity callbacks and VRAM writes are sinks;
+// this source decides cadence, scanning and residency independently of them.
+#WorldFrame(elapsed:#u8,cycle:#u8);
+[[c_binding(world_frame,full,64,exclusive)]]
+&^world_frame(now:#u8,previous:#u8,cycle:#u8) {
+    elapsed:#u8=now-previous;next:#u8=cycle+1;
+    (#WorldFrame(elapsed>3 ? (#u8)1 : elapsed,next))
+}
+// The caller selects a certified branch: resident actors need only the outer
+// band; spawning also excludes the visible rectangle. No unused result work.
+[[c_binding(world_keep,case1,128,exclusive)]]
+[[c_binding(world_spawn,case0,64,exclusive)]]
+&^world_window(spawning:#u8,i:#u8,j:#u8,mi:#u8,mj:#u8)->#u8 {
+    di:#u8=i-mi;dj:#u8=j-mj;
+    keep:#u8=(#u8)(di+3)<30 && (#u8)(dj+3)<38 ? 1 : 0;
+    spawning==0 ? keep : (keep!=0 && (di>=24 || dj>=32) ? (#u8)1 : (#u8)0)
+}
+// Hidden player samples advance the trail even when position is unchanged.
+[[c_binding(world_follow,full,32,exclusive)]]
+&^world_follow(i:#u16,j:#u16,oldi:#u16,oldj:#u16,visible:#u8,oldvisible:#u8)->#u8 {
+    i!=oldi || j!=oldj || visible!=oldvisible || visible==0 ? 1 : 0
+}
+#WorldScroll(i:#u8,j:#u8,row:#u8,col:#u8,second:#u8,transfer:#u8);
+[[c_binding(world_scroll,full,16,exclusive)]]
+&^world_scroll(i:#u8,j:#u8,ti:#u8,tj:#u8,transfer:#u8) {
+    (#WorldScroll(ti<i ? i-1 : (ti>i ? i+1 : i),tj<j ? j-1 : (tj>j ? j+1 : j),
+        ti<i ? 0 : (ti>i ? 7 : 255),tj<j ? 0 : (tj>j ? 31 : 255),
+        ti<i ? 255 : (ti>i ? 1 : 0),ti!=i || tj!=j ? (#u8)1 : transfer))
+}
+
+// Ordered initial world population. Kinds are engine capabilities, slots are
+// offsets within a family; no address or mapper bank escapes into gameplay.
+#WorldSeed(kind:#u8,slot:#u8,i:#u8,j:#u8);
+[[c_binding(world_seed,full,1,exclusive)]]
+&^world_seed(index:#u8) {
+    kind:#u8=index==0 ? 1 : (index==1 ? 2 : (index<4 ? 3 : (index<6 ? 4 :
+        (index<10 ? 5 : (index<12 ? 6 : (index<16 ? 7 : (index==16 ? 8 : 0)))))));
+    slot:#u8=index<2 || index>=16 ? (#u8)0 : (index<4 ? index-2 : (index<6 ? index-4 :
+        (index<10 ? index-6 : (index<12 ? index-10 : index-12))));
+    (#WorldSeed(kind,slot,index==0 || index==12 || index==15 ? 120 :
+        (index==6 ? 104 : (index==7 ? 106 : (index==8 ? 103 : (index==9 ? 108 :
+        (index==10 ? 86 : (index==11 ? 88 : (index==13 ? 124 : (index==14 ? 122 : (index==16 ? 118 : 0))))))))),
+        index==0 ? 126 : (index==6 ? 24 : (index==7 ? 40 : (index==8 ? 56 : (index==9 ? 20 :
+        (index==10 ? 22 : (index==11 ? 26 : (index==12 ? 8 : (index==13 ? 30 :
+        (index==14 ? 46 : (index==15 ? 64 : (index==16 ? 88 : 0)))))))))))))
+}
+
+// New-game content and camera policy. The engine clears storage and applies
+// these values; it does not choose inventory, flower or map-patch locations.
+#WorldStart(coins:#u8,weapon:#u8,flower_i:#u8,flower_j:#u8,mi:#u8,mj:#u8,
+            patch_i:#u16,patch_next_i:#u16,patch_j:#u16,patch_value:#u8);
+[[c_binding(world_start,full,1,exclusive)]]
+&^world_start(i:#u16,j:#u16) {
+    row:#u8=(#u8)(((#u16)(i+128)>>8)-11);
+    col:#u8=(#u8)(((#u16)(j+128)>>8)-16);
+    (#WorldStart(0,0,99,137,row>106 ? (#u8)106 : row,col,25088,25600,34816,1))
+}
+
+// Equipment initialization is an ordered capability stream: 0 finish,
+// 1 melee, 2 bomb, 3 despawn projectile, 4 fire, 5 arrow. Slots are family
+// offsets. The C adapter supplies addresses and mapper transitions only.
+#WeaponSetup(kind:#u8,slot:#u8);
+[[c_binding(weapon_setup,full,1,exclusive)]]
+&^weapon_setup(weapon:#u8,step:#u8) {
+    projectile:#u8=weapon==5 || weapon==6 ? 1 : 0;
+    kind:#u8=weapon==4 ? (step<2 ? 2 : 0) :
+        (projectile!=0 ? (step<2 ? 3 : (step<4 ? (weapon==5 ? 4 : 5) : 0)) :
+        (step==0 ? 1 : 0));
+    (#WeaponSetup(kind,step&1))
+}

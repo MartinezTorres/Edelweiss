@@ -1,0 +1,69 @@
+// Title presentation is a resumable command stream. Rendering, waiting and
+// mapper access are sinks; every phase, loop bound and skip is source policy.
+// Commands: 0 finish, 1 wait, 2 row, 3 column, 4 copyPN1, 5 copyPN0,
+// 6 free, 7 free0, 8 free1, 9 free2, 10 origin, 11 display, 12 border,
+// 13 enable sparks, 14 tile, 15 attract mode, 16 no-op.
+#Title(op:#u8,a:#u8,b:#u8,phase:#u8,round:#u8,step:#u8);
+&title_open(step:#u8)->#Title {
+    (#Title(step==(#u8)0 ? (#u8)10 : (step==(#u8)1 ? (#u8)11 : (#u8)1),step==(#u8)0 ? (#u8)24 : (#u8)0,(#u8)0,
+        step==(#u8)2 ? (#u8)1 : (#u8)0,(#u8)0,step==(#u8)2 ? (#u8)0 : step+(#u8)1))
+}
+&title_reveal(round:#u8,step:#u8)->#Title {
+    op:#u8=step<(#u8)2 ? (#u8)2 : (step==(#u8)3 || step==(#u8)4 ? (#u8)3 :
+        (step==(#u8)6 ? (#u8)4 : (step==(#u8)7 ? (#u8)5 : (step==(#u8)8 ? (#u8)6 : (#u8)1))));
+    arg:#u8=step==(#u8)0 || step==(#u8)4 ? round : (step==(#u8)1 ? (#u8)23-round : (#u8)31-round);
+    (#Title(op,arg,(#u8)0,step==(#u8)9 && round==(#u8)11 ? (#u8)2 : (#u8)1,
+        step==(#u8)9 ? round+(#u8)1 : round,step==(#u8)9 ? (#u8)0 : step+(#u8)1))
+}
+&title_pan(round:#u8,step:#u8)->#Title {
+    column:#u8=step==(#u8)3 || step==(#u8)4 || step==(#u8)6 || step==(#u8)7 || step==(#u8)9 || step==(#u8)10 ? (#u8)1 : (#u8)0;
+    op:#u8=step==(#u8)0 ? (#u8)10 : (step==(#u8)2 ? (#u8)9 : (column!=(#u8)0 ? (#u8)3 :
+        (step==(#u8)11 ? (#u8)7 : (step==(#u8)13 ? (#u8)4 : (step==(#u8)14 ? (#u8)5 : (step==(#u8)15 ? (#u8)8 :
+        (step==(#u8)16 ? (round==(#u8)30 ? (#u8)12 : (#u8)16) : (#u8)1)))))));
+    arg:#u8=step==(#u8)0 ? (#u8)24+(round>>(#u8)3)*(#u8)24 :
+        (step==(#u8)16 ? (#u8)14 : (step<(#u8)5 ? step-(#u8)2 : (step<(#u8)8 ? step-(#u8)3 : step-(#u8)4)));
+    (#Title(op,arg,step==(#u8)0 ? (round&(#u8)7)<<(#u8)5 : (#u8)0,step==(#u8)16 && round==(#u8)31 ? (#u8)4 : (#u8)3,
+        step==(#u8)16 ? (round==(#u8)31 ? (#u8)0 : round+(#u8)1) : round,step==(#u8)16 ? (#u8)0 : step+(#u8)1))
+}
+&title_stars(step:#u8)->#Title {
+    op:#u8=step==(#u8)0 ? (#u8)1 : (step==(#u8)1 ? (#u8)6 : (step==(#u8)2 ? (#u8)12 : (step==(#u8)3 ? (#u8)13 : (#u8)10)));
+    (#Title(op,step==(#u8)2 ? (#u8)15 : (#u8)0,step==(#u8)4 ? (#u8)32 : (#u8)0,step==(#u8)4 ? (#u8)5 : (#u8)4,(#u8)0,step==(#u8)4 ? (#u8)0 : step+(#u8)1))
+}
+&title_hold(round:#u8,step:#u8)->#Title {
+    // Exact division by three for a byte, expressed using supported integers.
+    k:#u8=step-(#u8)1;group:#u8=(#u8)(((#u16)k*(#u8)171)>>(#u8)9);part:#u8=k-group*(#u8)3;
+    op:#u8=step==(#u8)0 ? (#u8)10 : (step<(#u8)46 ? (part==(#u8)0 ? (#u8)1 : (#u8)3) :
+        (step>=(#u8)47 && step<=(#u8)49 ? (#u8)14 : (step==(#u8)51 ? (#u8)4 : (step==(#u8)52 ? (#u8)5 :
+        (step==(#u8)53 ? (#u8)12 : (step==(#u8)55 ? (#u8)7 : (step==(#u8)57 ? (#u8)8 : (step==(#u8)59 ? (#u8)9 : (#u8)1))))))));
+    arg:#u8=step==(#u8)0 ? (#u8)0 : (step==(#u8)53 ? (#u8)1 : (step<(#u8)46 ? group*(#u8)2+part :
+        (step==(#u8)47 ? (#u8)22 : (step==(#u8)48 ? (#u8)16 : (#u8)23))));
+    (#Title(op,arg,step==(#u8)0 ? ((round&(#u8)1)!=(#u8)0 ? (#u8)32 : (#u8)0) : (#u8)31,
+        step==(#u8)75 && round==(#u8)47 ? (#u8)6 : (#u8)5,step==(#u8)75 ? round+(#u8)1 : round,step==(#u8)75 ? (#u8)0 : step+(#u8)1))
+}
+[[c_binding(title_step,full,(#u8)1,exclusive)]]
+&^title_step(phase:#u8,round:#u8,step:#u8,cancel:#u8) {
+    cancel!=(#u8)0 ? #Title((#u8)0,(#u8)0,(#u8)0,phase,round,step) :
+    (phase==(#u8)0 ? title_open(step) : (phase==(#u8)1 ? title_reveal(round,step) :
+    (phase==(#u8)2 ? #Title((#u8)11,(#u8)1,(#u8)0,(#u8)3,(#u8)0,(#u8)0) : (phase==(#u8)3 ? title_pan(round,step) :
+    (phase==(#u8)4 ? title_stars(step) : (phase==(#u8)5 ? title_hold(round,step) :
+        #Title(phase==(#u8)6 ? (#u8)15 : (#u8)0,(#u8)9,(#u8)0,(#u8)7,round,step)))))))
+}
+#TitleSeed(accept:#u8,position:#u16,kind:#u8);
+[[c_binding(title_seed,full,(#u8)1,exclusive)]]
+&^title_seed(slot:#u8,axis:#u8,draw:#u8) {
+    (#TitleSeed(draw<=(axis==(#u8)0 ? (#u8)224 : (#u8)80) ? (#u8)1 : (#u8)0,
+        ((#u16)draw+(axis==(#u8)0 ? (#u16)(#u8)16 : (#u16)(#u8)40))<<(#u8)5,(#u8)1+(slot&(#u8)1)))
+}
+#TitleFrame(clock:#u8,spawn:#u8,skip:#u8);
+[[c_binding(title_frame,full,(#u8)8,exclusive)]]
+&^title_frame(clock:#u8,keys:#u8) {
+    count:#u8=clock==(#u8)192 ? (#u8)0 : clock;
+    (#TitleFrame(count,(count&(#u8)15)==(#u8)0 ? count>>(#u8)4 : (#u8)255,keys!=(#u8)255 ? (#u8)1 : (#u8)0))
+}
+#Attract(ticks:#u8,poll:#u8,keys:#u8,quit:#u8);
+[[c_binding(title_attract,full,(#u8)1,exclusive)]]
+&^title_attract(ticks:#u8,clock:#u8,keys:#u8) {
+    due:#u8=ticks!=(#u8)0 && clock==(#u8)0 ? (#u8)1 : (#u8)0;
+    next:#u8=due!=(#u8)0 ? (keys!=(#u8)255 ? (#u8)(#u8)0 : ticks-(#u8)1) : ticks;
+    (#Attract(next,due,due!=(#u8)0 ? (#u8)(#u8)254 : keys,due!=(#u8)0 && next==(#u8)0 ? (#u8)1 : (#u8)0))
+}

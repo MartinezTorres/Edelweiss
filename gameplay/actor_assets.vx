@@ -1,0 +1,14 @@
+spark_sprite_module="entity_spark_sprite";
+spark_sprite_frames=("spark_0_0","spark_0_1","spark_0_2","spark_1_0","spark_1_1","spark_1_2","spark_2_0","spark_2_1","spark_2_2","spark_3_0","spark_3_1","spark_3_2");
+explosion_sprite_module="entity_explosion_sprite";
+explosion_sprite_frames=("explosion_0_0","explosion_1_0","explosion_2_0","explosion_3_0");
+ball_sprite_module="enemy_ball_sprite";
+ball_sprite_frames=("enemy_ball_0_0","enemy_ball_1_0","enemy_ball_2_0","enemy_ball_3_0");
+player_sprite_module="entity_wolfi_sprite";
+player_sprite_frames=("wolfi_0_0","wolfi_0_1","wolfi_1_0","wolfi_1_1","wolfi_2_0","wolfi_2_1","wolfi_3_0","wolfi_3_1","wolfi_4_0","wolfi_4_1");
+drop_sprite_module="entity_drop_item_sprite";
+drop_sprite_frames=("drop_items_0_0","drop_items_1_0","drop_items_2_0","drop_items_3_0");
+fairy_sprite_module="entity_fairy_sprite";
+fairy_sprite_frames=("fairy_0_0","fairy_1_0");
+lumberjack_sprite_module="entity_npcs_sprites";
+lumberjack_sprite_frames=("npcs_0_0","npcs_0_1","npcs_0_2","npcs_0_3");

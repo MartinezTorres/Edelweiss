@@ -12,6 +12,7 @@ void vx_trap(uint8_t reason) { (void)reason; assert(0); }
 struct T_State state;
 T_Map map;
 TSpriteStatus sprites[12];
+const TSpriteInterlaced wolfi_0_0={0},wolfi_0_1={0},wolfi_3_0={0},wolfi_3_1={0},wolfi_4_0={0},wolfi_4_1={0};
 const TSpriteInterlaced wolfi_1_0={0},wolfi_1_1={0},wolfi_2_0={0},wolfi_2_1={0};
 static uint8_t center,left,right,reads,messages,migrations,towns,boards,initial_visits;
 static unsigned frames;

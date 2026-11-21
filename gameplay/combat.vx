@@ -1,0 +1,49 @@
+// Contact is an observation; only an accepted hit starts a reaction.
+// Units: positions are 1/32 pixel, timers are elapsed display ticks.
+// Six ticks of three pixels gives a short, 18-pixel cardinal shove.
+combat_push_ticks:#u8=6;
+combat_immunity_ticks:#u8=60;
+#CombatHit(accepted:#u8,life:#u8,immunity:#u8,ticks:#u8,di:#i8,dj:#i8);
+[[c_binding(combat_hit,full,4,exclusive)]]
+&^combat_hit(life:#u8,immunity:#u8,damage:#u8,di:#i16,dj:#i16,facing:#u8) {
+    life!=0 && immunity==0 && damage!=0 ? {
+        ai:#u16=di<0 ? (#u16)(-di) : (#u16)di;
+        aj:#u16=dj<0 ? (#u16)(-dj) : (#u16)dj;
+        // Facing breaks equal-axis ties and exact overlap. Otherwise the
+        // dominant axis points away from the actual aggressor position.
+        horizontal=aj>ai || (aj==ai && (facing==1 || facing==2));
+        vi:#i8=di<0 || (di==0 && facing==3) ? -32 : 32;
+        vj:#i8=dj<0 || (dj==0 && facing==1) ? -32 : 32;
+        (#CombatHit(1,life>damage ? life-damage : (#u8)0,combat_immunity_ticks,
+            combat_push_ticks,horizontal ? (#i8)0 : vi,horizontal ? vj : (#i8)0))
+    } : #CombatHit(0,life,immunity,0,0,0)
+}
+
+// A reaction owns the whole update, including its final tick. The engine
+// performs the requested one-pixel steps, stopping at the first obstacle.
+// A wall cancels displacement, not the remaining recovery time.
+// visible: 0 = hide, 1 = show, 2 = preserve the engine's visibility.
+#CombatTick(status:#u8,immunity:#u8,ticks:#u8,steps:#u8,visible:#u8);
+[[c_binding(combat_tick,full,8,exclusive)]]
+[[c_binding(combat_idle,case1,64,exclusive)]]
+&^combat_tick(life:#u8,immunity:#u8,ticks:#u8,elapsed:#u8) {
+    // This constant case can finish in the resident caller, before mapping
+    // the reaction bank. It needs neither elapsed ticks nor movement inputs.
+    life!=0 && immunity==0 && ticks==0 ? #CombatTick(1,0,0,0,2) : {
+    remaining:#u8=ticks>combat_push_ticks ? combat_push_ticks : ticks;
+    spent:#u8=elapsed<remaining ? elapsed : remaining;
+    immune:#u8=immunity>elapsed ? immunity-elapsed : (#u8)0;
+    life==0 ? #CombatTick(0,0,0,0,0) :
+        #CombatTick(remaining!=0 ? 2 : 1,immune,remaining-spent,
+            spent+spent+spent,immunity==0 ? 2 : ((immune&4)==0 ? 1 : 0))
+    }
+}
+
+// 0 = no free effect entity, 1/2 = first/second slot. Allocation itself
+// remains an engine effect and may fail when all visible slots are occupied.
+#CombatDeath(explosion:#u8,drop:#u8);
+[[c_binding(combat_death,full,1,exclusive)]]
+&^combat_death(explosion0:#u8,explosion1:#u8,drop0:#u8,drop1:#u8) {
+    (#CombatDeath(explosion0!=0 ? 1 : (explosion1!=0 ? 2 : 0),
+        drop0!=0 ? 1 : (drop1!=0 ? 2 : 0)))
+}

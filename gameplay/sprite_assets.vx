@@ -1,0 +1,26 @@
+// One handle space; zero is reserved for no pending request. Family order
+// belongs to this build, not to a save-file or external asset ABI.
+::ghost_assets;
+::skeleti_assets;
+::melee_assets;
+::projectile_assets;
+::actor_assets;
+sprite_families=("ghost","skeleti","melee_small","melee_large","arrow","fire","bomb","spark","explosion","ball","player","drop","fairy","lumberjack");
+
+// Build facts and gameplay entries belong to the same closed program.
+^sprite_catalog=(
+ ("ghost",ghost_sprite_module,ghost_sprite_frames),
+ ("skeleti",skeleti_sprite_module,skeleti_sprite_frames),
+ ("melee_small",melee_small_sprite_module,melee_small_sprite_frames),
+ ("melee_large",melee_large_sprite_module,melee_large_sprite_frames),
+ ("arrow",arrow_sprite_module,arrow_sprite_frames),
+ ("fire",fire_sprite_module,fire_sprite_frames),
+ ("bomb",bomb_sprite_module,bomb_sprite_frames),
+ ("spark",spark_sprite_module,spark_sprite_frames),
+ ("explosion",explosion_sprite_module,explosion_sprite_frames),
+ ("ball",ball_sprite_module,ball_sprite_frames),
+ ("player",player_sprite_module,player_sprite_frames),
+ ("drop",drop_sprite_module,drop_sprite_frames),
+ ("fairy",fairy_sprite_module,fairy_sprite_frames),
+ ("lumberjack",lumberjack_sprite_module,lumberjack_sprite_frames)
+);

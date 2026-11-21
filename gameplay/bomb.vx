@@ -1,0 +1,30 @@
+// Advance through pure state changes, stopping at each observable map query.
+// Frame 255 and color 0 mean keep the pending frame / current color.
+#BombStep(spent:#u8,counter:#u8,live:#u8,frame:#u8,color:#u8,move:#u8,di:#i16,dj:#i16,query:#u8);
+[[c_binding(bomb_step,full,16,exclusive)]]
+&^bomb_step(counter:#u8,elapsed:#u8) {
+    elapsed==0 ? #BombStep(0,counter,1,255,0,0,0,0,0) : (
+    counter<186 ? {
+        room:#u8=186-counter;
+        spent:#u8=elapsed<room ? elapsed : room;
+        next:#u8=counter+spent;
+        last:#u8=next-1;
+        blink:#u8=last<180 ? last : (#u8)179;
+        (#BombStep(spent,next,1,(#u8)(last>=180 ? 1 : (counter<120 ? 0 : 255)),
+            last>=120 && counter<180 ? ((blink&8)!=0 ? 14 : 9) : 0,0,0,0,0))
+    } : (counter<190 ? #BombStep(1,counter+1,1,2,0,0,0,0,1) : (
+    counter<222 ? {
+        room:#u8=222-counter;
+        spent:#u8=elapsed<room ? elapsed : room;
+        next:#u8=counter+spent;
+        last:#u8=next-1;
+        di:#i16=last<194 ? -150 : (last<198 ? 70 : (last<202 ? -102 : (last<206 ? 134 :
+            (last<210 ? -86 : (last<214 ? 118 : (last<218 ? -150 : 102))))));
+        dj:#i16=last<194 ? -104 : (last<198 ? -120 : (last<202 ? 72 : (last<206 ? 152 :
+            (last<210 ? -104 : (last<214 ? -88 : (last<218 ? 72 : 136))))));
+        (#BombStep(spent,next,1,(#u8)(counter<210 && next>206 ? 3 : 255),0,1,di,dj,0))
+    } : #BombStep(0,counter,0,255,0,0,0,0,0))))
+}
+// Observed tile kind: 0/other, 1/sand rock, 2/grave rock, 3/mixed rock, 4/covered door.
+[[c_binding(bomb_cut,full,1,exclusive)]]
+&^bomb_cut(kind:#u8)->#u8 { kind>=1 && kind<=4 ? 1 : 0 }

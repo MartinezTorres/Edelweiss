@@ -1,0 +1,28 @@
+// Each horizontal leg stops at the map observation. A left turn can enter
+// the right leg in this same update, as in the original patrol.
+#BallTick(run:#u8,move:#u8,counter:#u8,frame:#u8);
+[[c_binding(ball_tick,full,32,exclusive)]]
+&^ball_tick(cycle:#u8,slot:#u8,counter:#u8,facing:#u8) {
+    ((cycle+slot)&1)!=0 ? #BallTick(0,0,counter,255) :
+    #BallTick(1,counter==0 ? 1 : 0,counter==0 ? counter : counter-1,
+        counter==1 ? (facing==1 ? 2 : 3) : 255)
+}
+#BallLeg(query:#u8,j:#u16,facing:#u8,counter:#u8);
+[[c_binding(ball_leg,full,16,exclusive)]]
+&^ball_leg(leg:#u8,facing:#u8,j:#u16,anchor:#u16,counter:#u8) {
+    facing!=leg ? #BallLeg(0,j,facing,counter) : {
+        next:#u16=leg==1 ? j-64 : j+64;
+        turn=(#i16)(leg==1 ? anchor-next : next-anchor)>2048;
+        (#BallLeg(1,next,turn ? (leg==1 ? (#u8)2 : (#u8)1) : facing,turn ? (#u8)30 : counter))
+    }
+}
+#BallReply(i:#u16,j:#u16,facing:#u8,counter:#u8);
+[[c_binding(ball_reply,full,16,exclusive)]]
+&^ball_reply(leg:#u8,blocked:#u8,i:#u16,j:#u16,old_i:#u16,old_j:#u16,facing:#u8,counter:#u8) {
+    blocked!=0 ? #BallReply(old_i,old_j,leg==1 ? 2 : 1,30) : #BallReply(i,j,facing,counter)
+}
+[[c_binding(ball_home,full,16,exclusive)]]
+&^ball_home(i:#u16,anchor:#u16)->#u16 {
+    next:#u16=i>(#u16)(anchor+16) ? i-16 : i;
+    next<(#u16)(anchor-16) ? next+16 : next
+}

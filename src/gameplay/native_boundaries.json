@@ -1,0 +1,23 @@
+{
+  "expansions": {
+    "flow_actor": "EDW_NATIVE_FLOW_ACTOR",
+    "flow_cycle": "EDW_NATIVE_FLOW_CYCLE",
+    "flow_flags": "EDW_NATIVE_FLOW_FLAGS",
+    "flow_slot": "EDW_NATIVE_FLOW_SLOT"
+  },
+  "preferences": {
+    "boundary_expansion.flow_actor": 0,
+    "boundary_expansion.flow_flags": 0,
+    "value_table_search.bomb_step": 0,
+    "value_scratch_reuse.scene_camera": 0,
+    "value_output_schedule.drop_step": 0,
+    "value_output_schedule.player_view": 0,
+    "value_output_schedule.projectile_spawn": 0,
+    "value_output_schedule.scene_camera": 0,
+    "value_output_schedule.scene_spark": 0,
+    "value_linear_terms.combat_tick": 0,
+    "value_rotation_helpers": 1,
+    "calculation_publication_narrow.vx_password_decode": 0,
+    "calculation_publication_reuse.vx_password_decode": 0
+  }
+}

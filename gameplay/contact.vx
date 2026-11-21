@@ -1,0 +1,16 @@
+// Contact geometry uses the legacy 1/32 pixel grid and modulo-byte distance.
+// Keep the conversion after the shift: world-edge wrapping is observable.
+&contact_axis(a:#u16,b:#u16,half:#u8)->#u8 {
+    distance:#u8=(#u8)((#u16)(a-b)>>5);
+    (#u8)(distance+half)<=(#u8)(half<<1) ? 1 : 0
+}
+[[c_binding(contact_box,full,128,exclusive)]]
+&^contact_box(i:#u16,j:#u16,wi:#u16,wj:#u16,rows:#u8,cols:#u8)->#u8 {
+    hi:#u8=(#u8)(((#u16)rows+16)>>1);
+    hj:#u8=(#u8)(((#u16)cols+16)>>1);
+    contact_axis(i,wi,hi)!=0 && contact_axis(j,wj,hj)!=0 ? 1 : 0
+}
+[[c_binding(contact_player,full,128,exclusive)]]
+&^contact_player(i:#u16,j:#u16,wi:#u16,wj:#u16)->#u8 {
+    contact_axis(i,wi,8)!=0 && contact_axis(j,wj,8)!=0 ? 1 : 0
+}

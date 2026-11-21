@@ -14,6 +14,7 @@
 #include <functional>
 #include <algorithm>
 #include <cstdint>
+#include <iomanip>
 
 namespace { // MiniLog
 	class Log {
@@ -856,7 +857,38 @@ int main(int argc, char *argv[]) {
 		    << ",\n  \"global_ram_bytes\": " << ram_ptr - 0xC000
 		    << ",\n  \"map_start\": 53248\n}\n";
 	}
-		
+    // Machine-readable placement facts retain full names and section bounds.
+    // Resource bindings validate their assumptions against the final layout.
+    {
+        std::ofstream off(romName + ".layout.json");
+        off << "{\"modules\":[";
+        bool firstModule=true;
+        for(const auto &rel:rels) {
+            if(!rel.enabled) continue;
+            if(!firstModule) off << ',';
+            firstModule=false;
+            off << "{\"name\":" << std::quoted(rel.name)
+                << ",\"page\":" << rel.page << ",\"segment\":" << rel.segment << ",\"areas\":[";
+            bool firstArea=true;
+            for(const auto &area:rel.areas) {
+                if(!area.size) continue;
+                if(!firstArea) off << ',';
+                firstArea=false;
+                off << "{\"name\":" << std::quoted(area.name) << ",\"size\":" << area.size
+                    << ",\"address\":" << area.addr << ",\"rom_offset\":" << (area.name=="_DATA"?0:area.rom_addr) << ",\"symbols\":[";
+                bool firstSymbol=true;
+                for(const auto &symbol:rel.symbols) {
+                    if(symbol.type!=REL::SYMBOL::DEF || symbol.areaName!=area.name) continue;
+                    if(!firstSymbol) off << ',';
+                    firstSymbol=false;
+                    off << "{\"name\":" << std::quoted(symbol.name) << ",\"offset\":" << symbol.addr << '}';
+                }
+                off << "]}";
+            }
+            off << "]}";
+        }
+        off << "]}\n";
+    }
     {
         printf("Using %d bytes of ram, from 0xC000 to 0x%04X.\n", int(ram_ptr-0xC000), int(ram_ptr));
     }

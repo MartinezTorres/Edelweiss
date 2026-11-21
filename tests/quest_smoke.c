@@ -3,6 +3,9 @@
 #include <common.h>
 #include "quest_smoke_input.h"
 USING_MODULE(world_smoke, PAGE_C);
+USING_MODULE(scene_smoke, PAGE_C);
+extern volatile uint8_t edw_scene_only;
+void scene_smoke(void);
 #ifndef MSX
 #include <stdlib.h>
 #endif
@@ -66,6 +69,19 @@ void quest_smoke(void) {
     edw_smoke_messages = 0;
     door_i = state.entities[0].pos.i;
     edw_smoke_status = 1;
+#ifdef LINUX
+    if(getenv("EDW_SCENES"))edw_scene_only=1;
+#endif
+    if(edw_scene_only) {
+        trampoline_page_c(MODULE_SEGMENT(scene_smoke,PAGE_C),scene_smoke);
+        if(edw_smoke_status==128)goto failed;
+        edw_smoke_status=3;
+#ifdef MSX
+        for(;;)wait_frame();
+#else
+        exit(0);
+#endif
+    }
     /* Bring the NPC to the player to exercise the real contact callback. */
     npc->pos = state.entities[ENTITY_WOLFI].pos;
     if (!spawn_entity(ENTITY_LUMBERJACK)) goto failed;

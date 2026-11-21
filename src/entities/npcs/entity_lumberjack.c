@@ -3,6 +3,8 @@
 #include <gameplay/quest.h>
 #if EDW_VEXEL
 USING_MODULE(quest, PAGE_C);
+#include "vx_bind_lumber_draw.h"
+#include "vx_sprite_assets.h"
 #endif
 
 USING_MODULE(entity_npcs_sprites, PAGE_D);
@@ -14,8 +16,13 @@ static void on_spawn(Entity *entity) {
     sprites[spawn_idx].enabled = true;
     sprites[spawn_idx].patternBlackRequired = true;
     sprites[spawn_idx].patternColorRequired = true;
+#if EDW_VEXEL
+    sprites[spawn_idx].spriteInfo=nullptr;
+    sprites[spawn_idx].resourceRequest=edw_lumberjack_sprite(0);
+#else
     sprites[spawn_idx].spriteInfoSegment = MODULE_SEGMENT(entity_npcs_sprites, PAGE_D);
     sprites[spawn_idx].spriteInfo = &npcs_0_0;
+#endif
 
 	sprites[spawn_idx].pos = entity->pos;
 }
@@ -30,6 +37,9 @@ static void on_despawn(Entity *entity) {
 		state.follower_entity_spawn_idx = 0;
 	}
     sprites[spawn_idx].enabled = false;
+#if EDW_VEXEL
+    sprites[spawn_idx].resourceRequest=0;sprites[spawn_idx].spriteInfo=nullptr;
+#endif
 }
 
 static uint8_t on_update(Entity *entity) {
@@ -40,6 +50,15 @@ static uint8_t on_update(Entity *entity) {
 	
 	if (entity->is_following) {
 		
+#if EDW_VEXEL
+        VX_BIND_lumber_draw_LOCAL;
+        vx_bind_lumber_draw_frame.a0=(uint8_t)entity->orientation;
+        vx_bind_lumber_draw_frame.a1=entity->selected_orientation;
+        vx_bind_lumber_draw_frame.a2=wolfi->animation_counter;vx_bind_lumber_draw_run();
+        entity->selected_orientation=vx_bind_lumber_draw_frame.result.v0;
+        if(vx_bind_lumber_draw_frame.result.v1!=255)
+            sprites[spawn_idx].resourceRequest=edw_lumberjack_sprite(vx_bind_lumber_draw_frame.result.v1);
+#else
 		if (entity->orientation == E_LEFT) {
 			
 			entity->selected_orientation = E_LEFT;			
@@ -59,7 +78,7 @@ static uint8_t on_update(Entity *entity) {
 
 			sprites[spawn_idx].spriteInfo = (wolfi->animation_counter & 0x04? &npcs_0_2 : &npcs_0_3);						
 		}
-
+#endif
 	} else {
 
 		if (collision_wolfi(spawn_idx)) {
@@ -111,3 +130,7 @@ void init_lumberjack(uint8_t spawn_idx, uint8_t i, uint8_t j) {
 	entity->callbacks = &callbacks;
 
 }
+
+#ifdef EDW_ENCOUNTER
+#include "../../../tests/follower_encounter.h"
+#endif

@@ -1,0 +1,62 @@
+// Active-low MSX keyboard row; unrelated keys retain their original meaning.
+[[c_binding(player_keys,full,64,exclusive)]]
+&^player_keys(keys:#u8)->#u8 {
+    vertical:#u8=(keys&96)==0 ? keys|96 : keys;
+    (vertical&144)==0 ? vertical|144 : vertical
+}
+// Rotate the ownership mask using constant shifts; the pure-value backend
+// can specialize these byte operations without a runtime shift helper.
+[[c_binding(player_weapon,full,1,exclusive)]]
+&^player_weapon(current:#u8,mask:#u8)->#u8 {
+    a:#u8=(current&4)!=0 ? (mask>>4)|(mask<<4) : mask;
+    b:#u8=(current&2)!=0 ? (a>>2)|(a<<6) : a;
+    c:#u8=(current&1)!=0 ? (b>>1)|(b<<7) : b;
+    step:#u8=(c&2)!=0 ? 1 : ((c&4)!=0 ? 2 : ((c&8)!=0 ? 3 : ((c&16)!=0 ? 4 :
+        ((c&32)!=0 ? 5 : ((c&64)!=0 ? 6 : ((c&128)!=0 ? 7 : 0))))));
+    (current+step)&7
+}
+// Free-slot bits: slash, bomb 0/1, projectile 0/1. Zero means no spawn.
+[[c_binding(player_attack,full,4,exclusive)]]
+&^player_attack(weapon:#u8,free:#u8)->#u8 {
+    weapon>7 ? 0 : (weapon==4 ? ((free&2)!=0 ? 2 : ((free&4)!=0 ? 3 : 0)) :
+    (weapon==5 || weapon==6 ? ((free&8)!=0 ? 4 : ((free&16)!=0 ? 5 : 0)) :
+    ((free&1)!=0 ? 1 : 0)))
+}
+#PlayerTick(skip:#u8,counter:#u8,move:#u8);
+[[c_binding(player_tick,full,64,exclusive)]]
+&^player_tick(skip:#u8,counter:#u8) {
+    next:#u8=skip+1;
+    next>2 ? #PlayerTick(0,counter,0) : #PlayerTick(next,counter+1,1)
+}
+#PlayerPoint(i:#u16,j:#u16);
+[[c_binding(player_move,full,128,exclusive)]]
+&^player_move(keys:#u8,i:#u16,j:#u16) {
+    (#PlayerPoint(i+((keys&32)==0 ? (#u16)-32 : (#u16)0)+((keys&64)==0 ? (#u16)32 : (#u16)0),
+        j+((keys&16)==0 ? (#u16)-32 : (#u16)0)+((keys&128)==0 ? (#u16)32 : (#u16)0)))
+}
+// First diagonal attempt, then horizontal slide, then vertical slide. A
+// query result is consumed before the next effect; callers supply fresh state.
+#PlayerSlide(i:#u16,j:#u16,qi:#u16,qj:#u16,query:#u8);
+[[c_binding(player_slide,full,128,exclusive)]]
+&^player_slide(stage:#u8,blocked:#u8,i:#u16,j:#u16,ti:#u16,tj:#u16) {
+    blocked==0 ? #PlayerSlide(stage==1 ? i : ti,stage==2 ? j : tj,0,0,0) :
+    (stage==0 && ti!=i && tj!=j ? #PlayerSlide(i,j,i,tj,1) :
+    (stage==1 ? #PlayerSlide(i,j,ti,j,2) : #PlayerSlide(i,j,0,0,0)))
+}
+#PlayerDraw(facing:#u8,frame:#u8);
+[[c_binding(player_draw,full,64,exclusive)]]
+&^player_draw(keys:#u8,counter:#u8,facing:#u8) {
+    dir:#u8=(keys&16)==0 ? (#u8)1 : ((keys&128)==0 ? (#u8)2 : ((keys&64)==0 ? (#u8)4 : ((keys&32)==0 ? (#u8)3 : facing)));
+    (#PlayerDraw(dir,(keys&240)==240 ? (#u8)255 :
+        (dir==1 ? (#u8)8 : (dir==2 ? (#u8)6 : (dir==3 ? (#u8)2 : (#u8)4)))+((counter&4)!=0 ? 0 : 1)))
+}
+#PlayerView(i:#u8,j:#u8,request:#u8);
+[[c_binding(player_view,full,64,exclusive)]]
+&^player_view(i:#u16,j:#u16,mi:#u8,mj:#u8,ti:#u8,tj:#u8,request:#u8) {
+    di:#u8=(#u8)(i>>8)-mi;dj:#u8=(#u8)(j>>8)-mj;
+    ai:#u8=di<8 && ti>0 ? mi-1 : ti;
+    aj:#u8=dj<10 && tj>0 ? mj-1 : tj;
+    ni:#u8=di>13 && ai<106 ? mi+1 : ai;
+    nj:#u8=dj>20 && aj<224 ? mj+1 : aj;
+    (#PlayerView(ni,nj,request | (mi!=ni ? 1 : 0) | (mj!=nj ? 1 : 0)))
+}

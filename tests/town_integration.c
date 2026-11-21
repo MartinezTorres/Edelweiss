@@ -13,6 +13,7 @@ struct T_Configuration configuration;
 T_Map map;
 TSpriteStatus sprites[12];
 TTextProperties popupTextProperties;
+const TSpriteInterlaced wolfi_0_0={0},wolfi_0_1={0},wolfi_3_0={0},wolfi_3_1={0},wolfi_4_0={0},wolfi_4_1={0};
 const TSpriteInterlaced wolfi_1_0={0},wolfi_1_1={0},wolfi_2_0={0},wolfi_2_1={0};
 static uint8_t draws,randoms[2],service,migrations,messages,bites,initial_life;
 static unsigned frames;

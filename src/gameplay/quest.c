@@ -6,6 +6,8 @@
  * rules run in page B, with all leaves copied before restoring that mapping.
  * Enter page C through the existing resident trampoline. */
 #include "vx_quests.inc"
+#include "vx_bind_ui_menu.h"
+#include "vx_bind_ui_cursor.h"
 USING_MODULE(quest_text, PAGE_D);
 USING_MODULE(quest_services, PAGE_B);
 
@@ -64,7 +66,7 @@ void quest_interact(uint8_t event) {
     }
 }
 
-/* The UI owns cursor movement; Vexel supplies the available answers. These
+/* Vexel owns cursor movement and available answers. These
  * functions share the existing text buffer and hold no mapped text pointer. */
 static void init_text_canvas(void) {
     uint8_t pj = ((state.entities[0].pos.j + 0x80) >> 8) - map.pos.j;
@@ -73,21 +75,24 @@ static void init_text_canvas(void) {
 }
 
 static void draw_cursor(uint8_t option, uint8_t value, uint8_t vertical) {
-    largePopupTextProperties.y = 2 + 7 * (vertical ? option : 3);
-    largePopupTextProperties.x = vertical || !option ? 5 : 35;
+    VX_BIND_ui_cursor_LOCAL;
+    vx_bind_ui_cursor_frame.a0=option;vx_bind_ui_cursor_frame.a1=vertical;vx_bind_ui_cursor_run();
+    largePopupTextProperties.x=vx_bind_ui_cursor_frame.result.v0;
+    largePopupTextProperties.y=vx_bind_ui_cursor_frame.result.v1;
     largePopupTextProperties.value = value;
     largePopupWriteText(">");
 }
 
 static uint8_t menu_input(uint8_t option, uint8_t choices, uint8_t vertical) {
-    uint8_t next;
+    uint8_t next,confirm;
     for (;;) {
         quest_read_input();
         /* Preserve the original left, right, confirm ordering, including
          * simultaneous clicks. Selection is bounded by the supplied count. */
-        next = option;
-        if ((keyboard_click[8] & (vertical ? K_UP : K_LEFT)) && next) --next;
-        if ((keyboard_click[8] & (vertical ? K_DOWN : K_RIGHT)) && next + 1 < choices) ++next;
+        { VX_BIND_ui_menu_LOCAL;
+          vx_bind_ui_menu_frame.a0=option;vx_bind_ui_menu_frame.a1=choices;
+          vx_bind_ui_menu_frame.a2=vertical;vx_bind_ui_menu_frame.a3=keyboard_click[8];
+          vx_bind_ui_menu_run();next=vx_bind_ui_menu_frame.result.v0;confirm=vx_bind_ui_menu_frame.result.v1; }
         if (next != option) {
             IN_MODULE(largepopup, PAGE_B,
                 draw_cursor(option, 0, vertical);
@@ -95,7 +100,7 @@ static uint8_t menu_input(uint8_t option, uint8_t choices, uint8_t vertical) {
             );
             option = next;
         }
-        if (keyboard_click[8] & K_SPACE) return option;
+        if (confirm) return option;
         wait_frame();
     }
 }

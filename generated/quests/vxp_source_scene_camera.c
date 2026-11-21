@@ -1,0 +1,15 @@
+/* Editable NEO-8 window B module. Keep the generated ABI. */
+#include "vexel.h"
+#include "vx_support_value_base.h"
+void vxi_vx_scene_camera(VX_STABLE uint16_t vxp_a0,VX_STABLE uint16_t vxp_a1,VX_STABLE uint8_t vxp_a2,VX_STABLE uint8_t vxp_a3,VX_STABLE uint8_t vxp_a4,VX_STABLE uint8_t vxp_a5,VX_STABLE uint8_t vxp_a6) VX_ABI {
+    static VX_STABLE uint16_t vxo_0;
+    vxo_0 = (uint16_t)((((((uint32_t)((((uint32_t)((VX_VALUE_I16(((uint16_t)(VX_VALUE_I16(((uint16_t)((((uint16_t)(vxp_a0)) >> 8)))))) - ((uint16_t)(vxp_a2))) < 8))) & 255UL)))) ? ((uint32_t)(vxp_a4) > (uint32_t)(0UL)) : 0UL) ? (((uint32_t)(vxp_a2) - (uint32_t)(1UL)) & 255UL) : (((((uint32_t)((((uint32_t)((VX_VALUE_I16(((uint16_t)(VX_VALUE_I16(((uint16_t)((((uint16_t)(vxp_a0)) >> 8)))))) - ((uint16_t)(vxp_a2))) > 13))) & 255UL)))) ? ((uint32_t)(vxp_a4) < (uint32_t)(106UL)) : 0UL) ? (((uint32_t)(vxp_a2) + (uint32_t)(1UL)) & 255UL) : vxp_a4)));
+    vx_payload[0] = (uint8_t)(VX_SNAPSHOT16(vxo_0));
+    vx_payload[1] = (uint8_t)(((uint32_t)(VX_SNAPSHOT16(vxo_0))) >> 8);
+    vxo_0 = (uint16_t)((((((uint32_t)((((uint32_t)((VX_VALUE_I16(((uint16_t)(VX_VALUE_I16(((uint16_t)((((uint16_t)(vxp_a1)) >> 8)))))) - ((uint16_t)(vxp_a3))) < 10))) & 255UL)))) ? ((uint32_t)(vxp_a5) > (uint32_t)(0UL)) : 0UL) ? (((uint32_t)(vxp_a3) - (uint32_t)(1UL)) & 255UL) : (((((uint32_t)((((uint32_t)((VX_VALUE_I16(((uint16_t)(VX_VALUE_I16(((uint16_t)((((uint16_t)(vxp_a1)) >> 8)))))) - ((uint16_t)(vxp_a3))) > 20))) & 255UL)))) ? ((uint32_t)(vxp_a5) < (uint32_t)(224UL)) : 0UL) ? (((uint32_t)(vxp_a3) + (uint32_t)(1UL)) & 255UL) : vxp_a5)));
+    vx_payload[2] = (uint8_t)(VX_SNAPSHOT16(vxo_0));
+    vx_payload[3] = (uint8_t)(((uint32_t)(VX_SNAPSHOT16(vxo_0))) >> 8);
+    vxo_0 = (uint16_t)((((uint32_t)((((uint32_t)(vxp_a6) | (uint32_t)((((uint32_t)(vxp_a2) != (uint32_t)((((((uint32_t)((((uint32_t)((VX_VALUE_I16(((uint16_t)(VX_VALUE_I16(((uint16_t)((((uint16_t)(vxp_a0)) >> 8)))))) - ((uint16_t)(vxp_a2))) < 8))) & 255UL)))) ? ((uint32_t)(vxp_a4) > (uint32_t)(0UL)) : 0UL) ? (((uint32_t)(vxp_a2) - (uint32_t)(1UL)) & 255UL) : (((((uint32_t)((((uint32_t)((VX_VALUE_I16(((uint16_t)(VX_VALUE_I16(((uint16_t)((((uint16_t)(vxp_a0)) >> 8)))))) - ((uint16_t)(vxp_a2))) > 13))) & 255UL)))) ? ((uint32_t)(vxp_a4) < (uint32_t)(106UL)) : 0UL) ? (((uint32_t)(vxp_a2) + (uint32_t)(1UL)) & 255UL) : vxp_a4)))) ? 1UL : 0UL))) & 255UL)) | (uint32_t)((((uint32_t)(vxp_a3) != (uint32_t)((((((uint32_t)((((uint32_t)((VX_VALUE_I16(((uint16_t)(VX_VALUE_I16(((uint16_t)((((uint16_t)(vxp_a1)) >> 8)))))) - ((uint16_t)(vxp_a3))) < 10))) & 255UL)))) ? ((uint32_t)(vxp_a5) > (uint32_t)(0UL)) : 0UL) ? (((uint32_t)(vxp_a3) - (uint32_t)(1UL)) & 255UL) : (((((uint32_t)((((uint32_t)((VX_VALUE_I16(((uint16_t)(VX_VALUE_I16(((uint16_t)((((uint16_t)(vxp_a1)) >> 8)))))) - ((uint16_t)(vxp_a3))) > 20))) & 255UL)))) ? ((uint32_t)(vxp_a5) < (uint32_t)(224UL)) : 0UL) ? (((uint32_t)(vxp_a3) + (uint32_t)(1UL)) & 255UL) : vxp_a5)))) ? 1UL : 0UL))) & 255UL));
+    vx_payload[4] = (uint8_t)(VX_SNAPSHOT16(vxo_0));
+    vx_payload[5] = (uint8_t)(((uint32_t)(VX_SNAPSHOT16(vxo_0))) >> 8);
+}

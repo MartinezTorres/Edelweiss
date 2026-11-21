@@ -1,0 +1,55 @@
+// Pure melee decisions. Collision, map writes and rendering are engine effects.
+// Facing: 0/rest, 1/left, 2/right, 3/up, 4/down. Position units are 1/32 pixel.
+#MeleeStyle(damage:#u8,override:#u8,color0:#u8,color1:#u8,axe:#u8);
+[[c_binding(melee_style,full,1,exclusive)]]
+&^melee_style(weapon:#u8) {
+    (#MeleeStyle(weapon==0 ? 1 : (weapon==1 ? 4 : (weapon==2 ? 8 : (weapon==3 ? 2 : 16))),
+        weapon==0 || weapon==1 ? 0 : 1,
+        weapon==2 ? 14 : (weapon==3 ? 6 : 15),
+        weapon==2 ? 5 : (weapon==3 ? 4 : 11),weapon==3 ? 1 : 0))
+}
+#MeleeHit(i:#u16,j:#u16,height:#u8,width:#u8);
+[[c_binding(melee_hit,full,1,exclusive)]]
+&^melee_hit(weapon:#u8,facing:#u8,i:#u16,j:#u16) {
+    distance:#u16=weapon==0 ? 160 : 192;
+    narrow:#u8=weapon==0 ? 10 : 12;
+    wide:#u8=weapon==0 ? 36 : 40;
+    vertical=facing==3 || facing==4;
+    (#MeleeHit(facing==3 ? i-distance : (facing==4 ? i+distance : i),
+        facing==1 ? j-distance : (vertical ? j : j+distance),
+        vertical ? narrow : wide,vertical ? wide : narrow))
+}
+#MeleePoint(i:#u16,j:#u16);
+[[c_binding(melee_axe,full,1,exclusive)]]
+&^melee_axe(facing:#u8,i:#u16,j:#u16) {
+    (#MeleePoint(i+256+(facing==3 ? (#u16)-384 : (facing==1 || facing==2 ? (#u16)0 : (#u16)384)),
+        j+256+(facing==1 ? (#u16)-384 : (facing==2 ? (#u16)384 : (#u16)0))))
+}
+// Tile observations: 0/unrelated, 1/wood fence, 2/bush.
+[[c_binding(melee_cut,full,1,exclusive)]]
+&^melee_cut(kind:#u8)->#u8 { kind==1 || kind==2 ? 1 : 0 }
+
+&melee_diagonal(stage:#u8)->#i16 { stage==0 || stage==4 ? 192 : (stage==2 ? 384 : 333) }
+&melee_cross(stage:#u8)->#i16 { stage==0 ? 333 : (stage==1 ? 192 : (stage==2 ? 0 : (stage==3 ? -192 : -333))) }
+// Logical frame order is the twelve declarations in melee_assets.vx.
+&melee_frame(facing:#u8,stage:#u8)->#u8 {
+    facing==1 ? (stage==0 ? 10 : (stage==1 ? 9 : (stage==2 ? 8 : (stage==3 ? 6 : 4)))) : (
+    facing==2 ? (stage==0 ? 1 : (stage==1 ? 2 : (stage==2 ? 3 : (stage==3 ? 5 : 7)))) : (
+    facing==3 ? (stage==0 ? 6 : (stage==1 ? 4 : (stage==2 ? 0 : (stage==3 ? 1 : 2)))) :
+                (stage==0 ? 5 : (stage==1 ? 7 : (stage==2 ? 11 : (stage==3 ? 10 : 9))))))
+}
+#MeleeUpdate(live:#u8,apply:#u8,counter:#u8,i:#u16,j:#u16,frame:#u8,small:#u8);
+[[c_binding(melee_update,full,16,exclusive)]]
+&^melee_update(weapon:#u8,facing:#u8,counter:#u8,elapsed:#u8,i:#u16,j:#u16) {
+    counter>=20 ? #MeleeUpdate(0,0,counter,0,0,0,0) : (
+    elapsed==0 ? #MeleeUpdate(1,0,counter,0,0,0,0) : {
+        remaining:#u8=20-counter;
+        next:#u8=counter+(elapsed<remaining ? elapsed : remaining);
+        stage:#u8=(next-1)>>2;
+        a=melee_diagonal(stage);b=melee_cross(stage);
+        di:#i16=facing==1 ? b : (facing==2 ? -b : (facing==3 ? -a : a));
+        dj:#i16=facing==1 ? -a : (facing==2 ? a : (facing==3 ? -b : b));
+        (#MeleeUpdate(next<20 ? 1 : 0,1,next,i+(#u16)di,j+(#u16)dj,
+            melee_frame(facing,stage),weapon==0 ? 1 : 0))
+    })
+}

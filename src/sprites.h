@@ -14,7 +14,10 @@ typedef struct {
     bool enabled;
     bool outOfBounds;
     
-    uint8_t patternBlackSprite;
+    /* One-byte publication: zero means no pending resource. This replaces
+     * an unused byte, preserving the layout of all following legacy fields.
+     * The engine serializes producers with the rendering sink. */
+    volatile uint8_t resourceRequest;
     uint8_t patternColorSprite;
     uint8_t degradedCounter;
     

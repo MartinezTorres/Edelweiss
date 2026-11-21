@@ -1,0 +1,499 @@
+{
+  "table_module": "sprites",
+  "table_page": 1,
+  "table": "edw_sprite_bindings",
+  "sprite_bytes": 98,
+  "none": 0,
+  "families": [
+    {
+      "name": "ghost",
+      "module": "entity_ghosti_sprite",
+      "page": 3,
+      "frames": [
+        {
+          "handle": 1,
+          "symbol": "ghosti_0_0"
+        },
+        {
+          "handle": 2,
+          "symbol": "ghosti_0_1"
+        },
+        {
+          "handle": 3,
+          "symbol": "ghosti_1_0"
+        },
+        {
+          "handle": 4,
+          "symbol": "ghosti_1_1"
+        },
+        {
+          "handle": 5,
+          "symbol": "ghosti_2_0"
+        },
+        {
+          "handle": 6,
+          "symbol": "ghosti_2_1"
+        },
+        {
+          "handle": 7,
+          "symbol": "ghosti_3_0"
+        },
+        {
+          "handle": 8,
+          "symbol": "ghosti_3_1"
+        },
+        {
+          "handle": 9,
+          "symbol": "ghosti_4_0"
+        },
+        {
+          "handle": 10,
+          "symbol": "ghosti_4_1"
+        },
+        {
+          "handle": 11,
+          "symbol": "ghosti_5_0"
+        },
+        {
+          "handle": 12,
+          "symbol": "ghosti_5_1"
+        }
+      ]
+    },
+    {
+      "name": "skeleti",
+      "module": "entity_skeleti_sprite",
+      "page": 3,
+      "frames": [
+        {
+          "handle": 13,
+          "symbol": "skeleti_0_0"
+        },
+        {
+          "handle": 14,
+          "symbol": "skeleti_0_1"
+        },
+        {
+          "handle": 15,
+          "symbol": "skeleti_1_0"
+        },
+        {
+          "handle": 16,
+          "symbol": "skeleti_1_1"
+        },
+        {
+          "handle": 17,
+          "symbol": "skeleti_2_0"
+        },
+        {
+          "handle": 18,
+          "symbol": "skeleti_2_1"
+        },
+        {
+          "handle": 19,
+          "symbol": "skeleti_3_0"
+        },
+        {
+          "handle": 20,
+          "symbol": "skeleti_3_1"
+        },
+        {
+          "handle": 21,
+          "symbol": "skeleti_4_0"
+        },
+        {
+          "handle": 22,
+          "symbol": "skeleti_4_1"
+        }
+      ]
+    },
+    {
+      "name": "melee_small",
+      "module": "entity_weapon_slash_small_sprite",
+      "page": 3,
+      "frames": [
+        {
+          "handle": 23,
+          "symbol": "weapon_slash_small_0_0"
+        },
+        {
+          "handle": 24,
+          "symbol": "weapon_slash_small_0_1"
+        },
+        {
+          "handle": 25,
+          "symbol": "weapon_slash_small_0_2"
+        },
+        {
+          "handle": 26,
+          "symbol": "weapon_slash_small_0_3"
+        },
+        {
+          "handle": 27,
+          "symbol": "weapon_slash_small_1_0"
+        },
+        {
+          "handle": 28,
+          "symbol": "weapon_slash_small_1_3"
+        },
+        {
+          "handle": 29,
+          "symbol": "weapon_slash_small_2_0"
+        },
+        {
+          "handle": 30,
+          "symbol": "weapon_slash_small_2_3"
+        },
+        {
+          "handle": 31,
+          "symbol": "weapon_slash_small_3_0"
+        },
+        {
+          "handle": 32,
+          "symbol": "weapon_slash_small_3_1"
+        },
+        {
+          "handle": 33,
+          "symbol": "weapon_slash_small_3_2"
+        },
+        {
+          "handle": 34,
+          "symbol": "weapon_slash_small_3_3"
+        }
+      ]
+    },
+    {
+      "name": "melee_large",
+      "module": "entity_weapon_slash_large_sprite",
+      "page": 3,
+      "frames": [
+        {
+          "handle": 35,
+          "symbol": "weapon_slash_large_0_0"
+        },
+        {
+          "handle": 36,
+          "symbol": "weapon_slash_large_0_1"
+        },
+        {
+          "handle": 37,
+          "symbol": "weapon_slash_large_0_2"
+        },
+        {
+          "handle": 38,
+          "symbol": "weapon_slash_large_0_3"
+        },
+        {
+          "handle": 39,
+          "symbol": "weapon_slash_large_1_0"
+        },
+        {
+          "handle": 40,
+          "symbol": "weapon_slash_large_1_3"
+        },
+        {
+          "handle": 41,
+          "symbol": "weapon_slash_large_2_0"
+        },
+        {
+          "handle": 42,
+          "symbol": "weapon_slash_large_2_3"
+        },
+        {
+          "handle": 43,
+          "symbol": "weapon_slash_large_3_0"
+        },
+        {
+          "handle": 44,
+          "symbol": "weapon_slash_large_3_1"
+        },
+        {
+          "handle": 45,
+          "symbol": "weapon_slash_large_3_2"
+        },
+        {
+          "handle": 46,
+          "symbol": "weapon_slash_large_3_3"
+        }
+      ]
+    },
+    {
+      "name": "arrow",
+      "module": "entity_weapon_arrow_sprite",
+      "page": 3,
+      "frames": [
+        {
+          "handle": 47,
+          "symbol": "weapon_arrow_0_0"
+        },
+        {
+          "handle": 48,
+          "symbol": "weapon_arrow_1_0"
+        },
+        {
+          "handle": 49,
+          "symbol": "weapon_arrow_2_0"
+        },
+        {
+          "handle": 50,
+          "symbol": "weapon_arrow_3_0"
+        }
+      ]
+    },
+    {
+      "name": "fire",
+      "module": "entity_weapon_fire_sprite",
+      "page": 3,
+      "frames": [
+        {
+          "handle": 51,
+          "symbol": "weapon_fire_0_0"
+        },
+        {
+          "handle": 52,
+          "symbol": "weapon_fire_1_0"
+        },
+        {
+          "handle": 53,
+          "symbol": "weapon_fire_2_0"
+        },
+        {
+          "handle": 54,
+          "symbol": "weapon_fire_3_0"
+        }
+      ]
+    },
+    {
+      "name": "bomb",
+      "module": "entity_weapon_bomb_sprite",
+      "page": 3,
+      "frames": [
+        {
+          "handle": 55,
+          "symbol": "weapon_bomb_0_0"
+        },
+        {
+          "handle": 56,
+          "symbol": "weapon_bomb_1_0"
+        },
+        {
+          "handle": 57,
+          "symbol": "weapon_bomb_2_0"
+        },
+        {
+          "handle": 58,
+          "symbol": "weapon_bomb_3_0"
+        }
+      ]
+    },
+    {
+      "name": "spark",
+      "module": "entity_spark_sprite",
+      "page": 3,
+      "frames": [
+        {
+          "handle": 59,
+          "symbol": "spark_0_0"
+        },
+        {
+          "handle": 60,
+          "symbol": "spark_0_1"
+        },
+        {
+          "handle": 61,
+          "symbol": "spark_0_2"
+        },
+        {
+          "handle": 62,
+          "symbol": "spark_1_0"
+        },
+        {
+          "handle": 63,
+          "symbol": "spark_1_1"
+        },
+        {
+          "handle": 64,
+          "symbol": "spark_1_2"
+        },
+        {
+          "handle": 65,
+          "symbol": "spark_2_0"
+        },
+        {
+          "handle": 66,
+          "symbol": "spark_2_1"
+        },
+        {
+          "handle": 67,
+          "symbol": "spark_2_2"
+        },
+        {
+          "handle": 68,
+          "symbol": "spark_3_0"
+        },
+        {
+          "handle": 69,
+          "symbol": "spark_3_1"
+        },
+        {
+          "handle": 70,
+          "symbol": "spark_3_2"
+        }
+      ]
+    },
+    {
+      "name": "explosion",
+      "module": "entity_explosion_sprite",
+      "page": 3,
+      "frames": [
+        {
+          "handle": 71,
+          "symbol": "explosion_0_0"
+        },
+        {
+          "handle": 72,
+          "symbol": "explosion_1_0"
+        },
+        {
+          "handle": 73,
+          "symbol": "explosion_2_0"
+        },
+        {
+          "handle": 74,
+          "symbol": "explosion_3_0"
+        }
+      ]
+    },
+    {
+      "name": "ball",
+      "module": "enemy_ball_sprite",
+      "page": 3,
+      "frames": [
+        {
+          "handle": 75,
+          "symbol": "enemy_ball_0_0"
+        },
+        {
+          "handle": 76,
+          "symbol": "enemy_ball_1_0"
+        },
+        {
+          "handle": 77,
+          "symbol": "enemy_ball_2_0"
+        },
+        {
+          "handle": 78,
+          "symbol": "enemy_ball_3_0"
+        }
+      ]
+    },
+    {
+      "name": "player",
+      "module": "entity_wolfi_sprite",
+      "page": 3,
+      "frames": [
+        {
+          "handle": 79,
+          "symbol": "wolfi_0_0"
+        },
+        {
+          "handle": 80,
+          "symbol": "wolfi_0_1"
+        },
+        {
+          "handle": 81,
+          "symbol": "wolfi_1_0"
+        },
+        {
+          "handle": 82,
+          "symbol": "wolfi_1_1"
+        },
+        {
+          "handle": 83,
+          "symbol": "wolfi_2_0"
+        },
+        {
+          "handle": 84,
+          "symbol": "wolfi_2_1"
+        },
+        {
+          "handle": 85,
+          "symbol": "wolfi_3_0"
+        },
+        {
+          "handle": 86,
+          "symbol": "wolfi_3_1"
+        },
+        {
+          "handle": 87,
+          "symbol": "wolfi_4_0"
+        },
+        {
+          "handle": 88,
+          "symbol": "wolfi_4_1"
+        }
+      ]
+    },
+    {
+      "name": "drop",
+      "module": "entity_drop_item_sprite",
+      "page": 3,
+      "frames": [
+        {
+          "handle": 89,
+          "symbol": "drop_items_0_0"
+        },
+        {
+          "handle": 90,
+          "symbol": "drop_items_1_0"
+        },
+        {
+          "handle": 91,
+          "symbol": "drop_items_2_0"
+        },
+        {
+          "handle": 92,
+          "symbol": "drop_items_3_0"
+        }
+      ]
+    },
+    {
+      "name": "fairy",
+      "module": "entity_fairy_sprite",
+      "page": 3,
+      "frames": [
+        {
+          "handle": 93,
+          "symbol": "fairy_0_0"
+        },
+        {
+          "handle": 94,
+          "symbol": "fairy_1_0"
+        }
+      ]
+    },
+    {
+      "name": "lumberjack",
+      "module": "entity_npcs_sprites",
+      "page": 3,
+      "frames": [
+        {
+          "handle": 95,
+          "symbol": "npcs_0_0"
+        },
+        {
+          "handle": 96,
+          "symbol": "npcs_0_1"
+        },
+        {
+          "handle": 97,
+          "symbol": "npcs_0_2"
+        },
+        {
+          "handle": 98,
+          "symbol": "npcs_0_3"
+        }
+      ]
+    }
+  ]
+}

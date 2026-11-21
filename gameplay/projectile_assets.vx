@@ -1,0 +1,6 @@
+arrow_sprite_module="entity_weapon_arrow_sprite";
+arrow_sprite_frames=("weapon_arrow_0_0","weapon_arrow_1_0","weapon_arrow_2_0","weapon_arrow_3_0");
+fire_sprite_module="entity_weapon_fire_sprite";
+fire_sprite_frames=("weapon_fire_0_0","weapon_fire_1_0","weapon_fire_2_0","weapon_fire_3_0");
+bomb_sprite_module="entity_weapon_bomb_sprite";
+bomb_sprite_frames=("weapon_bomb_0_0","weapon_bomb_1_0","weapon_bomb_2_0","weapon_bomb_3_0");

@@ -2,8 +2,10 @@
 #include <assert.h>
 #include <stdio.h>
 #include <string.h>
+#include "vx_sprite_assets.h"
 #if EDW_VEXEL
 #include "vexel.h"
+#include "vx_bind_skeleti_tick.h"
 uint8_t vx_payload[20];
 void vx_trap(uint8_t reason) { (void)reason;assert(0); }
 #endif
@@ -15,6 +17,11 @@ static bool touching;
 static void release_result(void) {
 #if EDW_VEXEL
     memset(vx_payload,0xA5,sizeof(vx_payload));
+    /* A callback may reuse the overlay after the drop result is consumed.
+     * The next drop calculation must publish a complete fresh input set. */
+    { VX_BIND_skeleti_tick_LOCAL;
+      vx_bind_skeleti_tick_frame.a0=244;vx_bind_skeleti_tick_frame.a1=7;
+      vx_bind_skeleti_tick_run(); }
 #endif
 }
 uint16_t rand16(void) { ++draws;release_result();return random_value; }
@@ -67,6 +74,31 @@ int main(void) {
     e->animation_counter=183;assert(e->callbacks->on_update(e) && sprites[4].enabled);
     e->animation_counter=239;touching=true;collisions=0;
     assert(!e->callbacks->on_update(e) && !collisions && state.entities[0].life==3);
+    {
+        static const uint8_t counters[]={0,13,14,179,180,183,184,231,239,240,250,255};
+        static const uint8_t elapsed[]={0,1,2,3,14,240,255},items[]={0,1,4,255};
+        unsigned c,t,item,n;
+        for(item=0;item<sizeof(items);++item)for(c=0;c<sizeof(counters);++c)for(t=0;t<sizeof(elapsed);++t) {
+            uint8_t count=counters[c],live=items[item]!=0,visible=8;
+            e=reset(0,items[item],0);assert(spawn_entity(ENTITY_DROP_ITEM_0));
+            e->animation_counter=count;state.isr_count_delta=elapsed[t];sprites[4].enabled=(bool)visible;
+            collisions=0;
+            if(live)for(n=0;n<elapsed[t];++n) {
+                if(count>=240){live=0;break;}
+                visible=count<14?0:(count<180?1:count&8);++count;
+            }
+            assert(e->callbacks->on_update(e)==live && e->animation_counter==count);
+            assert(sprites[4].enabled==visible && collisions==live);
+#if EDW_VEXEL
+            assert(!sprites[4].spriteInfo);
+            assert(sprites[4].resourceRequest==(items[item]>=1&&items[item]<=4?edw_drop_sprite(items[item]-1):0));
+#endif
+            despawn_entity(ENTITY_DROP_ITEM_0);
+#if EDW_VEXEL
+            assert(!sprites[4].resourceRequest && !sprites[4].spriteInfo);
+#endif
+        }
+    }
     puts("drops: distribution boundaries, explicit draws, rewards, single consumption and lifetime passed");
     return 0;
 }
